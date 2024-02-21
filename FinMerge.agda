@@ -12,16 +12,8 @@ open import Relation.Binary.PropositionalEquality.Properties using (module ≡-R
 open import Function using (id ; _∘_ ; _$_)
 open import Data.Maybe.Base using (Maybe; just; nothing; fromMaybe)
 
+open import Util using (_<_<_; _<_≤_; toℕ<)
 
-_<_≤_ : ℕ → ℕ → ℕ → Set
-_<_≤_ i j k = (i < j) × (j ≤ k)
-
-_<_<_ : ℕ → ℕ → ℕ → Set
-_<_<_ i j k = (i < j) × (j < k)
-
-toℕ< : {n : ℕ} → (i : Fin n) → toℕ i < n
-toℕ< Fin.zero = z<s
-toℕ< (Fin.suc i) = _≤_.s≤s (toℕ< i)
 
 data Ordering {n : ℕ} : Fin n → Fin n → Set where
   less : ∀ {i j} → toℕ i < toℕ j < n → Ordering i j
