@@ -4,14 +4,15 @@ open import Data.Fin using (Fin; fromℕ<; toℕ; #_; lower₁)
 open import Data.Fin.Properties using (¬Fin0)
 open import Data.Nat using (ℕ; _+_; _≤_; _<_; z<s; pred; z≤n; s≤s)
 open import Data.Nat.Properties using (≤-trans; <⇒≢)
-open import Data.Product using (_,_)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong; sym; _≢_)
+open import Data.Product using (_,_; proj₁; proj₂; Σ-syntax)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong; cong-app; sym; _≢_)
 open import Relation.Binary.PropositionalEquality.Properties using (module ≡-Reasoning)
 open import Data.Maybe.Base using (Maybe; nothing; just; fromMaybe)
+open import Function using (id;  _∘_)
 
-open import Util using (_<_<_; _<_≤_; toℕ<)
+open import Util using (_<_<_; _<_≤_; toℕ<; less; equal; greater; compare)
 
-open import FinMerge using (merge; pluck)
+open import FinMerge using (merge; pluck; glue-iter)
 
 
 private
@@ -104,3 +105,56 @@ merge-i-j {_} {i} {j} i<j≤n = ≡
       merge i<j≤n i ≡⟨ i-to-i i<j≤n ⟩
       lower₁ i (not-n i<j≤n) ≡⟨ sym (j-to-i i<j≤n) ⟩
       merge i<j≤n j ∎
+
+glue-iter-append
+    : {y : ℕ}
+    → (f g : Fin m → Fin y)
+    → (h : Fin n → Fin y)
+    → Σ[ h′ ∈ (Fin y → Fin (proj₁ (glue-iter f g h))) ] (proj₂ (glue-iter f g h) ≡ h′ ∘ h)
+glue-iter-append f g h = ?
+
+lemma₂
+    : (f g : Fin (ℕ.suc m) → Fin n)
+    → let p = proj₂ (glue-iter f g id) in p (f (# 0)) ≡ p (g (# 0))
+lemma₂ f g with compare (f (# 0)) (g (# 0))
+lemma₂ f g | less (f0<g0 , s≤s g0≤n)
+  with
+    glue-iter-append
+        (merge (f0<g0 , g0≤n) ∘ f ∘ Fin.suc)
+        (merge (f0<g0 , g0≤n) ∘ g ∘ Fin.suc)
+        (merge (f0<g0 , g0≤n))
+... | h′ , glue≡h′∘h = ≡
+      where
+        open ≡-Reasoning
+        p = merge (f0<g0 , g0≤n)
+        f′ = f ∘ Fin.suc
+        g′ = g ∘ Fin.suc
+        ≡ : proj₂ (glue-iter (p ∘ f′) (p ∘ g′) p) (f Fin.zero)
+          ≡ proj₂ (glue-iter (p ∘ f′) (p ∘ g′) p) (g Fin.zero)
+        ≡ = begin
+            proj₂ (glue-iter (p ∘ f′) (p ∘ g′) p) (f Fin.zero)
+                                  ≡⟨ cong-app glue≡h′∘h (f Fin.zero) ⟩
+            h′ (p (f Fin.zero))   ≡⟨ cong h′ (merge-i-j (f0<g0 , g0≤n)) ⟩
+            h′ (p (g Fin.zero))   ≡⟨ sym (cong-app glue≡h′∘h (g Fin.zero)) ⟩
+            proj₂ (glue-iter (p ∘ f′) (p ∘ g′) p) (g Fin.zero) ∎
+lemma₂ f g | equal f0≡g0 = cong (proj₂ (glue-iter (f ∘ Fin.suc) (g ∘ Fin.suc) id)) f0≡g0
+lemma₂ f g | greater (g0<f0 , s≤s f0≤n)
+  with
+    glue-iter-append
+        (merge (g0<f0 , f0≤n) ∘ f ∘ Fin.suc)
+        (merge (g0<f0 , f0≤n) ∘ g ∘ Fin.suc)
+        (merge (g0<f0 , f0≤n) ∘ id)
+... | h′ , glue≡h′∘h = ≡
+          where
+            open ≡-Reasoning
+            p = merge (g0<f0 , f0≤n)
+            f′ = f ∘ Fin.suc
+            g′ = g ∘ Fin.suc
+            ≡ : proj₂ (glue-iter (p ∘ f′) (p ∘ g′) p) (f Fin.zero)
+              ≡ proj₂ (glue-iter (p ∘ f′) (p ∘ g′) p) (g Fin.zero)
+            ≡ = begin
+                proj₂ (glue-iter (p ∘ f′) (p ∘ g′) p) (f Fin.zero)
+                                      ≡⟨ cong-app glue≡h′∘h (f Fin.zero) ⟩
+                h′ (p (f Fin.zero))   ≡⟨ cong h′ (sym (merge-i-j (g0<f0 , f0≤n))) ⟩
+                h′ (p (g Fin.zero))   ≡⟨ sym (cong-app glue≡h′∘h (g Fin.zero)) ⟩
+                proj₂ (glue-iter (p ∘ f′) (p ∘ g′) p) (g Fin.zero) ∎
