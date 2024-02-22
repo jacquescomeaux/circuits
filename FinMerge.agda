@@ -50,10 +50,10 @@ glue-iter
     → Σ[ x ∈ ℕ ] (Fin n → Fin x)
 glue-iter {ℕ.zero} {n} {y} f g h = y , h
 glue-iter {ℕ.suc m} {n} {y} f g h with compare (f (# 0)) (g (# 0))
-... | less (f0<g0 , s≤s g0<n) =
-        let p = merge (f0<g0 , g0<n) in
+... | less (f0<g0 , s≤s g0≤n) =
+        let p = merge (f0<g0 , g0≤n) in
         glue-iter (p ∘ f ∘ Fin.suc) (p ∘ g ∘ Fin.suc) (p ∘ h)
 ... | equal _ = glue-iter (f ∘ Fin.suc) (g ∘ Fin.suc) h
-... | greater (g0<f0 , s≤s f0<n) =
-        let p = merge (g0<f0 , f0<n) in
+... | greater (g0<f0 , s≤s f0≤n) =
+        let p = merge (g0<f0 , f0≤n) in
         glue-iter (p ∘ f ∘ Fin.suc) (p ∘ g ∘ Fin.suc) (p ∘ h)

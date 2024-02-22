@@ -111,7 +111,23 @@ glue-iter-append
     → (f g : Fin m → Fin y)
     → (h : Fin n → Fin y)
     → Σ[ h′ ∈ (Fin y → Fin (proj₁ (glue-iter f g h))) ] (proj₂ (glue-iter f g h) ≡ h′ ∘ h)
-glue-iter-append f g h = ?
+glue-iter-append {ℕ.zero} f g h = id , refl
+glue-iter-append {ℕ.suc m} f g h with compare (f (# 0)) (g (# 0))
+glue-iter-append {ℕ.suc m} f g h | less (f0<g0 , s≤s g0≤n)
+  with
+    glue-iter-append
+        (merge (f0<g0 , g0≤n) ∘ f ∘ Fin.suc)
+        (merge (f0<g0 , g0≤n) ∘ g ∘ Fin.suc)
+        (merge (f0<g0 , g0≤n) ∘ h)
+... | h′ , glue-p∘h≡h′∘p∘h = h′ ∘ merge (f0<g0 , g0≤n) , glue-p∘h≡h′∘p∘h
+glue-iter-append {ℕ.suc m} f g h | equal x = glue-iter-append (f ∘ Fin.suc) (g ∘ Fin.suc) h
+glue-iter-append {ℕ.suc m} f g h | greater (g0<f0 , s≤s f0≤n)
+  with
+    glue-iter-append
+        (merge (g0<f0 , f0≤n) ∘ f ∘ Fin.suc)
+        (merge (g0<f0 , f0≤n) ∘ g ∘ Fin.suc)
+        (merge (g0<f0 , f0≤n) ∘ h)
+... | h′ , glue-p∘h≡h′∘p∘h = h′ ∘ merge (g0<f0 , f0≤n) , glue-p∘h≡h′∘p∘h
 
 lemma₂
     : (f g : Fin (ℕ.suc m) → Fin n)
