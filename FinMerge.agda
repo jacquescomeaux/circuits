@@ -3,7 +3,7 @@ module FinMerge where
 open import Data.Empty using (⊥-elim)
 open import Data.Fin using (Fin; fromℕ<; toℕ; #_)
 open import Data.Fin.Properties using (¬Fin0)
-open import Data.Nat using (ℕ; _+_; _≤_; _<_ ; z<s)
+open import Data.Nat using (ℕ; _+_; _≤_; _<_ ; z<s; s≤s)
 open import Data.Nat.Properties using (≤-trans)
 open import Data.Sum.Base using (_⊎_)
 open import Data.Product using (_×_; _,_; Σ-syntax; map₂)
@@ -12,22 +12,8 @@ open import Relation.Binary.PropositionalEquality.Properties using (module ≡-R
 open import Function using (id ; _∘_ ; _$_)
 open import Data.Maybe.Base using (Maybe; just; nothing; fromMaybe)
 
-open import Util using (_<_<_; _<_≤_; toℕ<)
+open import Util using (_<_<_; _<_≤_; toℕ<; Ordering; less; equal; greater; compare)
 
-
-data Ordering {n : ℕ} : Fin n → Fin n → Set where
-  less : ∀ {i j} → toℕ i < toℕ j < n → Ordering i j
-  equal : ∀ {i j} → toℕ i ≡ toℕ j → Ordering i j
-  greater : ∀ {i j} → toℕ j < toℕ i < n → Ordering i j
-
-compare : ∀ {n : ℕ} (i j : Fin n) → Ordering i j
-compare Fin.zero Fin.zero = equal refl
-compare Fin.zero j@(Fin.suc _) = less (z<s , toℕ< j)
-compare i@(Fin.suc _) Fin.zero = greater (z<s , toℕ< i)
-compare (Fin.suc i) (Fin.suc j) with compare i j
-... | less (i<j , j<n) = less (_≤_.s≤s i<j , _≤_.s≤s j<n)
-... | equal i≡j = equal (cong ℕ.suc i≡j)
-... | greater (j<i , i<n) = greater (_≤_.s≤s j<i , _≤_.s≤s i<n)
 
 private
   variable
@@ -51,6 +37,23 @@ glue {ℕ.suc _} {ℕ.zero} f _ = ⊥-elim (¬Fin0 (f (# 0)))
 glue {ℕ.suc _} {ℕ.suc _} f g with glue (f ∘ Fin.suc) (g ∘ Fin.suc)
 ... | ℕ.zero , h = ⊥-elim (¬Fin0 (h (# 0)))
 ... | ℕ.suc x , h with compare (h (f (# 0))) (h (g (# 0)))
-...     | less (f0<g0 , _≤_.s≤s g0<n) = x , merge (f0<g0 , g0<n) ∘ h
+...     | less (f0<g0 , s≤s g0<n) = x , merge (f0<g0 , g0<n) ∘ h
 ...     | equal f0≡g0 = ℕ.suc x , h
-...     | greater (g0<f0 , _≤_.s≤s f0<n) = x , merge (g0<f0 , f0<n) ∘ h
+...     | greater (g0<f0 , s≤s f0<n) = x , merge (g0<f0 , f0<n) ∘ h
+
+-- Glue together the image of two finite-set functions, iterative
+glue-iter
+    : {y : ℕ}
+    → (Fin m → Fin y)
+    → (Fin m → Fin y)
+    → (Fin n → Fin y)
+    → Σ[ x ∈ ℕ ] (Fin n → Fin x)
+glue-iter {ℕ.zero} {n} {y} f g h = y , h
+glue-iter {ℕ.suc m} {n} {y} f g h with compare (f (# 0)) (g (# 0))
+... | less (f0<g0 , s≤s g0<n) =
+        let p = merge (f0<g0 , g0<n) in
+        glue-iter (p ∘ f ∘ Fin.suc) (p ∘ g ∘ Fin.suc) (p ∘ h)
+... | equal _ = glue-iter (f ∘ Fin.suc) (g ∘ Fin.suc) h
+... | greater (g0<f0 , s≤s f0<n) =
+        let p = merge (g0<f0 , f0<n) in
+        glue-iter (p ∘ f ∘ Fin.suc) (p ∘ g ∘ Fin.suc) (p ∘ h)
