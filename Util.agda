@@ -1,3 +1,4 @@
+{-# OPTIONS --without-K --safe #-}
 module Util where
 
 open import Data.Fin using (Fin; toℕ)
