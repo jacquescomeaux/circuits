@@ -1,5 +1,7 @@
+{-# OPTIONS --without-K --safe #-}
 module FinMerge.Properties where
 
+open import Data.Empty using (⊥-elim)
 open import Data.Fin using (Fin; fromℕ<; toℕ; #_; lower₁)
 open import Data.Fin.Properties using (¬Fin0)
 open import Data.Nat using (ℕ; _+_; _≤_; _<_; z<s; pred; z≤n; s≤s)
@@ -12,7 +14,7 @@ open import Function using (id;  _∘_)
 
 open import Util using (_<_<_; _<_≤_; toℕ<; less; equal; greater; compare)
 
-open import FinMerge using (merge; pluck; glue-iter)
+open import FinMerge using (merge; pluck; glue-once; glue-iter)
 
 
 private
@@ -106,43 +108,41 @@ merge-i-j {_} {i} {j} i<j≤n = ≡
       lower₁ i (not-n i<j≤n) ≡⟨ sym (j-to-i i<j≤n) ⟩
       merge i<j≤n j ∎
 
+glue-once-correct
+    : (f0 g0 : Fin (ℕ.suc n))
+    → proj₂ (glue-once f0 g0) f0 ≡ proj₂ (glue-once f0 g0) g0
+glue-once-correct {n} f0 g0 with compare f0 g0
+... | less (f0<g0 , s≤s g0≤n) = merge-i-j (f0<g0 , g0≤n)
+... | equal f0≡g0 = f0≡g0
+... | greater (g0<f0 , s≤s f0≤n) = sym (merge-i-j (g0<f0 , f0≤n))
+
 glue-iter-append
     : {y : ℕ}
     → (f g : Fin m → Fin y)
     → (h : Fin n → Fin y)
     → Σ[ h′ ∈ (Fin y → Fin (proj₁ (glue-iter f g h))) ] (proj₂ (glue-iter f g h) ≡ h′ ∘ h)
 glue-iter-append {ℕ.zero} f g h = id , refl
-glue-iter-append {ℕ.suc m} f g h with compare (f (# 0)) (g (# 0))
-glue-iter-append {ℕ.suc m} f g h | less (f0<g0 , s≤s g0≤n)
-  with
+glue-iter-append {ℕ.suc m} {_} {ℕ.zero} f g h = ⊥-elim (¬Fin0 (f (# 0)))
+glue-iter-append {ℕ.suc m} {_} {ℕ.suc y} f g h with
     glue-iter-append
-        (merge (f0<g0 , g0≤n) ∘ f ∘ Fin.suc)
-        (merge (f0<g0 , g0≤n) ∘ g ∘ Fin.suc)
-        (merge (f0<g0 , g0≤n) ∘ h)
-... | h′ , glue-p∘h≡h′∘p∘h = h′ ∘ merge (f0<g0 , g0≤n) , glue-p∘h≡h′∘p∘h
-glue-iter-append {ℕ.suc m} f g h | equal x = glue-iter-append (f ∘ Fin.suc) (g ∘ Fin.suc) h
-glue-iter-append {ℕ.suc m} f g h | greater (g0<f0 , s≤s f0≤n)
-  with
-    glue-iter-append
-        (merge (g0<f0 , f0≤n) ∘ f ∘ Fin.suc)
-        (merge (g0<f0 , f0≤n) ∘ g ∘ Fin.suc)
-        (merge (g0<f0 , f0≤n) ∘ h)
-... | h′ , glue-p∘h≡h′∘p∘h = h′ ∘ merge (g0<f0 , f0≤n) , glue-p∘h≡h′∘p∘h
+        (proj₂ (glue-once (f (# 0)) (g (# 0))) ∘ f ∘ Fin.suc)
+        (proj₂ (glue-once (f (# 0)) (g (# 0))) ∘ g ∘ Fin.suc)
+        (proj₂ (glue-once (f (# 0)) (g (# 0))) ∘ h)
+... | h′ , glue-p∘h≡h′∘p∘h = h′ ∘ proj₂ (glue-once (f (# 0)) (g (# 0))) , glue-p∘h≡h′∘p∘h
 
 lemma₂
     : (f g : Fin (ℕ.suc m) → Fin n)
     → let p = proj₂ (glue-iter f g id) in p (f (# 0)) ≡ p (g (# 0))
-lemma₂ f g with compare (f (# 0)) (g (# 0))
-lemma₂ f g | less (f0<g0 , s≤s g0≤n)
-  with
+lemma₂ {_} {ℕ.zero} f g = ⊥-elim (¬Fin0 (f (# 0)))
+lemma₂ {_} {ℕ.suc n} f g with
     glue-iter-append
-        (merge (f0<g0 , g0≤n) ∘ f ∘ Fin.suc)
-        (merge (f0<g0 , g0≤n) ∘ g ∘ Fin.suc)
-        (merge (f0<g0 , g0≤n))
+        (proj₂ (glue-once (f (# 0)) (g (# 0))) ∘ f ∘ Fin.suc)
+        (proj₂ (glue-once (f (# 0)) (g (# 0))) ∘ g ∘ Fin.suc)
+        (proj₂ (glue-once (f (# 0)) (g (# 0))))
 ... | h′ , glue≡h′∘h = ≡
       where
         open ≡-Reasoning
-        p = merge (f0<g0 , g0≤n)
+        p = proj₂ (glue-once (f (# 0)) (g (# 0)))
         f′ = f ∘ Fin.suc
         g′ = g ∘ Fin.suc
         ≡ : proj₂ (glue-iter (p ∘ f′) (p ∘ g′) p) (f Fin.zero)
@@ -150,27 +150,6 @@ lemma₂ f g | less (f0<g0 , s≤s g0≤n)
         ≡ = begin
             proj₂ (glue-iter (p ∘ f′) (p ∘ g′) p) (f Fin.zero)
                                   ≡⟨ cong-app glue≡h′∘h (f Fin.zero) ⟩
-            h′ (p (f Fin.zero))   ≡⟨ cong h′ (merge-i-j (f0<g0 , g0≤n)) ⟩
+            h′ (p (f Fin.zero))   ≡⟨ cong h′ (glue-once-correct (f (# 0)) (g (# 0))) ⟩
             h′ (p (g Fin.zero))   ≡⟨ sym (cong-app glue≡h′∘h (g Fin.zero)) ⟩
-            proj₂ (glue-iter (p ∘ f′) (p ∘ g′) p) (g Fin.zero) ∎
-lemma₂ f g | equal f0≡g0 = cong (proj₂ (glue-iter (f ∘ Fin.suc) (g ∘ Fin.suc) id)) f0≡g0
-lemma₂ f g | greater (g0<f0 , s≤s f0≤n)
-  with
-    glue-iter-append
-        (merge (g0<f0 , f0≤n) ∘ f ∘ Fin.suc)
-        (merge (g0<f0 , f0≤n) ∘ g ∘ Fin.suc)
-        (merge (g0<f0 , f0≤n) ∘ id)
-... | h′ , glue≡h′∘h = ≡
-          where
-            open ≡-Reasoning
-            p = merge (g0<f0 , f0≤n)
-            f′ = f ∘ Fin.suc
-            g′ = g ∘ Fin.suc
-            ≡ : proj₂ (glue-iter (p ∘ f′) (p ∘ g′) p) (f Fin.zero)
-              ≡ proj₂ (glue-iter (p ∘ f′) (p ∘ g′) p) (g Fin.zero)
-            ≡ = begin
-                proj₂ (glue-iter (p ∘ f′) (p ∘ g′) p) (f Fin.zero)
-                                      ≡⟨ cong-app glue≡h′∘h (f Fin.zero) ⟩
-                h′ (p (f Fin.zero))   ≡⟨ cong h′ (sym (merge-i-j (g0<f0 , f0≤n))) ⟩
-                h′ (p (g Fin.zero))   ≡⟨ sym (cong-app glue≡h′∘h (g Fin.zero)) ⟩
-                proj₂ (glue-iter (p ∘ f′) (p ∘ g′) p) (g Fin.zero) ∎
+            proj₂ (glue-iter (p ∘ f′) (p ∘ g′) p) (g Fin.zero) ∎
