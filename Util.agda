@@ -27,6 +27,6 @@ compare Fin.zero Fin.zero = equal refl
 compare Fin.zero j@(Fin.suc _) = less (z<s , toℕ< j)
 compare i@(Fin.suc _) Fin.zero = greater (z<s , toℕ< i)
 compare (Fin.suc i) (Fin.suc j) with compare i j
-... | less (i<j , j<n) = less (_≤_.s≤s i<j , _≤_.s≤s j<n)
+... | less (i<j , j<n) = less (s≤s i<j , s≤s j<n)
 ... | equal i≡j = equal (cong Fin.suc i≡j)
-... | greater (j<i , i<n) = greater (_≤_.s≤s j<i , _≤_.s≤s i<n)
+... | greater (j<i , i<n) = greater (s≤s j<i , s≤s i<n)

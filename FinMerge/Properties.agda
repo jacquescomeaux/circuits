@@ -9,12 +9,12 @@ open import Data.Nat.Properties using (≤-trans; <⇒≢)
 open import Data.Product using (_,_; proj₁; proj₂; Σ-syntax)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong; cong-app; sym; _≢_)
 open import Relation.Binary.PropositionalEquality.Properties using (module ≡-Reasoning)
-open import Data.Maybe.Base using (Maybe; nothing; just; fromMaybe)
+open import Data.Maybe.Base using (Maybe; map; nothing; just; fromMaybe)
 open import Function using (id;  _∘_)
 
 open import Util using (_<_<_; _<_≤_; toℕ<; Ordering; less; equal; greater; compare)
 
-open import FinMerge using (merge; pluck; glue-once; glue-unglue-once; glue-iter)
+open import FinMerge using (merge; unmerge; pluck; glue-once; glue-unglue-once; glue-iter)
 
 
 private
@@ -29,14 +29,14 @@ pluck-<
     → (m≤n : m ≤ n)
     → (x<m : toℕ x < m)
     → pluck m≤n x ≡ just (lower₁ x (not-n (x<m , m≤n)))
-pluck-< {_} {_} {Fin.zero} (_≤_.s≤s m≤n) (_≤_.s≤s x<m) = refl
-pluck-< {_} {_} {Fin.suc x} (_≤_.s≤s m≤n) (_≤_.s≤s x<m) = ≡
+pluck-< {_} {_} {Fin.zero} (s≤s m≤n) (s≤s x<m) = refl
+pluck-< {_} {_} {Fin.suc x} (s≤s m≤n) (s≤s x<m) = ≡
   where
     open ≡-Reasoning
-    ≡ : pluck (_≤_.s≤s m≤n) (Fin.suc x)
+    ≡ : pluck (s≤s m≤n) (Fin.suc x)
         ≡ just (lower₁ (Fin.suc x) (not-n (s≤s x<m , s≤s m≤n)))
     ≡ = begin
-        pluck (_≤_.s≤s m≤n) (Fin.suc x) ≡⟨⟩
+        pluck (s≤s m≤n) (Fin.suc x) ≡⟨⟩
         Data.Maybe.Base.map Fin.suc (pluck m≤n x)
             ≡⟨ cong (Data.Maybe.Base.map Fin.suc) (pluck-< m≤n x<m) ⟩
         Data.Maybe.Base.map Fin.suc (just (lower₁ x (not-n (x<m , m≤n)))) ≡⟨⟩
@@ -159,3 +159,136 @@ lemma₂ {_} {ℕ.suc n} f g =
   in
     ≡
   where open ≡-Reasoning
+
+j-to-i′
+    : {i : ℕ}
+    → {j : Fin (ℕ.suc n)}
+    → ((i<j , j≤n) : i < toℕ j ≤ n)
+    → merge (i<j , j≤n) j ≡ fromℕ< (≤-trans i<j j≤n)
+j-to-i′ (i<j , j≤n) = cong (fromMaybe (fromℕ< (≤-trans i<j j≤n))) (j-to-nothing j≤n)
+  where
+    j-to-nothing : {j : Fin (ℕ.suc n)} → (j≤n : toℕ j ≤ n) → pluck j≤n j ≡ nothing
+    j-to-nothing {ℕ.zero} {Fin.zero} z≤n = refl
+    j-to-nothing {ℕ.suc n} {Fin.zero} z≤n = refl
+    j-to-nothing {ℕ.suc n} {Fin.suc j} (s≤s j≤n) = cong (map Fin.suc) (j-to-nothing j≤n)
+
+unmerge-i
+    : {i j : Fin (ℕ.suc n)}
+    → ((i<j , j≤n) : toℕ i < toℕ j ≤ n)
+    → unmerge (i<j , j≤n) (fromℕ< (≤-trans i<j j≤n)) ≡ i
+unmerge-i {ℕ.suc n} {Fin.zero} {Fin.suc j} (s≤s i<j , s≤s j≤n) = refl
+unmerge-i {ℕ.suc n} {Fin.suc i} {Fin.suc j} (s≤s i<j , s≤s j≤n) = cong Fin.suc (unmerge-i (i<j , j≤n))
+
+unmerge-k-<
+    : {i j k : Fin (ℕ.suc n)}
+    → ((i<j , j≤n) : toℕ i < toℕ j ≤ n)
+    → (k<j : toℕ k < toℕ j)
+    → unmerge (i<j , j≤n) (fromℕ< (≤-trans k<j j≤n)) ≡ k
+unmerge-k-< {ℕ.suc n} {i} {Fin.suc j} {Fin.zero} (_ , s≤s j≤n) (s≤s k<j)  = refl
+unmerge-k-< {ℕ.suc n} {Fin.zero} {Fin.suc (Fin.suc j)} {Fin.suc k} (s≤s z≤n , s≤s j≤n) (s≤s k<j) = cong Fin.suc (unmerge-k-< (s≤s z≤n , j≤n) k<j)
+unmerge-k-< {ℕ.suc n} {Fin.suc i} {Fin.suc j} {Fin.suc k} (s≤s i<j , s≤s j≤n) (s≤s k<j) = cong Fin.suc (unmerge-k-< (i<j , j≤n) k<j)
+
+k-to-k-<
+    : {i j k : Fin (ℕ.suc n)}
+    → ((i<j , j≤n) : toℕ i < toℕ j ≤ n)
+    → (k<j : toℕ k < toℕ j)
+    → merge (i<j , j≤n) k ≡ fromℕ< (≤-trans k<j j≤n)
+k-to-k-< (i<j , j≤n) k<j = cong (fromMaybe (fromℕ< (≤-trans i<j j≤n))) (k-to-just (k<j , j≤n))
+  where
+    k-to-just
+        : {j k : Fin (ℕ.suc n)}
+        → ((k<j , j≤n) : toℕ k < toℕ j ≤ n)
+        → pluck j≤n k ≡ just (fromℕ< (≤-trans k<j j≤n))
+    k-to-just {ℕ.suc n} {Fin.suc j} {Fin.zero} (s≤s k<j , s≤s j≤n) = refl
+    k-to-just {ℕ.suc n} {Fin.suc j} {Fin.suc k} (s≤s k<j , s≤s j≤n) = cong (map Fin.suc) (k-to-just (k<j , j≤n))
+
+sk-to-k->
+    : {i j : Fin (ℕ.suc n)}
+    → {k : Fin n}
+    → ((i<j , j≤n) : toℕ i < toℕ j ≤ n)
+    → (j<sk : toℕ j < ℕ.suc (toℕ k))
+    → merge (i<j , j≤n) (Fin.suc k) ≡ k
+sk-to-k-> (i<j , j≤n) j<sk = cong (fromMaybe (fromℕ< (≤-trans i<j j≤n))) (sk-to-just j≤n j<sk)
+  where
+    sk-to-just
+        : {n : ℕ}
+        → {j : Fin (ℕ.suc n)}
+        → {k : Fin n}
+        → (j≤n : toℕ j ≤ n)
+        → (j<sk : toℕ j < ℕ.suc (toℕ k))
+        → pluck j≤n (Fin.suc k) ≡ just k
+    sk-to-just {ℕ.suc _} {Fin.zero} {Fin.zero} z≤n (s≤s _) = refl
+    sk-to-just {ℕ.suc _} {Fin.zero} {Fin.suc _} z≤n (s≤s _) = refl
+    sk-to-just {ℕ.suc _} {Fin.suc _} {Fin.suc _} (s≤s j≤n) (s≤s j<sk) = cong (map Fin.suc) (sk-to-just j≤n j<sk)
+
+unmerge-k->
+    : {i j : Fin (ℕ.suc n)}
+    → {k : Fin n}
+    → ((i<j , j≤n) : toℕ i < toℕ j ≤ n)
+    → (j<sk : toℕ j < ℕ.suc (toℕ k))
+    → unmerge (i<j , j≤n) k ≡ Fin.suc k
+unmerge-k-> {ℕ.suc n} {Fin.zero} {Fin.suc Fin.zero} {Fin.suc k} (s≤s z≤n , s≤s z≤n) (s≤s j<sk) = refl
+unmerge-k-> {ℕ.suc n} {Fin.zero} {Fin.suc (Fin.suc j)} {Fin.suc k} (s≤s z≤n , s≤s j≤n) (s≤s j<sk) = cong Fin.suc (unmerge-k-> (s≤s z≤n , j≤n) j<sk)
+unmerge-k-> {ℕ.suc n} {Fin.suc i} {Fin.suc j} {Fin.suc k} (s≤s i<j , s≤s j≤n) (s≤s j<sk) = cong Fin.suc (unmerge-k-> (i<j , j≤n) j<sk)
+
+unmerge-merge-<
+    : {i j k : Fin (ℕ.suc n)}
+    → (i<j≤n : toℕ i < toℕ j ≤ n)
+    → (k<j : toℕ k < toℕ j)
+    → unmerge i<j≤n (merge i<j≤n k) ≡ k
+unmerge-merge-< {n} {i} {j} {k} i<j≤n@(_ , j≤n) k<j = ≡
+  where
+    open ≡-Reasoning
+    ≡ : unmerge i<j≤n (merge i<j≤n k) ≡ k
+    ≡ = begin
+        unmerge i<j≤n (merge i<j≤n k)             ≡⟨ cong (unmerge i<j≤n) (k-to-k-< i<j≤n k<j) ⟩
+        unmerge i<j≤n (fromℕ< (≤-trans k<j j≤n))  ≡⟨ unmerge-k-< i<j≤n k<j ⟩
+        k                                         ∎
+
+unmerge-merge-=
+    : {i j k : Fin (ℕ.suc n)}
+    → (i<j≤n : toℕ i < toℕ j ≤ n)
+    → k ≡ j
+    → unmerge i<j≤n (merge i<j≤n k) ≡ i
+unmerge-merge-= {_} {i} {j} {k} i<j≤n@(i<j , j≤n) k≡j = ≡
+  where
+    open ≡-Reasoning
+    ≡ : unmerge i<j≤n (merge i<j≤n k) ≡ i
+    ≡ = begin
+        unmerge i<j≤n (merge i<j≤n k)             ≡⟨ cong (unmerge i<j≤n ∘ merge i<j≤n) k≡j ⟩
+        unmerge i<j≤n (merge i<j≤n j)             ≡⟨ cong (unmerge i<j≤n) (j-to-i′ i<j≤n) ⟩
+        unmerge i<j≤n (fromℕ< (≤-trans i<j j≤n))  ≡⟨ unmerge-i i<j≤n ⟩
+        i                                         ∎
+
+unmerge-merge->
+    : {i j k : Fin (ℕ.suc n)}
+    → (i<j≤n : toℕ i < toℕ j ≤ n)
+    → (j<k : toℕ j < toℕ k)
+    → unmerge i<j≤n (merge i<j≤n k) ≡ k
+unmerge-merge-> {n} {i} {j} {Fin.suc k} i<j≤n j<k = ≡
+  where
+    open ≡-Reasoning
+    ≡ : unmerge i<j≤n (merge i<j≤n (Fin.suc k)) ≡ Fin.suc k
+    ≡ = begin
+        unmerge i<j≤n (merge i<j≤n (Fin.suc k)) ≡⟨ cong (unmerge i<j≤n) (sk-to-k-> i<j≤n j<k) ⟩
+        unmerge i<j≤n k                         ≡⟨ unmerge-k-> i<j≤n j<k ⟩
+        Fin.suc k                               ∎
+
+unmerge-merge
+    : {i j k : Fin (ℕ.suc n)}
+    → (i<j≤n : toℕ i < toℕ j ≤ n)
+    → (f : Fin (ℕ.suc n) → Fin m)
+    → f i ≡ f j
+    → f (unmerge i<j≤n (merge i<j≤n k)) ≡ f k
+unmerge-merge {n} {m} {i} {j} {k} i<j≤n f fi≡fj with (compare k j)
+... | less (k<j , _) = cong f (unmerge-merge-< i<j≤n k<j)
+... | greater (j<k , _) = cong f (unmerge-merge-> i<j≤n j<k)
+... | equal k≡j = ≡
+  where
+    open ≡-Reasoning
+    ≡ : f (unmerge i<j≤n (merge i<j≤n k)) ≡ f k
+    ≡ = begin
+        f (unmerge i<j≤n (merge i<j≤n k)) ≡⟨ cong f (unmerge-merge-= i<j≤n k≡j) ⟩
+        f i                               ≡⟨ fi≡fj ⟩
+        f j                               ≡⟨ cong f (sym k≡j) ⟩
+        f k                               ∎

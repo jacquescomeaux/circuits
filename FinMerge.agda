@@ -11,7 +11,7 @@ open import Data.Product using (_×_; _,_; Σ-syntax; map₂; proj₁; proj₂)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong; sym)
 open import Relation.Binary.PropositionalEquality.Properties using (module ≡-Reasoning)
 open import Function using (id ; _∘_ ; _$_)
-open import Data.Maybe.Base using (Maybe; just; nothing; fromMaybe)
+open import Data.Maybe.Base using (Maybe; just; nothing; fromMaybe; map)
 
 open import Util using (_<_<_; _<_≤_; toℕ<; Ordering; less; equal; greater; compare)
 
@@ -25,7 +25,7 @@ pluck : m ≤ n → Fin (ℕ.suc n) → Maybe (Fin n)
 pluck z≤n Fin.zero = nothing
 pluck z≤n (Fin.suc x) = just x
 pluck (s≤s m) Fin.zero = just Fin.zero
-pluck (s≤s m) (Fin.suc x) = Data.Maybe.Base.map Fin.suc (pluck m x)
+pluck (s≤s m) (Fin.suc x) = map Fin.suc (pluck m x)
 
 -- Send nothing to the specified m
 unpluck : m ≤ n → Maybe (Fin n) → Fin (ℕ.suc n)
@@ -39,7 +39,7 @@ unpluck (s≤s m) (just (Fin.suc x)) = Fin.suc (unpluck m (just x))
 merge : {i j : ℕ} → i < j ≤ n → Fin (ℕ.suc n) → Fin n
 merge (lt , le) x = fromMaybe (fromℕ< (≤-trans lt le)) (pluck le x)
 
--- Merge two elements of a finite set
+-- Left-adjoint to merge
 unmerge : {i j : ℕ} → i < j ≤ n → Fin n → Fin (ℕ.suc n)
 unmerge (lt , le) x = unpluck le (just x)
 
@@ -48,6 +48,7 @@ glue-once {n} (less (i<j , s≤s j≤n)) = n , merge (i<j , j≤n)
 glue-once {n} (equal i≡j) = ℕ.suc n , id
 glue-once {n} (greater (j<i , s≤s i≤n)) = n , merge (j<i , i≤n)
 
+-- Merge and unmerge
 glue-unglue-once
     : {i j : Fin (ℕ.suc n)}
     → Ordering i j
