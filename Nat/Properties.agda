@@ -10,23 +10,22 @@ open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; cong)
 open import Relation.Binary.PropositionalEquality.Properties using (module ≡-Reasoning)
 
 open import Categories.Category.Core using (Category)
-open import Categories.Category.Instance.Nat using (Nat)
+open import Categories.Category.Instance.Nat using (Nat; Coprod)
 open import Categories.Diagram.Coequalizer Nat using (IsCoequalizer; Coequalizer)
+open import Categories.Diagram.Pushout Nat using (Pushout)
+open import Categories.Diagram.Pushout.Properties Nat using (Coproduct×Coequalizer⇒Pushout)
 open import Categories.Object.Coproduct Nat using (Coproduct; IsCoproduct; IsCoproduct⇒Coproduct)
 
-open import Coeq using (iterated-coequalizer)
+open import Coeq using (coequalizer-on-coproduct)
 open import FinMerge using (glue-iter; glue-unglue-once)
 open import FinMerge.Properties using (lemma₂; merge-unmerge; unmerge-merge)
 open import Util using (compare; less; equal; greater; _<_<_)
 
-
 open Category Nat
 
-makeZeroCoequalizer
-    : {B : ℕ}
-    → (f g : 0 ⇒ B)
-    → Coequalizer f g
-makeZeroCoequalizer f g = record
+
+makeZeroCoequalizer : {B : ℕ} {f g : 0 ⇒ B} → Coequalizer f g
+makeZeroCoequalizer = record
     { arr = id
     ; isCoequalizer = record
         { equality = λ()
@@ -36,12 +35,9 @@ makeZeroCoequalizer f g = record
         }
     }
 
-makeSimpleCoequalizer
-    : {B : ℕ}
-    → (f g : 1 ⇒ B)
-    → Coequalizer f g
-makeSimpleCoequalizer {ℕ.zero} f g = ⊥-elim (¬Fin0 (f (# 0)))
-makeSimpleCoequalizer {ℕ.suc B} f g = record
+makeSimpleCoequalizer : {B : ℕ} {f g : 1 ⇒ B} → Coequalizer f g
+makeSimpleCoequalizer {ℕ.zero} {f} = ⊥-elim (¬Fin0 (f (# 0)))
+makeSimpleCoequalizer {ℕ.suc B} {f} {g} = record
     { arr = proj₂ (glue-iter f g id)
     ; isCoequalizer = record
         { equality = λ { Fin.zero → lemma₂ f g }
@@ -96,28 +92,46 @@ makeSimpleCoequalizer {ℕ.suc B} f g = record
 
 split : {n : ℕ} → IsCoproduct {1} {n} {ℕ.suc n} (λ _ → Fin.zero) Fin.suc
 split = record
-    { [_,_] = λ { z _ Fin.zero → z Fin.zero
-              ; _ s (Fin.suc x) → s x }
+    { [_,_] = λ
+        { z _ Fin.zero → z Fin.zero
+        ; _ s (Fin.suc x) → s x
+        }
     ; inject₁ = λ { Fin.zero → refl }
     ; inject₂ = λ { _ → refl }
     ; unique = λ { h∘i₁≈f _ Fin.zero → (Equiv.sym h∘i₁≈f) Fin.zero
                  ; h∘i₁≈f h∘i₂≈g (Fin.suc x) → (Equiv.sym h∘i₂≈g) x }
     }
 
--- makeCoequalizer
---     : {A B : ℕ}
---     → (f g : A ⇒ B)
---     → Coequalizer f g
--- makeCoequalizer {ℕ.zero} f g = {! !}
--- makeCoequalizer {ℕ.suc A} f g = record
---     { arr = {! !}
---     ; isCoequalizer =
---         iterated-coequalizer
---             (λ _ → Fin.zero)
---             Fin.suc
---             f g
---             ? ?
---             (split {A})
---             ?
---             ?
---     }
+-- Coequalizers for Nat
+Coeq : {A B : ℕ} (f g : A ⇒ B) → Coequalizer f g
+Coeq {ℕ.zero} _ _ = makeZeroCoequalizer
+Coeq {ℕ.suc A} f g = record
+    { arr = Q₂.arr ∘ Q₁.arr
+    ; isCoequalizer =
+        coequalizer-on-coproduct
+            (λ _ → Fin.zero)
+            Fin.suc
+            f
+            g
+            Q₁.arr
+            Q₂.arr
+            split
+            Q₁.isCoequalizer
+            Q₂.isCoequalizer
+    }
+  where
+    simpleCoeq : Coequalizer (λ _ → f (# 0)) (λ _ → g (# 0))
+    simpleCoeq = makeSimpleCoequalizer
+    module Q₁ = Coequalizer simpleCoeq
+    recursiveCoeq : Coequalizer (Q₁.arr ∘ f ∘ Fin.suc) (Q₁.arr ∘ g ∘ Fin.suc)
+    recursiveCoeq = Coeq _ _
+    module Q₂ = Coequalizer recursiveCoeq
+
+-- Pushouts for Nat
+Push : {A B C : ℕ} (f : A ⇒ B) (g : A ⇒ C) → Pushout f g
+Push {A} {B} {C} f g =
+    Coproduct×Coequalizer⇒Pushout B+C (Coeq (B+C.i₁ ∘ f) (B+C.i₂ ∘ g))
+  where
+    B+C : Coproduct B C
+    B+C = Coprod B C
+    module B+C = Coproduct B+C

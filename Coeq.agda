@@ -28,7 +28,7 @@ open Category Nat
     open Coproduct (IsCoproduct⇒Coproduct coprod)
     open HomReasoning
 
-iterated-coequalizer
+coequalizer-on-coproduct
     : {A B A+B C Q₁ Q₂ : Obj}
     → (i₁ : A ⇒ A+B)
     → (i₂ : B ⇒ A+B)
@@ -39,7 +39,7 @@ iterated-coequalizer
     → IsCoequalizer (f ∘ i₁) (g ∘ i₁) q₁
     → IsCoequalizer (q₁ ∘ f ∘ i₂) (q₁ ∘ g ∘ i₂) q₂
     → IsCoequalizer f g (q₂ ∘ q₁)
-iterated-coequalizer {C = C} {Q₁} {Q₂} i₁ i₂ f g q₁ q₂ coprod coeq₁ coeq₂ = record
+coequalizer-on-coproduct {C = C} {Q₁} {Q₂} i₁ i₂ f g q₁ q₂ coprod coeq₁ coeq₂ = record
     { equality = ≈-i₁-i₂
         (q₂ ∘ q₁ ∘ f)
         (q₂ ∘ q₁ ∘ g)
