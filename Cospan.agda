@@ -1,19 +1,22 @@
 {-# OPTIONS --without-K --safe #-}
 
 open import Categories.Category using (Category)
-open import Categories.Diagram.Pushout using (Pushout)
-open import Categories.Diagram.Pushout.Properties using (glue; swap)
-open import Categories.Object.Coproduct using (Coproduct)
 open import Category.Cocomplete.Bundle using (FinitelyCocompleteCategory)
 open import Function using (flip)
 open import Level using (_⊔_)
 
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong; sym)
-
 module Cospan {o ℓ e} (𝒞 : FinitelyCocompleteCategory o ℓ e) where
 
 open FinitelyCocompleteCategory 𝒞
-open import Categories.Morphism U
+
+open import Categories.Diagram.Duality U using (Pushout⇒coPullback)
+open import Categories.Diagram.Pushout U using (Pushout)
+open import Categories.Diagram.Pushout.Properties U using (glue; swap)
+open import Categories.Morphism U using (_≅_)
+open import Categories.Morphism.Duality U using (op-≅⇒≅)
+
+import Categories.Diagram.Pullback op as Pb using (up-to-iso)
+
 
 private
 
@@ -55,23 +58,22 @@ record Same (P P′ : Cospan A B) : Set (ℓ ⊔ e) where
     from∘f₁≈f₁′ : _≅_.from iso ∘ Cospan.f₁ P ≈ Cospan.f₁ P′
     from∘f₂≈f₂′ : _≅_.from iso ∘ Cospan.f₂ P ≈ Cospan.f₂ P′
 
-glue-i₁ : (p : Pushout U f g) → Pushout U h (Pushout.i₁ p) → Pushout U (h ∘ f) g
-glue-i₁ p = glue U p
+glue-i₁ : (p : Pushout f g) → Pushout h (Pushout.i₁ p) → Pushout (h ∘ f) g
+glue-i₁ p = glue p
 
-glue-i₂ : (p₁ : Pushout U f g) → Pushout U (Pushout.i₂ p₁) h → Pushout U f (h ∘ g)
-glue-i₂ p₁ p₂ = swap U (glue U (swap U p₁) (swap U p₂))
+glue-i₂ : (p₁ : Pushout f g) → Pushout (Pushout.i₂ p₁) h → Pushout f (h ∘ g)
+glue-i₂ p₁ p₂ = swap (glue (swap p₁) (swap p₂))
+
+up-to-iso : (p p′ : Pushout f g) → Pushout.Q p ≅ Pushout.Q p′
+up-to-iso p p′ = op-≅⇒≅ (Pb.up-to-iso (Pushout⇒coPullback p) (Pushout⇒coPullback p′))
 
 compose-3-right
     : {c₁ : Cospan A B}
       {c₂ : Cospan B C}
       {c₃ : Cospan C D}
     → Same (compose c₁ (compose c₂ c₃)) (compose-3 c₁ c₂ c₃)
-compose-3-right {A} {_} {_} {_} {c₁} {c₂} {c₃} = record
-    { iso = record
-        { from = P₄′.universal P₄.commute
-        ; to = P₄.universal P₄′.commute
-        ; iso = {! !}
-        }
+compose-3-right {_} {_} {_} {_} {c₁} {c₂} {c₃} = record
+    { iso = up-to-iso P₄′ P₄
     ; from∘f₁≈f₁′ = sym-assoc ○ P₄′.universal∘i₁≈h₁ ⟩∘⟨refl ○ assoc
     ; from∘f₂≈f₂′ = sym-assoc ○ P₄′.universal∘i₂≈h₂ ⟩∘⟨refl
     }
@@ -86,11 +88,35 @@ compose-3-right {A} {_} {_} {_} {c₁} {c₂} {c₃} = record
     module P₂ = Pushout P₂
     P₃ = pushout P₁.i₂ P₂.i₁
     module P₃ = Pushout P₃
-    P₄ : Pushout U C₁.f₂ (P₂.i₁ ∘ C₂.f₁)
     P₄ = glue-i₂ P₁ P₃
     module P₄ = Pushout P₄
-    P₄′ : Pushout U C₁.f₂ (P₂.i₁ ∘ C₂.f₁)
     P₄′ = pushout C₁.f₂ (P₂.i₁ ∘ C₂.f₁)
+    module P₄′ = Pushout P₄′
+
+compose-3-left
+    : {c₁ : Cospan A B}
+      {c₂ : Cospan B C}
+      {c₃ : Cospan C D}
+    → Same (compose (compose c₁ c₂) c₃) (compose-3 c₁ c₂ c₃)
+compose-3-left {_} {_} {_} {_} {c₁} {c₂} {c₃} = record
+    { iso = up-to-iso P₄′ P₄
+    ; from∘f₁≈f₁′ = sym-assoc ○ P₄′.universal∘i₁≈h₁ ⟩∘⟨refl
+    ; from∘f₂≈f₂′ = sym-assoc ○ P₄′.universal∘i₂≈h₂ ⟩∘⟨refl ○ assoc
+    }
+  where
+    open HomReasoning
+    module C₁ = Cospan c₁
+    module C₂ = Cospan c₂
+    module C₃ = Cospan c₃
+    P₁ = pushout C₁.f₂ C₂.f₁
+    P₂ = pushout C₂.f₂ C₃.f₁
+    module P₁ = Pushout P₁
+    module P₂ = Pushout P₂
+    P₃ = pushout P₁.i₂ P₂.i₁
+    module P₃ = Pushout P₃
+    P₄ = glue-i₁ P₂ P₃
+    module P₄ = Pushout P₄
+    P₄′ = pushout (P₁.i₂ ∘ C₂.f₂) C₃.f₁
     module P₄′ = Pushout P₄′
 
 compose-assoc
