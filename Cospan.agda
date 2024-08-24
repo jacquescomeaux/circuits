@@ -110,9 +110,6 @@ glue-i₂ p₁ p₂ = swap (glue (swap p₁) (swap p₂))
 up-to-iso : (p p′ : Pushout f g) → Pushout.Q p ≅ Pushout.Q p′
 up-to-iso p p′ = op-≅⇒≅ (Pb.up-to-iso (Pushout⇒coPullback p) (Pushout⇒coPullback p′))
 
-id-unique : (p : Pushout f g) → (Pushout.universal p) (Pushout.commute p) ≈ id
-id-unique p = Equiv.sym (Pushout.unique p identityˡ identityˡ)
-
 pushout-f-id : Pushout f id
 pushout-f-id {_} {_} {f} = record
     { i₁ = id

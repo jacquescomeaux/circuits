@@ -16,7 +16,7 @@ open import Categories.Diagram.Pushout Nat using (Pushout)
 open import Categories.Diagram.Pushout.Properties Nat using (Coproduct×Coequalizer⇒Pushout)
 open import Categories.Object.Coproduct Nat using (Coproduct; IsCoproduct; IsCoproduct⇒Coproduct)
 
-open import Coeq using (coequalizer-on-coproduct)
+open import Coeq Nat using (coequalizer-on-coproduct)
 open import FinMerge using (glue-iter; glue-unglue-once)
 open import FinMerge.Properties using (lemma₂; merge-unmerge; unmerge-merge)
 open import Util using (compare; less; equal; greater; _<_<_)
@@ -107,17 +107,10 @@ Coeq : {A B : ℕ} (f g : A ⇒ B) → Coequalizer f g
 Coeq {ℕ.zero} _ _ = makeZeroCoequalizer
 Coeq {ℕ.suc A} f g = record
     { arr = Q₂.arr ∘ Q₁.arr
-    ; isCoequalizer =
-        coequalizer-on-coproduct
-            (λ _ → Fin.zero)
-            Fin.suc
-            f
-            g
-            Q₁.arr
-            Q₂.arr
-            split
-            Q₁.isCoequalizer
-            Q₂.isCoequalizer
+    ; isCoequalizer = coequalizer-on-coproduct
+        split
+        Q₁.isCoequalizer
+        Q₂.isCoequalizer
     }
   where
     simpleCoeq : Coequalizer (λ _ → f (# 0)) (λ _ → g (# 0))
