@@ -1,11 +1,11 @@
 {-# OPTIONS --without-K --safe #-}
 
 open import Categories.Category using (Category)
-open import Category.Cocomplete.Bundle using (FinitelyCocompleteCategory)
+open import Category.Cocomplete.Finitely.Bundle using (FinitelyCocompleteCategory)
 open import Function using (flip)
 open import Level using (_⊔_)
 
-module Cospan {o ℓ e} (𝒞 : FinitelyCocompleteCategory o ℓ e) where
+module Category.Instance.Cospans {o ℓ e} (𝒞 : FinitelyCocompleteCategory o ℓ e) where
 
 open FinitelyCocompleteCategory 𝒞
 
@@ -38,8 +38,8 @@ record Cospan (A B : Obj) : Set (o ⊔ ℓ) where
 
   field
     {N} : Obj
-    f₁    : A ⇒ N
-    f₂    : B ⇒ N
+    f₁  : A ⇒ N
+    f₂  : B ⇒ N
 
 compose : Cospan A B → Cospan B C → Cospan A C
 compose c₁ c₂ = record { f₁ = p.i₁ ∘ C₁.f₁ ; f₂ = p.i₂ ∘ C₂.f₂ }
