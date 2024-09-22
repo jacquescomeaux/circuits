@@ -1,30 +1,27 @@
 {-# OPTIONS --without-K --safe #-}
 
-open import Categories.Category.Cocomplete.Finitely using (FinitelyCocomplete)
 open import Category.Cocomplete.Finitely.Bundle using (FinitelyCocompleteCategory)
 open import Categories.Functor.Monoidal.Symmetric using (module Strong)
-open Strong using (SymmetricMonoidalFunctor)
 open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
-open import Category.Instance.Setoids.SymmetricMonoidal using (Setoids-×)
 
 open FinitelyCocompleteCategory using () renaming (symmetricMonoidalCategory to smc)
+open Strong using (SymmetricMonoidalFunctor)
 
 module Cospan.Decorated
     {o ℓ e}
     (C : FinitelyCocompleteCategory o ℓ e)
-    (F : SymmetricMonoidalFunctor (smc C) (Setoids-× {ℓ}))
+    {D : SymmetricMonoidalCategory o ℓ e}
+    (F : SymmetricMonoidalFunctor (smc C) D)
   where
 
-open FinitelyCocompleteCategory C
+module C = FinitelyCocompleteCategory C
+module D = SymmetricMonoidalCategory D
 
 open import Category.Instance.Cospans C using (Cospan)
 open import Level using (_⊔_)
-open import Relation.Binary.Bundles using (Setoid)
-
-open Setoid using () renaming (Carrier to ∣_∣)
 
 
-record DecoratedCospan (A B : Obj) : Set (o ⊔ ℓ) where
+record DecoratedCospan (A B : C.Obj) : Set (o ⊔ ℓ) where
 
   open SymmetricMonoidalFunctor F using (F₀)
 
@@ -34,4 +31,4 @@ record DecoratedCospan (A B : Obj) : Set (o ⊔ ℓ) where
   open Cospan cospan public
 
   field
-    decoration : ∣ F₀ N ∣
+    decoration : D.unit D.⇒ F₀ N
