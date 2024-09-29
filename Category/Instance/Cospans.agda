@@ -70,6 +70,7 @@ record Same (C C′ : Cospan A B) : Set (ℓ ⊔ e) where
     ≅N : C.N ≅ C′.N
 
   open _≅_ ≅N public
+  module ≅N = _≅_ ≅N
 
   field
     from∘f₁≈f₁′ : from ∘ C.f₁ ≈ C′.f₁
