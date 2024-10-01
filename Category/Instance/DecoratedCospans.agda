@@ -15,16 +15,22 @@ module Category.Instance.DecoratedCospans
     {𝒟 : SymmetricMonoidalCategory o ℓ e}
     (F : SymmetricMonoidalFunctor (smc 𝒞) 𝒟) where
 
+module 𝒞 = FinitelyCocompleteCategory 𝒞
+module 𝒟 = SymmetricMonoidalCategory 𝒟
+
 import Category.Instance.Cospans 𝒞 as Cospans
 
-open import Categories.Category
-  using (Category; _[_∘_]; _[_≈_])
+open import Categories.Category using (Category; _[_∘_])
+open import Categories.Category.Cocartesian using (module CocartesianMonoidal)
 open import Categories.Diagram.Pushout using (Pushout)
 open import Categories.Functor.Properties using ([_]-resp-≅)
 open import Categories.Morphism.Reasoning using (switch-fromtoˡ; glueTrianglesˡ)
 open import Cospan.Decorated 𝒞 F using (DecoratedCospan)
 open import Data.Product using (_,_)
+open import Function using (flip)
 open import Level using (_⊔_)
+
+open import Category.Diagram.Pushout 𝒞.U using (glue-i₁; glue-i₂; pushout-id-g; pushout-f-id; up-to-iso)
 
 import Category.Monoidal.Coherence as Coherence
 
@@ -33,11 +39,7 @@ import Categories.Morphism.Reasoning as ⇒-Reasoning
 import Categories.Category.Monoidal.Reasoning as ⊗-Reasoning
 
 
-module 𝒞 = FinitelyCocompleteCategory 𝒞
-module 𝒟 = SymmetricMonoidalCategory 𝒟
-
 open SymmetricMonoidalFunctor F
-  -- using (F₀; F₁; ⊗-homo; ε; homomorphism)
   renaming (identity to F-identity; F to F′)
 
 private
@@ -76,7 +78,7 @@ record Same (C₁ C₂ : DecoratedCospan A B) : Set (ℓ ⊔ e) where
   field
     cospans-≈ : Cospans.Same C₁.cospan C₂.cospan
 
-  open Cospans.Same cospans-≈
+  open Cospans.Same cospans-≈ public
   open 𝒟
   open Morphism U using (_≅_)
 
@@ -135,8 +137,8 @@ compose-assoc {_} {_} {_} {_} {c₁} {c₂} {c₃} = record
     module P₁ = Pushout p₁
     module P₂ = Pushout p₂
     p₃ = pushout P₁.i₂ P₂.i₁
-    p₁₃ = Cospans.glue-i₂ p₁ p₃
-    p₂₃ = Cospans.glue-i₁ p₂ p₃
+    p₁₃ = glue-i₂ p₁ p₃
+    p₂₃ = glue-i₁ p₂ p₃
     p₄ = pushout C₁.f₂ (P₂.i₁ ∘′ C₂.f₁)
     p₅ = pushout (P₁.i₂ ∘′ C₂.f₂) C₃.f₁
     module P₃ = Pushout p₃
@@ -145,8 +147,8 @@ compose-assoc {_} {_} {_} {_} {c₁} {c₂} {c₃} = record
     module P₁₃ = Pushout p₁₃
     module P₂₃ = Pushout p₂₃
     open Morphism 𝒞.U using (_≅_)
-    module P₄≅P₁₃ = _≅_ (Cospans.up-to-iso p₄ p₁₃)
-    module P₅≅P₂₃ = _≅_ (Cospans.up-to-iso p₅ p₂₃)
+    module P₄≅P₁₃ = _≅_ (up-to-iso p₄ p₁₃)
+    module P₅≅P₂₃ = _≅_ (up-to-iso p₅ p₂₃)
 
     N = C₁.N
     M = C₂.N
@@ -332,3 +334,317 @@ compose-assoc {_} {_} {_} {_} {c₁} {c₂} {c₃} = record
           F[y,z] ∘ φ-Q,P ∘ F[f,g] ⊗₁ F₁ id′ ∘ (φ-N,M ∘ s ⊗₁ t ∘ ρ⇐) ⊗₁ u ∘ ρ⇐                         ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩⊗⟨ F-identity ⟩∘⟨ refl ⟩
           F[y,z] ∘ φ-Q,P ∘ F[f,g] ⊗₁ id ∘ (φ-N,M ∘ s ⊗₁ t ∘ ρ⇐) ⊗₁ u ∘ ρ⇐                             ≈⟨ refl⟩∘⟨ refl⟩∘⟨ pushˡ split₁ˡ ⟨
           F[y,z] ∘ φ-Q,P ∘ (F[f,g] ∘ φ-N,M ∘ s ⊗₁ t ∘ ρ⇐) ⊗₁ u ∘ ρ⇐                                   ∎
+
+compose-idʳ : {C : DecoratedCospan A B} → Same (compose identity C) C
+compose-idʳ {A} {_} {C} = record
+    { cospans-≈ = Cospans.compose-idʳ
+    ; same-deco = deco-id
+    }
+  where
+
+    open DecoratedCospan C
+
+    open 𝒞 using (pushout; [_,_]; ⊥; _+₁_; ¡)
+
+    P = pushout 𝒞.id f₁
+    P′ = pushout-id-g {g = f₁}
+    ≅P = up-to-iso P P′
+
+    open Morphism 𝒞.U using (_≅_)
+    module ≅P = _≅_ ≅P
+
+    open Pushout P
+
+    open 𝒞
+      using (cocartesian)
+      renaming (id to id′; _∘_ to _∘′_)
+
+    open CocartesianMonoidal 𝒞.U cocartesian using (⊥+A≅A)
+
+    module ⊥+A≅A {a} = _≅_ (⊥+A≅A {a})
+
+    module _ where
+
+      open 𝒞
+        using
+          ( _⇒_ ; _∘_ ; _≈_ ; id ; U
+          ; identity²
+          ; cocartesian ; initial ; ¡-unique
+          ; ∘[] ; []∘+₁ ; inject₂ ; assoc
+          ; module HomReasoning ; module Dual ; module Equiv
+          )
+
+      open Equiv
+
+      open Dual.op-binaryProducts cocartesian
+        using ()
+        renaming (⟨⟩-cong₂ to []-cong₂)
+
+      open ⇒-Reasoning U
+      open HomReasoning
+
+      copairing-id : ((≅P.from ∘ [ i₁ , i₂ ]) ∘ (¡ +₁ id)) ∘ ⊥+A≅A.to ≈ id
+      copairing-id = begin
+        ((≅P.from ∘ [ i₁ , i₂ ]) ∘ (¡ +₁ id)) ∘ ⊥+A≅A.to        ≈⟨ assoc ⟩
+        (≅P.from ∘ [ i₁ , i₂ ]) ∘ (¡ +₁ id) ∘ ⊥+A≅A.to          ≈⟨ assoc ⟩
+        ≅P.from ∘ [ i₁ , i₂ ] ∘ (¡ +₁ id) ∘ ⊥+A≅A.to            ≈⟨ pullˡ ∘[] ⟩
+        [ ≅P.from ∘ i₁ , ≅P.from ∘ i₂ ] ∘ (¡ +₁ id) ∘ ⊥+A≅A.to  ≈⟨ pullˡ []∘+₁ ⟩
+        [ (≅P.from ∘ i₁) ∘ ¡ , (≅P.from ∘ i₂) ∘ id ] ∘ ⊥+A≅A.to ≈⟨ []-cong₂ (universal∘i₁≈h₁ ⟩∘⟨refl) (universal∘i₂≈h₂ ⟩∘⟨refl) ⟩∘⟨refl ⟩
+        [ f₁ ∘ ¡ , id ∘ id ] ∘ ⊥+A≅A.to                         ≈⟨ []-cong₂ (sym (¡-unique (f₁ ∘ ¡))) identity² ⟩∘⟨refl ⟩
+        [ ¡ , id ] ∘ ⊥+A≅A.to                                   ≈⟨ inject₂ ⟩
+        id                                                      ∎
+
+    module _ where
+
+      open 𝒟
+        using
+          ( id ; _∘_ ; _≈_ ; _⇒_ ; U
+          ; assoc ; sym-assoc; identityˡ
+          ; monoidal ; _⊗₁_ ; unit ; unitorˡ ; unitorʳ
+          )
+
+      open ⊗-Reasoning monoidal
+      open ⇒-Reasoning U
+
+      φ = ⊗-homo.⇒.η
+      φ-commute = ⊗-homo.⇒.commute
+
+      module λ≅ = unitorˡ
+      λ⇒ = λ≅.from
+      λ⇐ = unitorˡ.to
+      ρ⇐ = unitorʳ.to
+
+      open Coherence monoidal using (λ₁≅ρ₁⇐)
+      open 𝒟.Equiv
+
+      s : unit ⇒ F₀ N
+      s = decoration
+
+      cohere-s : φ (⊥ , N) ∘ (ε.from ⊗₁ s) ∘ ρ⇐ ≈ F₁ ⊥+A≅A.to ∘ s
+      cohere-s = begin
+          φ (⊥ , N) ∘ (ε.from ⊗₁ s) ∘ ρ⇐                                                  ≈⟨ identityˡ ⟨
+          id ∘ φ (⊥ , N) ∘ (ε.from ⊗₁ s) ∘ ρ⇐                                             ≈⟨ F-identity ⟩∘⟨refl ⟨
+          F₁ id′ ∘ φ (⊥ , N) ∘ (ε.from ⊗₁ s) ∘ ρ⇐                                         ≈⟨ F-resp-≈ ⊥+A≅A.isoˡ ⟩∘⟨refl ⟨
+          F₁ (⊥+A≅A.to ∘′ ⊥+A≅A.from) ∘ φ (⊥ , N) ∘ (ε.from ⊗₁ s) ∘ ρ⇐                    ≈⟨ pushˡ homomorphism ⟩
+          F₁ ⊥+A≅A.to ∘ F₁ ⊥+A≅A.from ∘ φ (⊥ , N) ∘ (ε.from ⊗₁ s) ∘ ρ⇐                    ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ pushˡ serialize₁₂ ⟩
+          F₁ ⊥+A≅A.to ∘ F₁ ⊥+A≅A.from ∘ φ (⊥ , N) ∘ (ε.from ⊗₁ id) ∘ (id ⊗₁ s) ∘ ρ⇐       ≈⟨ refl⟩∘⟨ refl⟩∘⟨ sym-assoc ⟩
+          F₁ ⊥+A≅A.to ∘ F₁ ⊥+A≅A.from ∘ (φ (⊥ , N) ∘ (ε.from ⊗₁ id)) ∘ (id ⊗₁ s) ∘ ρ⇐     ≈⟨ refl⟩∘⟨ pullˡ unitaryˡ ⟩
+          F₁ ⊥+A≅A.to ∘ λ⇒ ∘ (id ⊗₁ s) ∘ ρ⇐                                               ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ λ₁≅ρ₁⇐ ⟨
+          F₁ ⊥+A≅A.to ∘ λ⇒ ∘ (id ⊗₁ s) ∘ λ⇐                                               ≈⟨ refl⟩∘⟨ refl⟩∘⟨ 𝒟.unitorˡ-commute-to ⟨
+          F₁ ⊥+A≅A.to ∘ λ⇒ ∘ λ⇐ ∘ s                                                       ≈⟨ refl⟩∘⟨ cancelˡ λ≅.isoʳ ⟩
+          F₁ ⊥+A≅A.to ∘ s                                                                 ∎
+
+      deco-id : F₁ ≅P.from ∘ F₁ [ i₁ , i₂ ] ∘ φ (A , N) ∘ (F₁ ¡ ∘ ε.from) ⊗₁ s ∘ ρ⇐ ≈ s
+      deco-id = begin
+          F₁ ≅P.from ∘ F₁ [ i₁ , i₂ ] ∘ φ (A , N) ∘ (F₁ ¡ ∘ ε.from) ⊗₁ s ∘ ρ⇐             ≈⟨ pushˡ homomorphism ⟨
+          F₁ (≅P.from ∘′ [ i₁ , i₂ ]) ∘ φ (A , N) ∘ (F₁ ¡ ∘ ε.from) ⊗₁ s ∘ ρ⇐             ≈⟨ refl⟩∘⟨ refl⟩∘⟨ pushˡ split₁ˡ ⟩
+          F₁ (≅P.from ∘′ [ i₁ , i₂ ]) ∘ φ (A , N) ∘ (F₁ ¡ ⊗₁ id) ∘ (ε.from ⊗₁ s) ∘ ρ⇐     ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩⊗⟨ F-identity ⟩∘⟨refl ⟨
+          F₁ (≅P.from ∘′ [ i₁ , i₂ ]) ∘ φ (A , N) ∘ (F₁ ¡ ⊗₁ F₁ id′) ∘ (ε.from ⊗₁ s) ∘ ρ⇐ ≈⟨ refl⟩∘⟨ extendʳ (φ-commute (¡ , id′)) ⟩
+          F₁ (≅P.from ∘′ [ i₁ , i₂ ]) ∘ F₁ (¡ +₁ id′) ∘ φ (⊥ , N) ∘ (ε.from ⊗₁ s) ∘ ρ⇐    ≈⟨ pushˡ homomorphism ⟨
+          F₁ ((≅P.from ∘′ [ i₁ , i₂ ]) ∘′ (¡ +₁ id′)) ∘ φ (⊥ , N) ∘ (ε.from ⊗₁ s) ∘ ρ⇐    ≈⟨ refl⟩∘⟨ cohere-s ⟩
+          F₁ ((≅P.from ∘′ [ i₁ , i₂ ]) ∘′ (¡ +₁ id′)) ∘ F₁ ⊥+A≅A.to ∘ s                   ≈⟨ pushˡ homomorphism ⟨
+          F₁ (((≅P.from ∘′ [ i₁ , i₂ ]) ∘′ (¡ +₁ id′)) ∘′ ⊥+A≅A.to) ∘ s                   ≈⟨ F-resp-≈ copairing-id ⟩∘⟨refl ⟩
+          F₁ id′ ∘ s                                                                      ≈⟨ F-identity ⟩∘⟨refl ⟩
+          id ∘ s                                                                          ≈⟨ identityˡ ⟩
+          s                                                                               ∎
+
+compose-idˡ : {C : DecoratedCospan A B} → Same (compose C identity) C
+compose-idˡ {_} {B} {C} = record
+    { cospans-≈ = Cospans.compose-idˡ
+    ; same-deco = deco-id
+    }
+  where
+
+    open DecoratedCospan C
+
+    open 𝒞 using (pushout; [_,_]; ⊥; _+₁_; ¡)
+
+    P = pushout f₂ 𝒞.id
+    P′ = pushout-f-id {f = f₂}
+    ≅P = up-to-iso P P′
+
+    open Morphism 𝒞.U using (_≅_)
+    module ≅P = _≅_ ≅P
+
+    open Pushout P
+
+    open 𝒞
+      using (cocartesian)
+      renaming (id to id′; _∘_ to _∘′_)
+
+    open CocartesianMonoidal 𝒞.U cocartesian using (A+⊥≅A)
+
+    module A+⊥≅A {a} = _≅_ (A+⊥≅A {a})
+
+    module _ where
+
+      open 𝒞
+        using
+          ( _⇒_ ; _∘_ ; _≈_ ; id ; U
+          ; identity²
+          ; cocartesian ; initial ; ¡-unique
+          ; ∘[] ; []∘+₁ ; inject₁ ; assoc
+          ; module HomReasoning ; module Dual ; module Equiv
+          )
+
+      open Equiv
+
+      open Dual.op-binaryProducts cocartesian
+        using ()
+        renaming (⟨⟩-cong₂ to []-cong₂)
+
+      open ⇒-Reasoning U
+      open HomReasoning
+
+      copairing-id : ((≅P.from ∘ [ i₁ , i₂ ]) ∘ (id +₁ ¡)) ∘ A+⊥≅A.to ≈ id
+      copairing-id = begin
+        ((≅P.from ∘ [ i₁ , i₂ ]) ∘ (id +₁ ¡)) ∘ A+⊥≅A.to        ≈⟨ assoc ⟩
+        (≅P.from ∘ [ i₁ , i₂ ]) ∘ (id +₁ ¡) ∘ A+⊥≅A.to          ≈⟨ assoc ⟩
+        ≅P.from ∘ [ i₁ , i₂ ] ∘ (id +₁ ¡) ∘ A+⊥≅A.to            ≈⟨ pullˡ ∘[] ⟩
+        [ ≅P.from ∘ i₁ , ≅P.from ∘ i₂ ] ∘ (id +₁ ¡) ∘ A+⊥≅A.to  ≈⟨ pullˡ []∘+₁ ⟩
+        [ (≅P.from ∘ i₁) ∘ id , (≅P.from ∘ i₂) ∘ ¡ ] ∘ A+⊥≅A.to ≈⟨ []-cong₂ (universal∘i₁≈h₁ ⟩∘⟨refl) (universal∘i₂≈h₂ ⟩∘⟨refl) ⟩∘⟨refl ⟩
+        [ id ∘ id , f₂ ∘ ¡ ] ∘ A+⊥≅A.to                         ≈⟨ []-cong₂ identity² (sym (¡-unique (f₂ ∘ ¡))) ⟩∘⟨refl ⟩
+        [ id , ¡ ] ∘ A+⊥≅A.to                                   ≈⟨ inject₁ ⟩
+        id                                                      ∎
+
+    module _ where
+
+      open 𝒟
+        using
+          ( id ; _∘_ ; _≈_ ; _⇒_ ; U
+          ; assoc ; sym-assoc; identityˡ
+          ; monoidal ; _⊗₁_ ; unit ; unitorˡ ; unitorʳ
+          ; unitorʳ-commute-to
+          ; module Equiv
+          )
+
+      open Equiv
+      open ⊗-Reasoning monoidal
+      open ⇒-Reasoning U
+
+      φ = ⊗-homo.⇒.η
+      φ-commute = ⊗-homo.⇒.commute
+
+      module ρ≅ = unitorʳ
+      ρ⇒ = ρ≅.from
+      ρ⇐ = ρ≅.to
+
+      s : unit ⇒ F₀ N
+      s = decoration
+
+      cohere-s : φ (N , ⊥) ∘ (s ⊗₁ ε.from) ∘ ρ⇐ ≈ F₁ A+⊥≅A.to ∘ s
+      cohere-s = begin
+          φ (N , ⊥) ∘ (s ⊗₁ ε.from) ∘ ρ⇐                                                  ≈⟨ identityˡ ⟨
+          id ∘ φ (N , ⊥) ∘ (s ⊗₁ ε.from) ∘ ρ⇐                                             ≈⟨ F-identity ⟩∘⟨refl ⟨
+          F₁ id′ ∘ φ (N , ⊥) ∘ (s ⊗₁ ε.from) ∘ ρ⇐                                         ≈⟨ F-resp-≈ A+⊥≅A.isoˡ ⟩∘⟨refl ⟨
+          F₁ (A+⊥≅A.to ∘′ A+⊥≅A.from) ∘ φ (N , ⊥) ∘ (s ⊗₁ ε.from) ∘ ρ⇐                    ≈⟨ pushˡ homomorphism ⟩
+          F₁ A+⊥≅A.to ∘ F₁ A+⊥≅A.from ∘ φ (N , ⊥) ∘ (s ⊗₁ ε.from) ∘ ρ⇐                    ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ pushˡ serialize₂₁ ⟩
+          F₁ A+⊥≅A.to ∘ F₁ A+⊥≅A.from ∘ φ (N , ⊥) ∘ (id ⊗₁ ε.from) ∘ (s ⊗₁ id) ∘ ρ⇐       ≈⟨ refl⟩∘⟨ refl⟩∘⟨ sym-assoc ⟩
+          F₁ A+⊥≅A.to ∘ F₁ A+⊥≅A.from ∘ (φ (N , ⊥) ∘ (id ⊗₁ ε.from)) ∘ (s ⊗₁ id) ∘ ρ⇐     ≈⟨ refl⟩∘⟨ pullˡ unitaryʳ ⟩
+          F₁ A+⊥≅A.to ∘ ρ⇒ ∘ (s ⊗₁ id) ∘ ρ⇐                                               ≈⟨ refl⟩∘⟨ refl⟩∘⟨ unitorʳ-commute-to ⟨
+          F₁ A+⊥≅A.to ∘ ρ⇒ ∘ ρ⇐ ∘ s                                                       ≈⟨ refl⟩∘⟨ cancelˡ ρ≅.isoʳ ⟩
+          F₁ A+⊥≅A.to ∘ s                                                                 ∎
+
+      deco-id : F₁ ≅P.from ∘ F₁ [ i₁ , i₂ ] ∘ φ (N , B) ∘ s ⊗₁ (F₁ ¡ ∘ ε.from) ∘ ρ⇐ ≈ s
+      deco-id = begin
+          F₁ ≅P.from ∘ F₁ [ i₁ , i₂ ] ∘ φ (N , B) ∘ s ⊗₁ (F₁ ¡ ∘ ε.from) ∘ ρ⇐             ≈⟨ pushˡ homomorphism ⟨
+          F₁ (≅P.from ∘′ [ i₁ , i₂ ]) ∘ φ (N , B) ∘ s ⊗₁ (F₁ ¡ ∘ ε.from) ∘ ρ⇐             ≈⟨ refl⟩∘⟨ refl⟩∘⟨ pushˡ split₂ˡ ⟩
+          F₁ (≅P.from ∘′ [ i₁ , i₂ ]) ∘ φ (N , B) ∘ (id ⊗₁ F₁ ¡) ∘ (s ⊗₁ ε.from) ∘ ρ⇐     ≈⟨ refl⟩∘⟨ refl⟩∘⟨ F-identity ⟩⊗⟨refl ⟩∘⟨refl ⟨
+          F₁ (≅P.from ∘′ [ i₁ , i₂ ]) ∘ φ (N , B) ∘ (F₁ id′ ⊗₁ F₁ ¡) ∘ (s ⊗₁ ε.from) ∘ ρ⇐ ≈⟨ refl⟩∘⟨ extendʳ (φ-commute (id′ , ¡)) ⟩
+          F₁ (≅P.from ∘′ [ i₁ , i₂ ]) ∘ F₁ (id′ +₁ ¡) ∘ φ (N , ⊥) ∘ (s ⊗₁ ε.from) ∘ ρ⇐    ≈⟨ pushˡ homomorphism ⟨
+          F₁ ((≅P.from ∘′ [ i₁ , i₂ ]) ∘′ (id′ +₁ ¡)) ∘ φ (N , ⊥) ∘ (s ⊗₁ ε.from) ∘ ρ⇐    ≈⟨ refl⟩∘⟨ cohere-s ⟩
+          F₁ ((≅P.from ∘′ [ i₁ , i₂ ]) ∘′ (id′ +₁ ¡)) ∘ F₁ A+⊥≅A.to ∘ s                   ≈⟨ pushˡ homomorphism ⟨
+          F₁ (((≅P.from ∘′ [ i₁ , i₂ ]) ∘′ (id′ +₁ ¡)) ∘′ A+⊥≅A.to) ∘ s                   ≈⟨ F-resp-≈ copairing-id ⟩∘⟨refl ⟩
+          F₁ id′ ∘ s                                                                      ≈⟨ F-identity ⟩∘⟨refl ⟩
+          id ∘ s                                                                          ≈⟨ identityˡ ⟩
+          s                                                                               ∎
+
+compose-id² : Same {A} (compose identity identity) identity
+compose-id² = compose-idˡ
+
+compose-equiv
+    : {c₂ c₂′ : DecoratedCospan B C}
+      {c₁ c₁′ : DecoratedCospan A B}
+    → Same c₂ c₂′
+    → Same c₁ c₁′
+    → Same (compose c₁ c₂) (compose c₁′ c₂′)
+compose-equiv {_} {_} {_} {c₂} {c₂′} {c₁} {c₁′} ≅C₂ ≅C₁ = record
+    { cospans-≈ = ≅C₂∘C₁
+    ; same-deco = F≅N∘C₂∘C₁≈C₂′∘C₁′
+    }
+  where
+    module ≅C₁ = Same ≅C₁
+    module ≅C₂ = Same ≅C₂
+    module C₁ = DecoratedCospan c₁
+    module C₁′ = DecoratedCospan c₁′
+    module C₂ = DecoratedCospan c₂
+    module C₂′ = DecoratedCospan c₂′
+    ≅C₂∘C₁ = Cospans.compose-equiv ≅C₂.cospans-≈ ≅C₁.cospans-≈
+    module ≅C₂∘C₁ = Cospans.Same ≅C₂∘C₁
+    P = 𝒞.pushout C₁.f₂ C₂.f₁
+    P′ = 𝒞.pushout C₁′.f₂ C₂′.f₁
+    module P = Pushout P
+    module P′ = Pushout P′
+
+    s = C₁.decoration
+    t = C₂.decoration
+    s′ = C₁′.decoration
+    t′ = C₂′.decoration
+    N = C₁.N
+    M = C₂.N
+    N′ = C₁′.N
+    M′ = C₂′.N
+
+    φ = ⊗-homo.⇒.η
+    φ-commute = ⊗-homo.⇒.commute
+
+    Q⇒ = ≅C₂∘C₁.≅N.from
+    N⇒ = ≅C₁.≅N.from
+    M⇒ = ≅C₂.≅N.from
+
+    module _ where
+
+      ρ⇒ = 𝒟.unitorʳ.from
+      ρ⇐ = 𝒟.unitorʳ.to
+
+      open 𝒞 using ([_,_]; ∘[]; _+₁_; []∘+₁) renaming (_∘_ to _∘′_)
+      open 𝒞.Dual.op-binaryProducts 𝒞.cocartesian
+          using ()
+          renaming (⟨⟩-cong₂ to []-cong₂)
+
+      open 𝒟
+
+      open ⊗-Reasoning monoidal
+      open ⇒-Reasoning U
+
+      F≅N∘C₂∘C₁≈C₂′∘C₁′ : F₁ Q⇒ ∘ F₁ [ P.i₁ , P.i₂ ] ∘ φ (N , M) ∘ s ⊗₁ t ∘ ρ⇐ ≈ F₁ [ P′.i₁ , P′.i₂ ] ∘ φ (N′ , M′) ∘ s′ ⊗₁ t′ ∘ ρ⇐
+      F≅N∘C₂∘C₁≈C₂′∘C₁′ = begin
+          F₁ Q⇒ ∘ F₁ [ P.i₁ , P.i₂ ] ∘ φ (N , M) ∘ s ⊗₁ t ∘ ρ⇐                  ≈⟨ pushˡ homomorphism ⟨
+          F₁ (Q⇒ ∘′ [ P.i₁ , P.i₂ ]) ∘ φ (N , M) ∘ s ⊗₁ t ∘ ρ⇐                  ≈⟨ F-resp-≈ ∘[] ⟩∘⟨refl ⟩
+          F₁ ([ Q⇒ ∘′ P.i₁ , Q⇒ ∘′ P.i₂ ]) ∘ φ (N , M) ∘ s ⊗₁ t ∘ ρ⇐            ≈⟨ F-resp-≈ ([]-cong₂ P.universal∘i₁≈h₁ P.universal∘i₂≈h₂) ⟩∘⟨refl ⟩
+          F₁ ([ P′.i₁ ∘′ N⇒ , P′.i₂ ∘′ M⇒ ]) ∘ φ (N , M) ∘ s ⊗₁ t ∘ ρ⇐          ≈⟨ F-resp-≈ []∘+₁ ⟩∘⟨refl ⟨
+          F₁ ([ P′.i₁ , P′.i₂ ] ∘′ (N⇒ +₁ M⇒)) ∘ φ (N , M) ∘ s ⊗₁ t ∘ ρ⇐        ≈⟨ pushˡ homomorphism ⟩
+          F₁ [ P′.i₁ , P′.i₂ ] ∘ F₁ (N⇒ +₁ M⇒) ∘ φ (N , M) ∘ s ⊗₁ t ∘ ρ⇐        ≈⟨ refl⟩∘⟨ extendʳ (φ-commute (N⇒ , M⇒)) ⟨
+          F₁ [ P′.i₁ , P′.i₂ ] ∘ φ (N′ , M′) ∘ F₁ N⇒ ⊗₁ F₁ M⇒ ∘ s ⊗₁ t ∘ ρ⇐     ≈⟨ refl⟩∘⟨ refl⟩∘⟨ pushˡ ⊗-distrib-over-∘ ⟨
+          F₁ [ P′.i₁ , P′.i₂ ] ∘ φ (N′ , M′) ∘ (F₁ N⇒ ∘ s) ⊗₁ (F₁ M⇒ ∘ t) ∘ ρ⇐  ≈⟨ refl⟩∘⟨ refl⟩∘⟨ ≅C₁.same-deco ⟩⊗⟨ ≅C₂.same-deco ⟩∘⟨refl ⟩
+          F₁ [ P′.i₁ , P′.i₂ ] ∘ φ (N′ , M′) ∘ s′ ⊗₁ t′ ∘ ρ⇐                    ∎
+
+Cospans : Category o (o ⊔ ℓ) (ℓ ⊔ e)
+Cospans = record
+    { Obj = 𝒞.Obj
+    ; _⇒_ = DecoratedCospan
+    ; _≈_ = Same
+    ; id = identity
+    ; _∘_ = flip compose
+    ; assoc = compose-assoc
+    ; sym-assoc = same-sym (compose-assoc)
+    ; identityˡ = compose-idˡ
+    ; identityʳ = compose-idʳ
+    ; identity² = compose-id²
+    ; equiv = record
+        { refl = same-refl
+        ; sym = same-sym
+        ; trans = same-trans
+        }
+    ; ∘-resp-≈ = compose-equiv
+    }
