@@ -1,16 +1,16 @@
 {-# OPTIONS --without-K --safe #-}
 
 open import Category.Cocomplete.Finitely.Bundle using (FinitelyCocompleteCategory)
-open import Categories.Functor.Monoidal.Symmetric using (module Strong)
+open import Categories.Functor.Monoidal.Symmetric using (module Lax)
 open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
 
 open FinitelyCocompleteCategory using () renaming (symmetricMonoidalCategory to smc)
-open Strong using (SymmetricMonoidalFunctor)
+open Lax using (SymmetricMonoidalFunctor)
 
 module Cospan.Decorated
-    {o ℓ e}
+    {o o′ ℓ ℓ′ e e′}
     (C : FinitelyCocompleteCategory o ℓ e)
-    {D : SymmetricMonoidalCategory o ℓ e}
+    {D : SymmetricMonoidalCategory o′ ℓ′ e′}
     (F : SymmetricMonoidalFunctor (smc C) D)
   where
 
@@ -21,7 +21,7 @@ open import Category.Instance.Cospans C using (Cospan)
 open import Level using (_⊔_)
 
 
-record DecoratedCospan (A B : C.Obj) : Set (o ⊔ ℓ) where
+record DecoratedCospan (A B : C.Obj) : Set (o ⊔ ℓ ⊔ ℓ′) where
 
   open SymmetricMonoidalFunctor F using (F₀)
 
