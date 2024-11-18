@@ -595,15 +595,15 @@ unitaryʳ {n} {G} {G′} ≡G = record
     e+0↔e′ = ↔e ↔-∘ n+0↔0 e
     module e+0↔e′ = Inverse e+0↔e′
     open Inverse
-    bruh : ∀ e → (x : Fin e) → x ≡ to (n+0↔0 e) (x ↑ˡ 0)
-    bruh (ℕ.suc ℕ.zero) zero = refl
-    bruh (ℕ.suc (ℕ.suc e)) zero = refl
-    bruh (ℕ.suc (ℕ.suc e)) (suc x) = cong suc (bruh (ℕ.suc e) x)
+    ↑ˡ-0 : ∀ e → (x : Fin e) → x ≡ to (n+0↔0 e) (x ↑ˡ 0)
+    ↑ˡ-0 (ℕ.suc ℕ.zero) zero = refl
+    ↑ˡ-0 (ℕ.suc (ℕ.suc e)) zero = refl
+    ↑ˡ-0 (ℕ.suc (ℕ.suc e)) (suc x) = cong suc (↑ˡ-0 (ℕ.suc e) x)
     ≗s+0 : [ id , (λ ()) ] ∘ splitAt n ∘ join n 0 ∘ map s (λ ()) ∘ splitAt e ≗ s′ ∘ e+0↔e′.to
     ≗s+0 x+0 with splitAt e x+0 in eq
     ... | inj₁ x = begin
             [ id , (λ ()) ] (splitAt n (join n 0 (inj₁ (s x))))   ≡⟨ cong [ id , (λ ()) ] (splitAt-join n 0 (inj₁ (s x))) ⟩
-            s x                                                   ≡⟨ cong s (bruh e x) ⟩
+            s x                                                   ≡⟨ cong s (↑ˡ-0 e x) ⟩
             s (to (n+0↔0 e) (x ↑ˡ 0))                             ≡⟨⟩
             s (to (n+0↔0 e) (join e 0 (inj₁ x)))                  ≡⟨ cong (s ∘ to (n+0↔0 e) ∘ join e 0) eq ⟨
             s (to (n+0↔0 e) (join e 0 (splitAt e x+0)))           ≡⟨ cong (s ∘ to (n+0↔0 e)) (join-splitAt e 0 x+0) ⟩
@@ -613,7 +613,7 @@ unitaryʳ {n} {G} {G′} ≡G = record
     ≗t+0 x+0 with splitAt e x+0 in eq
     ... | inj₁ x = begin
             [ id , (λ ()) ] (splitAt n (join n 0 (inj₁ (t x))))   ≡⟨ cong [ id , (λ ()) ] (splitAt-join n 0 (inj₁ (t x))) ⟩
-            t x                                                   ≡⟨ cong t (bruh e x) ⟩
+            t x                                                   ≡⟨ cong t (↑ˡ-0 e x) ⟩
             t (to (n+0↔0 e) (x ↑ˡ 0))                             ≡⟨⟩
             t (to (n+0↔0 e) (join e 0 (inj₁ x)))                  ≡⟨ cong (t ∘ to (n+0↔0 e) ∘ join e 0) eq ⟨
             t (to (n+0↔0 e) (join e 0 (splitAt e x+0)))           ≡⟨ cong (t ∘ to (n+0↔0 e)) (join-splitAt e 0 x+0) ⟩
@@ -650,9 +650,9 @@ swap-map
 swap-map (inj₁ _) = refl
 swap-map (inj₂ _) = refl
 
-final-lemma : ∀ {x y : ℕ} → [ x ↑ʳ_  , _↑ˡ y ] ≗ join x y ∘ swap
-final-lemma (inj₁ x) = refl
-final-lemma (inj₂ y) = refl
+join-swap : ∀ {x y : ℕ} →  join x y ∘ swap ≗ [ x ↑ʳ_  , _↑ˡ y ]
+join-swap (inj₁ x) = refl
+join-swap (inj₂ y) = refl
 
 braiding
     : {G₁ G₁′ : Graph n}
@@ -676,7 +676,7 @@ braiding {n} {m} ≡G₁ ≡G₂ = record
         ∘ join ≡G₁.e′ ≡G₂.e′ ∘ map ≡G₁.to ≡G₂.to ∘ splitAt ≡G₁.e
     ≗s x = begin
         ([ m ↑ʳ_  , _↑ˡ n ] ∘ splitAt n ∘ join n m ∘ map ≡G₁.s ≡G₂.s ∘ splitAt ≡G₁.e) x
-            ≡⟨ (final-lemma ∘ splitAt n ∘ join n m ∘ map ≡G₁.s ≡G₂.s ∘ splitAt ≡G₁.e) x ⟩
+            ≡⟨ (join-swap ∘ splitAt n ∘ join n m ∘ map ≡G₁.s ≡G₂.s ∘ splitAt ≡G₁.e) x ⟨
         (join m n ∘ swap ∘ splitAt n ∘ join n m ∘ map ≡G₁.s ≡G₂.s ∘ splitAt ≡G₁.e) x
             ≡⟨ (cong (join m n ∘ swap) ∘ splitAt-join n m ∘ map ≡G₁.s ≡G₂.s ∘ splitAt ≡G₁.e) x ⟩
         (join m n ∘ swap ∘ map ≡G₁.s ≡G₂.s ∘ splitAt ≡G₁.e) x
@@ -697,7 +697,7 @@ braiding {n} {m} ≡G₁ ≡G₂ = record
         ∘ join ≡G₁.e′ ≡G₂.e′ ∘ map ≡G₁.to ≡G₂.to ∘ splitAt ≡G₁.e
     ≗t x = begin
         ([ m ↑ʳ_  , _↑ˡ n ] ∘ splitAt n ∘ join n m ∘ map ≡G₁.t ≡G₂.t ∘ splitAt ≡G₁.e) x
-            ≡⟨ (final-lemma ∘ splitAt n ∘ join n m ∘ map ≡G₁.t ≡G₂.t ∘ splitAt ≡G₁.e) x ⟩
+            ≡⟨ (join-swap ∘ splitAt n ∘ join n m ∘ map ≡G₁.t ≡G₂.t ∘ splitAt ≡G₁.e) x ⟨
         (join m n ∘ swap ∘ splitAt n ∘ join n m ∘ map ≡G₁.t ≡G₂.t ∘ splitAt ≡G₁.e) x
             ≡⟨ (cong (join m n ∘ swap) ∘ splitAt-join n m ∘ map ≡G₁.t ≡G₂.t ∘ splitAt ≡G₁.e) x ⟩
         (join m n ∘ swap ∘ map ≡G₁.t ≡G₂.t ∘ splitAt ≡G₁.e) x
