@@ -5,8 +5,6 @@ module Category.Diagram.Pushout {o ℓ e} (𝒞 : Category o ℓ e) where
 
 open Category 𝒞
 
-import Categories.Diagram.Pullback op as Pb using (up-to-iso)
-
 open import Categories.Diagram.Duality 𝒞 using (Pushout⇒coPullback)
 open import Categories.Diagram.Pushout 𝒞 using (Pushout)
 open import Categories.Diagram.Pushout.Properties 𝒞 using (glue; swap)
@@ -15,8 +13,12 @@ open import Categories.Morphism.Duality 𝒞 using (op-≅⇒≅)
 open import Categories.Morphism.Reasoning 𝒞 using
     ( id-comm
     ; id-comm-sym
-    ; assoc²''
-    ; assoc²'
+    ; assoc²εβ
+    ; assoc²γδ
+    ; assoc²γβ
+    ; assoc²βγ
+    ; introʳ
+    ; elimʳ
     )
 
 
@@ -32,31 +34,32 @@ glue-i₁ p = glue p
 glue-i₂ : (p₁ : Pushout f g) → Pushout (Pushout.i₂ p₁) h → Pushout f (h ∘ g)
 glue-i₂ p₁ p₂ = swap (glue (swap p₁) (swap p₂))
 
-up-to-iso : (p p′ : Pushout f g) → Pushout.Q p ≅ Pushout.Q p′
-up-to-iso p p′ = op-≅⇒≅ (Pb.up-to-iso (Pushout⇒coPullback p) (Pushout⇒coPullback p′))
-
 pushout-f-id : Pushout f id
 pushout-f-id {_} {_} {f} = record
     { i₁ = id
     ; i₂ = f
-    ; commute = id-comm-sym
-    ; universal = λ {B} {h₁} {h₂} eq → h₁
-    ; unique = λ {E} {h₁} {h₂} {eq} {j} j∘i₁≈h₁ j∘i₂≈h₂ → Equiv.sym identityʳ ○ j∘i₁≈h₁
-    ; universal∘i₁≈h₁ = λ {E} {h₁} {h₂} {eq} → identityʳ
-    ; universal∘i₂≈h₂ = λ {E} {h₁} {h₂} {eq} → eq ○ identityʳ
+    ; isPushout = record
+        { commute = id-comm-sym
+        ; universal = λ {B} {h₁} {h₂} eq → h₁
+        ; universal∘i₁≈h₁ = λ {E} {h₁} {h₂} {eq} → identityʳ
+        ; universal∘i₂≈h₂ = λ {E} {h₁} {h₂} {eq} → eq ○ identityʳ
+        ; unique-diagram = λ eq₁ eq₂ → Equiv.sym identityʳ ○ eq₁ ○ identityʳ
+        }
     }
   where
     open HomReasoning
 
 pushout-id-g : Pushout id g
-pushout-id-g {_} {_} {g} = record
+pushout-id-g {A} {B} {g} = record
     { i₁ = g
     ; i₂ = id
-    ; commute = id-comm
-    ; universal = λ {B} {h₁} {h₂} eq → h₂
-    ; unique = λ {E} {h₁} {h₂} {eq} {j} j∘i₁≈h₁ j∘i₂≈h₂ → Equiv.sym identityʳ ○ j∘i₂≈h₂
-    ; universal∘i₁≈h₁ = λ {E} {h₁} {h₂} {eq} → Equiv.sym eq ○ identityʳ
-    ; universal∘i₂≈h₂ = λ {E} {h₁} {h₂} {eq} → identityʳ
+    ; isPushout = record
+        { commute = id-comm
+        ; universal = λ {B} {h₁} {h₂} eq → h₂
+        ; universal∘i₁≈h₁ = λ {E} {h₁} {h₂} {eq} → Equiv.sym eq ○ identityʳ
+        ; universal∘i₂≈h₂ = λ {E} {h₁} {h₂} {eq} → identityʳ
+        ; unique-diagram = λ eq₁ eq₂ → Equiv.sym identityʳ ○ eq₂ ○ identityʳ
+        }
     }
   where
     open HomReasoning
@@ -70,31 +73,34 @@ extend-i₁-iso
 extend-i₁-iso {_} {_} {_} {_} {f} {g} p B≅D = record
     { i₁ = P.i₁ ∘ B≅D.to
     ; i₂ = P.i₂
-    ; commute = begin
-          (P.i₁ ∘ B≅D.to) ∘ B≅D.from ∘ f  ≈⟨ assoc²'' ⟨
-          P.i₁ ∘ (B≅D.to ∘ B≅D.from) ∘ f  ≈⟨ refl⟩∘⟨ B≅D.isoˡ ⟩∘⟨refl ⟩
-          P.i₁ ∘ id ∘ f                   ≈⟨ refl⟩∘⟨ identityˡ ⟩
-          P.i₁ ∘ f                        ≈⟨ P.commute ⟩
-          P.i₂ ∘ g                        ∎
-    ; universal = λ { eq → P.universal (assoc ○ eq) }
-    ; unique = λ {_} {h₁} {_} {j} ≈₁ ≈₂ →
-          let
-            ≈₁′ = begin
-                j ∘ P.i₁                        ≈⟨ refl⟩∘⟨ identityʳ ⟨
-                j ∘ P.i₁ ∘ id                   ≈⟨ refl⟩∘⟨ refl⟩∘⟨ B≅D.isoˡ ⟨
-                j ∘ P.i₁ ∘ B≅D.to ∘ B≅D.from    ≈⟨ assoc²' ⟨
-                (j ∘ P.i₁ ∘ B≅D.to) ∘ B≅D.from  ≈⟨ ≈₁ ⟩∘⟨refl ⟩
-                h₁ ∘ B≅D.from                   ∎
-          in P.unique ≈₁′ ≈₂
-    ; universal∘i₁≈h₁ = λ {E} {h₁} {_} {eq} →
-        begin
-            P.universal (assoc ○ eq) ∘ P.i₁ ∘ B≅D.to    ≈⟨ sym-assoc ⟩
-            (P.universal (assoc ○ eq) ∘ P.i₁) ∘ B≅D.to  ≈⟨ P.universal∘i₁≈h₁ ⟩∘⟨refl ⟩
-            (h₁ ∘ B≅D.from) ∘ B≅D.to                    ≈⟨ assoc ⟩
-            h₁ ∘ B≅D.from ∘ B≅D.to                      ≈⟨ refl⟩∘⟨ B≅D.isoʳ ⟩
-            h₁ ∘ id                                     ≈⟨ identityʳ ⟩
-            h₁                                          ∎
-    ; universal∘i₂≈h₂ = P.universal∘i₂≈h₂
+    ; isPushout = record
+        { commute = begin
+              (P.i₁ ∘ B≅D.to) ∘ B≅D.from ∘ f  ≈⟨ assoc²γδ ⟩
+              P.i₁ ∘ (B≅D.to ∘ B≅D.from) ∘ f  ≈⟨ refl⟩∘⟨ B≅D.isoˡ ⟩∘⟨refl ⟩
+              P.i₁ ∘ id ∘ f                   ≈⟨ refl⟩∘⟨ identityˡ ⟩
+              P.i₁ ∘ f                        ≈⟨ P.commute ⟩
+              P.i₂ ∘ g                        ∎
+        ; universal = λ { eq → P.universal (assoc ○ eq) }
+        ; universal∘i₁≈h₁ = λ {E} {h₁} {_} {eq} →
+            begin
+                P.universal (assoc ○ eq) ∘ P.i₁ ∘ B≅D.to    ≈⟨ sym-assoc ⟩
+                (P.universal (assoc ○ eq) ∘ P.i₁) ∘ B≅D.to  ≈⟨ P.universal∘i₁≈h₁ ⟩∘⟨refl ⟩
+                (h₁ ∘ B≅D.from) ∘ B≅D.to                    ≈⟨ assoc ⟩
+                h₁ ∘ B≅D.from ∘ B≅D.to                      ≈⟨ refl⟩∘⟨ B≅D.isoʳ ⟩
+                h₁ ∘ id                                     ≈⟨ identityʳ ⟩
+                h₁                                          ∎
+        ; universal∘i₂≈h₂ = P.universal∘i₂≈h₂
+        ; unique-diagram = λ {_} {h} {j} ≈₁ ≈₂ →
+              let
+                ≈₁′ = begin
+                    h ∘ P.i₁                        ≈⟨ introʳ B≅D.isoˡ ⟩
+                    (h ∘ P.i₁) ∘ B≅D.to ∘ B≅D.from  ≈⟨ assoc²γβ ⟩
+                    (h ∘ P.i₁ ∘ B≅D.to) ∘ B≅D.from  ≈⟨ ≈₁ ⟩∘⟨refl ⟩
+                    (j ∘ P.i₁ ∘ B≅D.to) ∘ B≅D.from  ≈⟨ assoc²βγ ⟩
+                    (j ∘ P.i₁) ∘ B≅D.to ∘ B≅D.from  ≈⟨ elimʳ B≅D.isoˡ ⟩
+                    j ∘ P.i₁                        ∎
+              in P.unique-diagram ≈₁′ ≈₂
+        }
     }
   where
     module P = Pushout p

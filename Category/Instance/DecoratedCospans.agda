@@ -23,6 +23,7 @@ import Category.Instance.Cospans 𝒞 as Cospans
 open import Categories.Category using (Category; _[_∘_])
 open import Categories.Category.Cocartesian using (module CocartesianMonoidal)
 open import Categories.Diagram.Pushout using (Pushout)
+open import Categories.Diagram.Pushout.Properties 𝒞.U using (up-to-iso)
 open import Categories.Functor.Properties using ([_]-resp-≅)
 open import Categories.Morphism.Reasoning using (switch-fromtoˡ; glueTrianglesˡ)
 open import Cospan.Decorated 𝒞 F using (DecoratedCospan)
@@ -30,7 +31,7 @@ open import Data.Product using (_,_)
 open import Function using (flip)
 open import Level using (_⊔_)
 
-open import Category.Diagram.Pushout 𝒞.U using (glue-i₁; glue-i₂; pushout-id-g; pushout-f-id; up-to-iso)
+open import Category.Diagram.Pushout 𝒞.U using (glue-i₁; glue-i₂; pushout-id-g; pushout-f-id)
 
 import Category.Monoidal.Coherence as Coherence
 
@@ -66,7 +67,7 @@ compose c₁ c₂ = record
 
 identity : DecoratedCospan A A
 identity = record
-    { cospan = Cospans.identity
+    { cospan = Cospans.id-Cospan
     ; decoration = 𝒟.U [ F₁ 𝒞.initial.! ∘ ε ]
     }
 
@@ -629,8 +630,8 @@ compose-equiv {_} {_} {_} {c₂} {c₂′} {c₁} {c₁′} ≅C₂ ≅C₁ = re
           F₁ [ P′.i₁ , P′.i₂ ] ∘ φ (N′ , M′) ∘ (F₁ N⇒ ∘ s) ⊗₁ (F₁ M⇒ ∘ t) ∘ ρ⇐  ≈⟨ refl⟩∘⟨ refl⟩∘⟨ ≅C₁.same-deco ⟩⊗⟨ ≅C₂.same-deco ⟩∘⟨refl ⟩
           F₁ [ P′.i₁ , P′.i₂ ] ∘ φ (N′ , M′) ∘ s′ ⊗₁ t′ ∘ ρ⇐                    ∎
 
-Cospans : Category o (o ⊔ ℓ ⊔ ℓ′) (ℓ ⊔ e ⊔ e′)
-Cospans = record
+DecoratedCospans : Category o (o ⊔ ℓ ⊔ ℓ′) (ℓ ⊔ e ⊔ e′)
+DecoratedCospans = record
     { Obj = 𝒞.Obj
     ; _⇒_ = DecoratedCospan
     ; _≈_ = Same

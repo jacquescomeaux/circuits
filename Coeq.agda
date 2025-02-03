@@ -5,7 +5,7 @@ module Coeq {o ℓ e} (C : Category o ℓ e) where
 
 open import Categories.Diagram.Coequalizer C using (IsCoequalizer)
 open import Categories.Object.Coproduct C using (Coproduct; IsCoproduct; IsCoproduct⇒Coproduct)
-open import Categories.Morphism.Reasoning.Core C using (pullˡ; pushˡ; extendˡ; extendʳ; assoc²')
+open import Categories.Morphism.Reasoning.Core C using (pullˡ; pushˡ; extendˡ; extendʳ; assoc²βε; assoc²εβ)
 open import Function using (_$_)
 
 open Category C
@@ -33,9 +33,9 @@ coequalizer-on-coproduct {C = C} {Q₁} {Q₂} {f = f} {g} {q₁} {q₂} coprod 
     module X₂ = IsCoequalizer coeq₂
     open Coproduct (IsCoproduct⇒Coproduct coprod) using (g-η; [_,_]; unique; i₁; i₂)
     on-i₁ : (q₂ ∘ q₁ ∘ f) ∘ i₁ ≈ (q₂ ∘ q₁ ∘ g) ∘ i₁
-    on-i₁ = assoc²' ○ refl⟩∘⟨ X₁.equality ○ Equiv.sym assoc²'
+    on-i₁ = assoc²βε  ○ refl⟩∘⟨ X₁.equality ○ assoc²εβ
     on-i₂ : (q₂ ∘ q₁ ∘ f) ∘ i₂ ≈ (q₂ ∘ q₁ ∘ g) ∘ i₂
-    on-i₂ = assoc²' ○ X₂.equality ○ Equiv.sym assoc²'
+    on-i₂ = assoc²βε ○ X₂.equality ○ assoc²εβ
     equality : q₂ ∘ q₁ ∘ f ≈ q₂ ∘ q₁ ∘ g
     equality = begin
       q₂ ∘ q₁ ∘ f                                 ≈⟨ unique on-i₁ on-i₂ ⟨

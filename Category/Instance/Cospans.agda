@@ -10,7 +10,7 @@ module Category.Instance.Cospans {o ℓ e} (𝒞 : FinitelyCocompleteCategory o 
 open FinitelyCocompleteCategory 𝒞
 
 open import Categories.Diagram.Pushout U using (Pushout)
-open import Categories.Diagram.Pushout.Properties U using (pushout-resp-≈)
+open import Categories.Diagram.Pushout.Properties U using (pushout-resp-≈; up-to-iso)
 open import Categories.Morphism U using (_≅_; module ≅)
 open import Categories.Morphism.Reasoning U
   using
@@ -22,7 +22,6 @@ open import Categories.Morphism.Reasoning U
 open import Category.Diagram.Pushout U 
   using
     ( glue-i₁ ; glue-i₂
-    ; up-to-iso
     ; pushout-f-id ; pushout-id-g
     ; extend-i₁-iso ; extend-i₂-iso
     )
@@ -47,8 +46,8 @@ compose c₁ c₂ = record { f₁ = p.i₁ ∘ C₁.f₁ ; f₂ = p.i₂ ∘ C�
     module C₂ = Cospan c₂
     module p = pushout C₁.f₂ C₂.f₁
 
-identity : Cospan A A
-identity = record { f₁ = id ; f₂ = id }
+id-Cospan : Cospan A A
+id-Cospan = record { f₁ = id ; f₂ = id }
 
 compose-3 : Cospan A B → Cospan B C → Cospan C D → Cospan A D
 compose-3 c₁ c₂ c₃ = record { f₁ = P₃.i₁ ∘ P₁.i₁ ∘ C₁.f₁ ; f₂ = P₃.i₂ ∘ P₂.i₂ ∘ C₃.f₂ }
@@ -101,7 +100,7 @@ same-trans C≈C′ C′≈C″ = record
     module C≈C′ = Same C≈C′
     module C′≈C″ = Same C′≈C″
 
-compose-idˡ : {C : Cospan A B} → Same (compose C identity) C
+compose-idˡ : {C : Cospan A B} → Same (compose C id-Cospan) C
 compose-idˡ {_} {_} {C} = record
     { ≅N = ≅P
     ; from∘f₁≈f₁′ = begin
@@ -123,7 +122,7 @@ compose-idˡ {_} {_} {C} = record
     ≅P = up-to-iso P P′
     module ≅P = _≅_ ≅P
 
-compose-idʳ : {C : Cospan A B} → Same (compose identity C) C
+compose-idʳ : {C : Cospan A B} → Same (compose id-Cospan C) C
 compose-idʳ {_} {_} {C} = record
     { ≅N = ≅P
     ; from∘f₁≈f₁′ = begin
@@ -145,7 +144,7 @@ compose-idʳ {_} {_} {C} = record
     ≅P = up-to-iso P P′
     module ≅P = _≅_ ≅P
 
-compose-id² : Same {A} (compose identity identity) identity
+compose-id² : Same {A} (compose id-Cospan id-Cospan) id-Cospan
 compose-id² = compose-idˡ
 
 compose-3-right
@@ -264,7 +263,7 @@ Cospans = record
     { Obj = Obj
     ; _⇒_ = Cospan
     ; _≈_ = Same
-    ; id = identity
+    ; id = id-Cospan
     ; _∘_ = flip compose
     ; assoc = compose-assoc
     ; sym-assoc = compose-sym-assoc
