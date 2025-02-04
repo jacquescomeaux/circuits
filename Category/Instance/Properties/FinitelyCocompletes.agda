@@ -36,7 +36,9 @@ module _ (𝒞 : FinitelyCocompleteCategory o ℓ e) where
 
   open 𝒞 using ([_,_]; +-unique; i₁; i₂; _∘_; _+_; module Equiv; _⇒_; _+₁_; -+-)
   open Equiv
-  module -+- = Functor -+-
+
+  private
+    module -+- = Functor -+-
 
   +-resp-⊥
       : {(A , B) : 𝒞×𝒞.Obj}
