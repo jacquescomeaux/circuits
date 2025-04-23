@@ -62,6 +62,7 @@ _×_ 𝒞 𝒟 = record
   where
     module 𝒞 = FinitelyCocompleteCategory 𝒞
     module 𝒟 = FinitelyCocompleteCategory 𝒟
+{-# INJECTIVE_FOR_INFERENCE _×_ #-}
 
 module _ (𝒞 𝒟 : FinitelyCocompleteCategory o ℓ e) where
 

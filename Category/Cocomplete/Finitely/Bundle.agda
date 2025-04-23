@@ -28,6 +28,7 @@ record FinitelyCocompleteCategory o ℓ e : Set (suc (o ⊔ ℓ ⊔ e)) where
       ; monoidal = monoidal
       ; symmetric = symmetric
       }
+  {-# INJECTIVE_FOR_INFERENCE symmetricMonoidalCategory #-}
 
   cocartesianCategory : CocartesianCategory o ℓ e
   cocartesianCategory = record

@@ -1,23 +1,27 @@
 {-# OPTIONS --without-K --safe #-}
 
-open import Level using (Level)
-module Category.Instance.Properties.FinitelyCocompletes {o ℓ e : Level} where
+open import Level using (Level; suc; _⊔_)
 
+module Category.Cartesian.Instance.FinitelyCocompletes {o ℓ e : Level} where
+
+import Categories.Morphism as Morphism
 import Categories.Morphism.Reasoning as ⇒-Reasoning
 
 open import Categories.Category.BinaryProducts using (BinaryProducts)
 open import Categories.Category.Cartesian.Bundle using (CartesianCategory)
-open import Categories.Category.Product using (Product) renaming (_⁂_ to _⁂′_)
 open import Categories.Diagram.Coequalizer using (IsCoequalizer)
+open import Categories.Functor.Bifunctor using (flip-bifunctor)
 open import Categories.Functor.Core using (Functor)
-open import Categories.Functor using (_∘F_) renaming (id to idF)
+open import Categories.NaturalTransformation.NaturalIsomorphism using (_≃_; niHelper)
+open import Categories.NaturalTransformation.NaturalIsomorphism.Properties using (pointwise-iso)
 open import Categories.Object.Coproduct using (IsCoproduct; IsCoproduct⇒Coproduct; Coproduct)
 open import Categories.Object.Initial using (IsInitial)
+open import Data.Product.Base using (_,_) renaming (_×_ to _×′_)
+
 open import Category.Cocomplete.Finitely.Bundle using (FinitelyCocompleteCategory)
 open import Category.Instance.FinitelyCocompletes {o} {ℓ} {e} using (FinitelyCocompletes; FinitelyCocompletes-Cartesian; _×₁_)
-open import Data.Product.Base using (_,_) renaming (_×_ to _×′_)
 open import Functor.Exact using (IsRightExact; RightExactFunctor)
-open import Level using (_⊔_; suc)
+open import Functor.Exact.Instance.Swap using (Swap)
 
 FinitelyCocompletes-CC : CartesianCategory (suc (o ⊔ ℓ ⊔ e)) (o ⊔ ℓ ⊔ e) (o ⊔ ℓ ⊔ e)
 FinitelyCocompletes-CC = record
@@ -202,9 +206,37 @@ module _ {𝒞 : FinitelyCocompleteCategory o ℓ e} where
           ; F-resp-coeq = +-resp-coeq 𝒞
           }
       }
+  module x+y = RightExactFunctor -+-
+
+  ↔-+- : 𝒞 × 𝒞 ⇒ 𝒞
+  ↔-+- = -+- ∘ Swap 𝒞 𝒞
+  module y+x = RightExactFunctor ↔-+-
 
   [x+y]+z : (𝒞 × 𝒞) × 𝒞 ⇒ 𝒞
   [x+y]+z = -+- ∘ (-+- ×₁ id)
+  module [x+y]+z = RightExactFunctor [x+y]+z
 
   x+[y+z] : (𝒞 × 𝒞) × 𝒞 ⇒ 𝒞
   x+[y+z] = -+- ∘ (id ×₁ -+-) ∘ assocˡ
+  module x+[y+z] = RightExactFunctor x+[y+z]
+
+  assoc-≃ : [x+y]+z.F ≃ x+[y+z].F
+  assoc-≃ = pointwise-iso (λ { ((X , Y) , Z) → ≅.sym (𝒞.+-assoc {X} {Y} {Z})}) commute
+    where
+      open 𝒞
+      module 𝒞×𝒞×𝒞 = FinitelyCocompleteCategory ((𝒞 × 𝒞) × 𝒞)
+      open Morphism U using (_≅_; module ≅)
+      module +-assoc {X} {Y} {Z} = _≅_ (≅.sym (+-assoc {X} {Y} {Z}))
+      open import Categories.Category.BinaryProducts using (BinaryProducts)
+      open import Categories.Object.Duality 𝒞.U using (Coproduct⇒coProduct)
+      op-binaryProducts : BinaryProducts op
+      op-binaryProducts = record { product = Coproduct⇒coProduct coproduct }
+      open BinaryProducts op-binaryProducts using () renaming (assocʳ∘⁂ to +₁∘assocˡ)
+      open Equiv
+      commute
+          : {((X , Y) , Z) : 𝒞×𝒞×𝒞.Obj}
+            {((X′ , Y′) , Z′) : 𝒞×𝒞×𝒞.Obj}
+          → (F : ((X , Y) , Z) 𝒞×𝒞×𝒞.⇒ ((X′ , Y′) , Z′))
+          → (+-assoc.from 𝒞.∘ [x+y]+z.₁ F)
+          ≈ (x+[y+z].₁ F 𝒞.∘ +-assoc.from)
+      commute {(X , Y) , Z} {(X′ , Y′) , Z′} ((F , G) , H) = sym +₁∘assocˡ
