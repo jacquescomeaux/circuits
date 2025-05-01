@@ -17,7 +17,7 @@ open import Categories.Category.Product using (_⁂_)
 open import Categories.Functor using () renaming (_∘F_ to _∘_)
 open import Categories.Functor.Core using (Functor)
 open import Categories.Functor.Monoidal.Symmetric using (module Lax)
-open import Categories.NaturalTransformation using (NaturalTransformation)
+open import Categories.NaturalTransformation using (NaturalTransformation; ntHelper)
 open import Category.Cocomplete.Finitely.Bundle using (FinitelyCocompleteCategory)
 open import Category.Instance.Setoids.SymmetricMonoidal using (Setoids-×)
 open import Category.Instance.Nat.FinitelyCocomplete using (Nat-FinitelyCocomplete)
@@ -47,9 +47,9 @@ F : Functor Nat (Setoids 0ℓ 0ℓ)
 F = record
     { F₀ = const (⊤-setoid)
     ; F₁ = const (record { to = const tt ; cong = const refl })
-    ; identity = const refl
-    ; homomorphism = const refl
-    ; F-resp-≈ = const (const refl)
+    ; identity = refl
+    ; homomorphism = refl
+    ; F-resp-≈ = const refl
     }
 
 ε : Func (SingletonSetoid {0ℓ} {0ℓ}) ⊤-setoid
@@ -59,10 +59,9 @@ F = record
     }
 
 ⊗-homomorphism : NaturalTransformation (-×- ∘ (F ⁂ F)) (F ∘ -+-)
-⊗-homomorphism = record
+⊗-homomorphism = ntHelper record
     { η = const (record { to = const tt ; cong = const refl })
-    ; commute = const (const refl)
-    ; sym-commute = const (const refl)
+    ; commute = const refl
     }
 
 trivial : SymmetricMonoidalFunctor Nat-smc (Setoids-× {0ℓ})
@@ -72,11 +71,11 @@ trivial = record
         { isMonoidal = record
             { ε = ε
             ; ⊗-homo = ⊗-homomorphism
-            ; associativity = const refl
-            ; unitaryˡ = const refl
-            ; unitaryʳ = const refl
+            ; associativity = refl
+            ; unitaryˡ = refl
+            ; unitaryʳ = refl
             }
-        ; braiding-compat = const refl
+        ; braiding-compat = refl
         }
     }
 
