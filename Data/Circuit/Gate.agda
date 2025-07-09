@@ -4,7 +4,7 @@ module Data.Circuit.Gate where
 
 open import Level using (0ℓ)
 open import Data.Castable using (Castable)
-open import Data.Hypergraph.Base using (HypergraphLabel; module Edge; module HypergraphList)
+open import Data.Hypergraph.Label using (HypergraphLabel)
 open import Data.String using (String)
 open import Data.Nat.Base using (ℕ; _≤_)
 open import Data.Nat.Properties using (≤-refl; ≤-trans; ≤-antisym; ≤-total)
