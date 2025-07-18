@@ -3,10 +3,10 @@
 module Data.Circuit.Typecheck where
 
 open import Data.SExp using (SExp)
-open import Data.Hypergraph.Base using (HypergraphLabel; module Edge; module HypergraphList)
 open import Data.Circuit.Gate using (GateLabel; Gate)
-open Edge GateLabel using (Edge)
-open HypergraphList GateLabel using (Hypergraph)
+open import Data.Hypergraph.Label using (HypergraphLabel)
+open import Data.Hypergraph.Edge GateLabel using (Edge)
+open import Data.Hypergraph.Base GateLabel using (Hypergraph)
 
 open import Data.List using (List; length) renaming (map to mapL)
 open import Data.List.Effectful using () renaming (module TraversableA to ListTraversable)
