@@ -324,3 +324,8 @@ showEdge : {v : ℕ} → Edge v → String
 showEdge record { arity = a ; label = l ; ports = p} = HL.showLabel a l <+> showVec showFin p
 
 open module STOP′ {v} = STOP (strictTotalOrder {v}) using (decTotalOrder) public
+
+≈-Edge⇒≡ : {v : ℕ} {x y : Edge v} → ≈-Edge x y → x ≡ y
+≈-Edge⇒≡ {v} {record { label = l ; ports = p }} record { ≡arity = ≡.refl ; ≡label = ≡.refl ; ≡ports = ≡.refl }
+  rewrite cast-is-id ≡.refl l
+  rewrite VecCast.cast-is-id ≡.refl p = ≡.refl

@@ -9,7 +9,7 @@ open import Data.List.Base using (List; map)
 open import Data.Nat.Base using (ℕ)
 open import Data.String using (String; unlines)
 
-import Data.List.Sort.MergeSort as MergeSort
+import Data.List.Sort as Sort
 
 record Hypergraph (v : ℕ) : Set where
   field
@@ -19,7 +19,7 @@ sortHypergraph : {v : ℕ} → Hypergraph v → Hypergraph v
 sortHypergraph {v} H = record { edges = sort edges }
   where
     open Hypergraph H
-    open MergeSort decTotalOrder using (sort)
+    open Sort decTotalOrder using (sort)
 
 showHypergraph : {v : ℕ} → Hypergraph v → String
 showHypergraph record { edges = e} = unlines (map showEdge e)
