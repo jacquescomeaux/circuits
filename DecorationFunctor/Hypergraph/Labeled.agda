@@ -26,7 +26,7 @@ open import Category.Instance.Nat.FinitelyCocomplete using (Nat-FinitelyCocomple
 open import Data.Empty using (⊥-elim)
 open import Data.Fin using (#_)
 open import Data.Fin.Base using (Fin; splitAt; join; zero; suc; _↑ˡ_; _↑ʳ_; Fin′; cast)
-open import Data.Fin.Patterns using (0F; 1F)
+open import Data.Fin.Patterns using (0F; 1F; 2F)
 open import Data.Fin.Permutation using (lift₀)
 open import Data.Fin.Properties
   using
