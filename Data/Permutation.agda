@@ -2,7 +2,7 @@
 
 open import Level using (Level)
 
-module Data.Permutation {ℓ : Level} (A : Set ℓ) where
+module Data.Permutation {ℓ : Level} {A : Set ℓ} where
 
 import Data.Fin as Fin
 import Data.Fin.Properties as FinProp
@@ -39,8 +39,7 @@ module _ where
 
   -- convert a List permutation to a Vector permutation
   fromList-↭
-      : {A : Set}
-        {xs ys : List A}
+      : {xs ys : List A}
       → xs ↭ ys
       → fromList xs ↭′ fromList ys
   fromList-↭ refl = ↭-refl
