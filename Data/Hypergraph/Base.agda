@@ -12,6 +12,7 @@ open import Data.String using (String; unlines)
 import Data.List.Sort as Sort
 
 record Hypergraph (v : ℕ) : Set where
+  constructor mkHypergraph
   field
     edges : List (Edge v)
 

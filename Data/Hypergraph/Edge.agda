@@ -80,6 +80,14 @@ record ≈-Edge {n : ℕ} (E E′ : Edge n) : Set where
     module i≈j = ≈-Edge i≈j
     module j≈k = ≈-Edge j≈k
 
+open import Relation.Binary using (IsEquivalence)
+≈-Edge-IsEquivalence : {v : ℕ} → IsEquivalence (≈-Edge {v})
+≈-Edge-IsEquivalence = record
+    { refl = ≈-Edge-refl
+    ; sym = ≈-Edge-sym
+    ; trans = ≈-Edge-trans
+    }
+
 open HL using (_[_<_])
 _<<_ : {v a : ℕ} → Rel (Vec (Fin v) a) 0ℓ
 _<<_ {v} = Lex.Lex-< _≡_ (Fin._<_ {v})
@@ -300,11 +308,7 @@ tri x y | tri> x≮y x≢y y<x = tri> ¬x<y (λ x≡y → x≢y (≡arity x≡y)
 isStrictTotalOrder : {v : ℕ} → IsStrictTotalOrder (≈-Edge {v}) (<-Edge {v})
 isStrictTotalOrder = record
     { isStrictPartialOrder = record
-        { isEquivalence = record
-            { refl = ≈-Edge-refl
-            ; sym = ≈-Edge-sym
-            ; trans = ≈-Edge-trans
-            }
+        { isEquivalence = ≈-Edge-IsEquivalence
         ; irrefl = <-Edge-irrefl
         ; trans = <-Edge-trans
         ; <-resp-≈ = <-Edge-respʳ-≈ , <-Edge-respˡ-≈

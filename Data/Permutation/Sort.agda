@@ -14,20 +14,23 @@ open DecTotalOrder dto
     )
   renaming (Carrier to A; trans to ≤-trans; reflexive to ≤-reflexive)
 
-open import Data.Fin.Base using (Fin)
+open import Data.Nat.Base using (ℕ)
 open import Data.List.Base using (List; _++_; [_])
 open import Data.List.Membership.Setoid Eq.setoid using (_∈_)
 open import Data.List.Relation.Binary.Pointwise using (module Pointwise)
-open import Data.List.Relation.Binary.Equality.Setoid Eq.setoid using (_≋_; ≋-refl; ≋-sym; ≋-trans)
+open import Data.List.Relation.Binary.Equality.Setoid Eq.setoid using (_≋_; ≋-refl; ≋-sym; ≋-trans; ≋-length; Any-resp-≋)
 open import Data.List.Relation.Unary.Linked using (Linked)
 open import Data.List.Relation.Unary.Sorted.TotalOrder totalOrder using (Sorted)
-open import Data.List.Relation.Binary.Permutation.Propositional using (_↭_; ↭-trans; ↭-sym)
-open import Data.List.Relation.Binary.Permutation.Propositional.Properties using (↭-length)
+open import Data.List.Relation.Binary.Permutation.Homogeneous using (map)
+open import Data.List.Relation.Binary.Permutation.Propositional using () renaming (_↭_ to _↭′_)
+open import Data.List.Relation.Binary.Permutation.Setoid Eq.setoid using (_↭_; ↭-trans; ↭-sym; refl; prep; swap; trans; ↭-reflexive-≋)
+open import Data.List.Relation.Binary.Permutation.Setoid.Properties Eq.setoid using (∈-resp-↭)
+open import Relation.Binary.PropositionalEquality as ≡ using (_≡_)
+open import Data.List.Relation.Binary.Permutation.Setoid.Properties (≡.setoid A) using (map⁺)
 open import Data.List.Relation.Unary.Any using (Any)
 open import Data.List.Sort dto using (sort; sort-↭; sort-↗)
 open import Relation.Nullary.Decidable.Core using (yes; no)
-open Fin
-open _↭_
+open ℕ
 open Any
 open List
 open Linked
@@ -110,29 +113,43 @@ insert-remove {x₀ ∷ x₁ ∷ xs} {x} (x₀≤x₁ ∷ s-xs) (there x∈xs) w
           x₁≤x = head-≤ s-xs x∈xs
 ... | no x≰x₀ = Eq.refl ∷ insert-remove s-xs x∈xs
 
-apply : {xs ys : List A} {x : A} → xs ↭ ys → x ∈ xs → x ∈ ys
-apply refl x-in-xs = x-in-xs
-apply (prep x xs↭ys) (here px) = here px
-apply (prep x xs↭ys) (there x-in-xs) = there (apply xs↭ys x-in-xs)
-apply (swap x y xs↭ys) (here px) = there (here px)
-apply (swap x y xs↭ys) (there (here px)) = here px
-apply (swap x y xs↭ys) (there (there x-in-xs)) = there (there (apply xs↭ys x-in-xs))
-apply (trans xs↭ys ys↭zs) x-in-xs = apply ys↭zs (apply xs↭ys x-in-xs)
+open import Data.List.Base using (length)
+open import Function.Base using (_∘_; flip; id)
+open import Data.List.Relation.Binary.Permutation.Propositional using (↭⇒↭ₛ)
+
+∈-resp-≋ : {xs ys : List A} {x : A} → xs ≋ ys → x ∈ xs → x ∈ ys
+∈-resp-≋ = Any-resp-≋ (flip Eq.trans)
+
+≋-remove
+    : {xs ys : List A}
+      {x : A}
+    → (xs≋ys : xs ≋ ys)
+    → (x∈xs : x ∈ xs)
+    → let x∈ys = ∈-resp-≋ xs≋ys x∈xs in
+      remove xs x∈xs ≋ remove ys x∈ys
+≋-remove (x≈y ∷ xs≋ys) (here px) = xs≋ys
+≋-remove (x≈y ∷ xs≋ys) (there x∈xs) = x≈y ∷ ≋-remove xs≋ys x∈xs
 
 ↭-remove
     : {xs ys : List A}
       {x : A}
     → (xs↭ys : xs ↭ ys)
     → (x∈xs : x ∈ xs)
-    → let x∈ys = apply xs↭ys x∈xs in
+    → let x∈ys = ∈-resp-↭ xs↭ys x∈xs in
       remove xs x∈xs ↭ remove ys x∈ys
-↭-remove refl x∈xs = refl
+↭-remove (refl xs≋ys) x∈xs = ↭-reflexive-≋ (≋-remove xs≋ys x∈xs)
 ↭-remove (prep x xs↭ys) (here px) = xs↭ys
 ↭-remove (prep x xs↭ys) (there x∈xs) = prep x (↭-remove xs↭ys x∈xs)
 ↭-remove (swap x y xs↭ys) (here px) = prep y xs↭ys
 ↭-remove (swap x y xs↭ys) (there (here px)) = prep x xs↭ys
 ↭-remove (swap x y xs↭ys) (there (there x∈xs)) = swap x y (↭-remove xs↭ys x∈xs)
-↭-remove (trans xs↭ys ys↭zs) x∈xs = trans (↭-remove xs↭ys x∈xs) (↭-remove ys↭zs (apply xs↭ys x∈xs))
+↭-remove (trans xs↭ys ys↭zs) x∈xs = trans (↭-remove xs↭ys x∈xs) (↭-remove ys↭zs (∈-resp-↭ xs↭ys x∈xs))
+
+↭-length : ∀ {xs ys : List A} → xs ↭ ys → length xs ≡ length ys
+↭-length (refl xs≋ys)    = ≋-length xs≋ys
+↭-length (prep x lr)     = ≡.cong suc (↭-length lr)
+↭-length (swap x y lr)   = ≡.cong (suc ∘ suc) (↭-length lr)
+↭-length (trans lr₁ lr₂) = ≡.trans (↭-length lr₁) (↭-length lr₂)
 
 sorted-unique
     : {xs ys : List A}
@@ -147,7 +164,7 @@ sorted-unique xs@{x ∷ xs′} {ys} xs↭ys s-xs s-ys = ≋-trans ≋xs (≋-tra
     x∈xs : x ∈ xs
     x∈xs = here Eq.refl
     x∈ys : x ∈ ys
-    x∈ys = apply xs↭ys x∈xs
+    x∈ys = ∈-resp-↭ xs↭ys x∈xs
     s-xs′ : Sorted (remove xs x∈xs)
     s-xs′ = remove-sorted s-xs x∈xs
     s-ys′ : Sorted (remove ys x∈ys)
@@ -170,7 +187,10 @@ sorted-≋
 sorted-≋ {xs} {ys} xs↭ys =
     sorted-unique
       (↭-trans
-        (sort-↭ xs)
-        (↭-trans xs↭ys (↭-sym (sort-↭ ys))))
+        (⇒↭ (sort-↭ xs))
+        (↭-trans xs↭ys (↭-sym (⇒↭ (sort-↭ ys)))))
       (sort-↗ xs)
       (sort-↗ ys)
+  where
+    ⇒↭ : {xs ys : List A} → xs ↭′ ys → xs ↭ ys
+    ⇒↭ = map Eq.reflexive ∘ ↭⇒↭ₛ
