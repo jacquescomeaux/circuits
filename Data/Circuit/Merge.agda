@@ -5,7 +5,7 @@ module Data.Circuit.Merge where
 open import Data.Nat.Base using (ℕ)
 open import Data.Fin.Base using (Fin; pinch; punchIn; punchOut)
 open import Data.Fin.Properties using (punchInᵢ≢i; punchIn-punchOut)
-open import Data.Bool.Properties using (if-float)
+open import Data.Bool.Properties using (if-eta)
 open import Data.Bool using (Bool; if_then_else_)
 open import Data.Circuit.Value using (Value; join; join-comm; join-assoc)
 open import Data.Subset.Functional
@@ -85,14 +85,12 @@ merge-with-U {suc A} e S = begin
         (tail (λ _ → U)) (tail S)           ≡⟨ ≡.cong (λ h → merge-with (if head S then h else e) _ _) (join-comm e U) ⟩
     merge-with
         (if head S then e else e)
-        (tail (λ _ → U)) (tail S)           ≡⟨ ≡.cong (λ h → merge-with h (λ _ → U) (tail S)) (either-way (head S)) ⟨
+        (tail (λ _ → U)) (tail S)           ≡⟨ ≡.cong (λ h → merge-with h (λ _ → U) (tail S)) (if-eta (head S)) ⟩
     merge-with e (tail (λ _ → U)) (tail S)  ≡⟨⟩
     merge-with e (λ _ → U) (tail S)         ≡⟨ merge-with-U e (tail S) ⟩
     e                                       ∎
   where
     open ≡.≡-Reasoning
-    either-way : (b : Bool) → e ≡ (if b then e else e)
-    either-way b = if-float (λ _ → e) b {e} {e}
 
 merge : {A : ℕ} → Vector Value A → Subset A → Value
 merge v = merge-with U v
