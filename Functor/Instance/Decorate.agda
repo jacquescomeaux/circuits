@@ -40,7 +40,7 @@ module DecoratedCospans = Category DecoratedCospans
 module mc𝒞 = CocartesianMonoidal 𝒞.U 𝒞.cocartesian
 
 -- For every cospan there exists a free decorated cospan
--- i.e. the original cospan with the empty decoration
+-- i.e. the original cospan with the discrete decoration
 
 private
   variable
