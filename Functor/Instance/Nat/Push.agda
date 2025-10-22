@@ -5,20 +5,19 @@ module Functor.Instance.Nat.Push where
 open import Categories.Functor using (Functor)
 open import Categories.Category.Instance.Nat using (Nat)
 open import Categories.Category.Instance.Setoids using (Setoids)
-open import Data.Circuit.Value using (Value)
 open import Data.Circuit.Merge using (merge; merge-cong₁; merge-cong₂; merge-⁅⁆; merge-preimage)
 open import Data.Fin.Base using (Fin)
 open import Data.Fin.Preimage using (preimage; preimage-cong₁)
 open import Data.Nat.Base using (ℕ)
 open import Data.Subset.Functional using (⁅_⁆)
-open import Data.Vec.Functional.Relation.Binary.Equality.Setoid using (≋-setoid)
-open import Function.Base using (id; flip; _∘_)
+open import Function.Base using (id; _∘_)
 open import Function.Bundles using (Func; _⟶ₛ_)
 open import Function.Construct.Identity using () renaming (function to Id)
 open import Function.Construct.Setoid using (setoid; _∙_)
 open import Level using (0ℓ)
 open import Relation.Binary using (Rel; Setoid)
 open import Relation.Binary.PropositionalEquality as ≡ using (_≗_)
+open import Data.System using (Values)
 
 open Func
 open Functor
@@ -30,9 +29,7 @@ _≈_ : {X Y : Setoid 0ℓ 0ℓ} → Rel (X ⟶ₛ Y) 0ℓ
 _≈_ {X} {Y} = Setoid._≈_ (setoid X Y)
 infixr 4 _≈_
 
--- action on objects (Vector Value n)
-Values : ℕ → Setoid 0ℓ 0ℓ
-Values = ≋-setoid (≡.setoid Value)
+-- action of Push on objects is Values n (Vector Value n)
 
 -- action of Push on morphisms (covariant)
 Push₁ : (Fin A → Fin B) → Values A ⟶ₛ Values B

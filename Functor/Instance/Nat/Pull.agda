@@ -7,12 +7,10 @@ open import Categories.Category.Instance.Nat using (Nat)
 open import Categories.Category.Instance.Setoids using (Setoids)
 open import Categories.Functor using (Functor)
 open import Data.Circuit.Merge using (merge; merge-cong₁; merge-cong₂; merge-⁅⁆; merge-preimage)
-open import Data.Circuit.Value using (Value)
 open import Data.Fin.Base using (Fin)
 open import Data.Fin.Preimage using (preimage; preimage-cong₁)
 open import Data.Nat.Base using (ℕ)
 open import Data.Subset.Functional using (⁅_⁆)
-open import Data.Vec.Functional.Relation.Binary.Equality.Setoid using (≋-setoid)
 open import Function.Base using (id; flip; _∘_)
 open import Function.Bundles using (Func; _⟶ₛ_)
 open import Function.Construct.Identity using () renaming (function to Id)
@@ -20,6 +18,7 @@ open import Function.Construct.Setoid using (setoid; _∙_)
 open import Level using (0ℓ)
 open import Relation.Binary using (Rel; Setoid)
 open import Relation.Binary.PropositionalEquality as ≡ using (_≗_)
+open import Data.System using (Values)
 
 open Functor
 open Func
@@ -33,9 +32,7 @@ infixr 4 _≈_
 private
   variable A B C : ℕ
 
--- action on objects (Vector Value n)
-Values : ℕ → Setoid 0ℓ 0ℓ
-Values = ≋-setoid (≡.setoid Value)
+-- action on objects is Values n (Vector Value n)
 
 -- action of Pull on morphisms (contravariant)
 Pull₁ : (Fin A → Fin B) → Values B ⟶ₛ Values A

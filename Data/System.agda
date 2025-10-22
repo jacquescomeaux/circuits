@@ -41,13 +41,13 @@ module _ {ℓ : Level} where
     field
       S : Setoid ℓ ℓ
       fₛ : ∣ Values n ⇒ₛ S ⇒ₛ S ∣
-      fₒ : ∣ Values n ⇒ₛ S ⇒ₛ Values n ∣
+      fₒ : ∣ S ⇒ₛ Values n ∣
 
     fₛ′ : ∣ Values n ∣ → ∣ S ∣ → ∣ S ∣
     fₛ′ = to ∘ to fₛ
 
-    fₒ′ : ∣ Values n ∣ → ∣ S ∣ → ∣ Values n ∣
-    fₒ′ = to ∘ to fₒ
+    fₒ′ : ∣ S ∣ → ∣ Values n ∣
+    fₒ′ = to fₒ
 
     open Setoid S public
 
@@ -62,15 +62,15 @@ module _ {ℓ : Level} where
             : (i : ∣ Values n ∣) (s : ∣ A.S ∣)
             → ⇒S ⟨$⟩ (A.fₛ′ i s) B.≈ B.fₛ′ i (⇒S ⟨$⟩ s)
         ≗-fₒ
-            : (i : ∣ Values n ∣) (s : ∣ A.S ∣)
-            → A.fₒ′ i s ≋ B.fₒ′ i (⇒S ⟨$⟩ s)
+            : (s : ∣ A.S ∣)
+            → A.fₒ′ s ≋ B.fₒ′ (⇒S ⟨$⟩ s)
 
     open ≤-System
 
     ≤-refl : Reflexive ≤-System
     ⇒S ≤-refl = Id.function _
-    ≗-fₛ (≤-refl {x}) p e = System.refl x
-    ≗-fₒ (≤-refl {x}) _ _ = ≋.refl
+    ≗-fₛ (≤-refl {x}) _ _ = System.refl x
+    ≗-fₒ (≤-refl {x}) _ = ≋.refl
 
     ≡⇒≤ : _≡_ ⇒ ≤-System
     ≡⇒≤ ≡.refl = ≤-refl
@@ -79,7 +79,7 @@ module _ {ℓ : Level} where
     ≤-trans : Transitive ≤-System
     ⇒S (≤-trans a b) = ⇒S b ∙ ⇒S a
     ≗-fₛ (≤-trans {x} {y} {z} a b) i s = System.trans z (cong (⇒S b) (≗-fₛ a i s)) (≗-fₛ b i (⇒S a ⟨$⟩ s))
-    ≗-fₒ (≤-trans {x} {y} {z} a b) i s = ≋.trans (≗-fₒ a i s) (≗-fₒ b i (⇒S a ⟨$⟩ s))
+    ≗-fₒ (≤-trans a b) s = ≋.trans (≗-fₒ a s) (≗-fₒ b (⇒S a ⟨$⟩ s))
 
     System-Preorder : Preorder (suc ℓ) (suc ℓ) ℓ
     System-Preorder = record
