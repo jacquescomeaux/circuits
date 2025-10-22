@@ -40,3 +40,9 @@ preimage-∘
       (z : Fin C)
     → preimage (g ∘ f) ⁅ z ⁆ ≗ preimage f (preimage g ⁅ z ⁆)
 preimage-∘ f g S x = ≡.refl
+
+preimage-⊥
+    : {n m : ℕ}
+      (f : Fin n → Fin m)
+    → preimage f ⊥ ≗ ⊥
+preimage-⊥ f x = ≡.refl

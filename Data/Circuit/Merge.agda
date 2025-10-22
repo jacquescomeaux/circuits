@@ -20,7 +20,8 @@ open import Data.Subset.Functional
 open import Data.Vector as V using (Vector; head; tail; removeAt)
 open import Data.Fin.Permutation
   using
-    ( Permutation′
+    ( Permutation
+    ; Permutation′
     ; _⟨$⟩ˡ_ ; _⟨$⟩ʳ_
     ; inverseˡ ; inverseʳ
     ; id
@@ -101,7 +102,7 @@ merge-cong₁ = merge-with-cong U
 merge-cong₂ : {A : ℕ} (v : Vector Value A) {S₁ S₂ : Subset A} → S₁ ≗ S₂ → merge v S₁ ≡ merge v S₂
 merge-cong₂ = merge-with-cong₂ U
 
-merge-⊥ : {A : ℕ} (v : Vector Value A) → merge-with U v ⊥ ≡ U
+merge-⊥ : {A : ℕ} (v : Vector Value A) → merge v ⊥ ≡ U
 merge-⊥ = merge-with-⊥ U
 
 merge-[] : (v : Vector Value 0) (S : Subset 0) → merge v S ≡ U
@@ -172,13 +173,15 @@ open module FStruct {A B : Set} = FunctionStructures {_} {_} {_} {_} {A} _≡_ {
 open IsInverse using () renaming (inverseˡ to invˡ; inverseʳ to invʳ)
 
 merge-preimage-ρ
-    : {A : ℕ}
-    → (ρ : Permutation′ A)
+    : {A B : ℕ}
+    → (ρ : Permutation A B)
     → (v : Vector Value A)
-      (S : Subset A)
+      (S : Subset B)
     → merge v (preimage (ρ ⟨$⟩ʳ_) S) ≡ merge (v ∘ (ρ ⟨$⟩ˡ_)) S
-merge-preimage-ρ {zero} ρ v S = merge-[]₂
-merge-preimage-ρ {suc A} ρ v S = begin
+merge-preimage-ρ {zero} {zero} ρ v S = merge-[]₂
+merge-preimage-ρ {zero} {suc B} ρ v S with () ← ρ ⟨$⟩ˡ zero
+merge-preimage-ρ {suc A} {zero} ρ v S with () ← ρ ⟨$⟩ʳ zero
+merge-preimage-ρ {suc A} {suc B} ρ v S = begin
     merge v (preimage ρʳ S)                   ≡⟨ merge-removeAt (head ρˡ) v (preimage ρʳ S) ⟩
     join
         (head (v ∘ ρˡ) when S (ρʳ (ρˡ zero)))
@@ -190,19 +193,21 @@ merge-preimage-ρ {suc A} ρ v S = begin
     merge-with vρˡ0? (tail (v ∘ ρˡ)) S-       ≡⟨ merge-suc (v ∘ ρˡ) S ⟨
     merge (v ∘ ρˡ) S                          ∎
   where
-    ρˡ ρʳ : Fin (suc A) → Fin (suc A)
+    ρˡ : Fin (suc B) → Fin (suc A)
     ρˡ = ρ ⟨$⟩ˡ_
+    ρʳ : Fin (suc A) → Fin (suc B)
     ρʳ = ρ ⟨$⟩ʳ_
-    ρ- : Permutation′ A
+    ρ- : Permutation A B
     ρ- = remove (head ρˡ) ρ
-    ρˡ- ρʳ- : Fin A → Fin A
+    ρˡ- : Fin B → Fin A
     ρˡ- = ρ- ⟨$⟩ˡ_
+    ρʳ- : Fin A → Fin B
     ρʳ- = ρ- ⟨$⟩ʳ_
     v- : Vector Value A
     v- = removeAt v (head ρˡ)
     [preimageρʳS]- : Subset A
     [preimageρʳS]- = removeAt (preimage ρʳ S) (head ρˡ)
-    S- : Subset A
+    S- : Subset B
     S- = tail S
     vρˡ0? : Value
     vρˡ0? = head (v ∘ ρˡ) when head S

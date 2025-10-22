@@ -67,7 +67,7 @@ preimage-++ {n} {n′} {m} {m′} f g {xs} {ys} e = begin
     ; commute = λ { {n′ , m′} {n , m} (f , g) {xs , ys} e → preimage-++ f g e }
     }
 
-open import Category.Instance.Setoids.SymmetricMonoidal {0ℓ} using (Setoids-×)
+open import Category.Instance.Setoids.SymmetricMonoidal {0ℓ} {0ℓ} using (Setoids-×)
 open import Categories.Functor.Monoidal.Symmetric Natop,+,0 Setoids-× using (module Lax)
 open Lax using (SymmetricMonoidalFunctor)
 
