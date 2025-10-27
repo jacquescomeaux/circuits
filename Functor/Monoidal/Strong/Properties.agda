@@ -18,11 +18,11 @@ open import Categories.Functor.Properties using ([_]-resp-≅)
 
 module C where
   open MonoidalCategory C public
-  open ⊗-Utilities.Shorthands monoidal public using (α⇐)
+  open ⊗-Utilities.Shorthands monoidal public using (α⇐; λ⇐; ρ⇐)
 
 module D where
   open MonoidalCategory D public
-  open ⊗-Utilities.Shorthands monoidal using (α⇐) public
+  open ⊗-Utilities.Shorthands monoidal using (α⇐; λ⇐; ρ⇐) public
   open Core.Shorthands U using (_∘ᵢ_; idᵢ; _≈ᵢ_; ⌞_⌟; to-≈; _≅_; module HomReasoningᵢ) public
   open ⊗-Utilities monoidal using (_⊗ᵢ_) public
 
@@ -38,17 +38,40 @@ private
   Fα : F₀ ((X C.⊗₀ Y) C.⊗₀ Z) ≅ F₀ (X C.⊗₀ (Y C.⊗₀ Z))
   Fα = [ F ]-resp-≅ C.associator
 
-  α : {A B C : D.Obj} → (A ⊗₀ B) ⊗₀ C ≅ A ⊗₀ (B ⊗₀ C)
+  α : {A B C : Obj} → (A ⊗₀ B) ⊗₀ C ≅ A ⊗₀ (B ⊗₀ C)
   α = associator
+
+  λ- : {A : Obj} → unit ⊗₀ A ≅ A
+  λ- = unitorˡ
+
+  Fλ : F₀ (C.unit C.⊗₀ X) ≅ F₀ X
+  Fλ = [ F ]-resp-≅ C.unitorˡ
+
+  ρ : {A : Obj} → A ⊗₀ unit ≅ A
+  ρ = unitorʳ
+
+  Fρ : F₀ (X C.⊗₀ C.unit) ≅ F₀ X
+  Fρ = [ F ]-resp-≅ C.unitorʳ
 
   φ : F₀ X ⊗₀ F₀ Y ≅ F₀ (X C.⊗₀ Y)
   φ = ⊗-homo.FX≅GX
+
+module Shorthands where
 
   φ⇒ : F₀ X ⊗₀ F₀ Y ⇒ F₀ (X C.⊗₀ Y)
   φ⇒ = ⊗-homo.⇒.η _
 
   φ⇐ : F₀ (X C.⊗₀ Y) ⇒ F₀ X ⊗₀ F₀ Y
   φ⇐ = ⊗-homo.⇐.η _
+
+  ε⇒ : unit ⇒ F₀ C.unit
+  ε⇒ = ε.from
+
+  ε⇐ : F₀ C.unit ⇒ unit
+  ε⇐ = ε.to
+
+open Shorthands
+open HomReasoning
 
 associativityᵢ : Fα {X} {Y} {Z} ∘ᵢ φ ∘ᵢ φ ⊗ᵢ idᵢ ≈ᵢ φ ∘ᵢ idᵢ ⊗ᵢ φ ∘ᵢ α
 associativityᵢ = ⌞ associativity ⌟
@@ -59,5 +82,21 @@ associativity-inv = begin
     (φ⇐ ⊗₁ id ∘ φ⇐) ∘ F₁ C.α⇐ ≈⟨ to-≈ associativityᵢ ⟩
     (α⇐ ∘ id ⊗₁ φ⇐) ∘ φ⇐      ≈⟨ assoc ⟩
     α⇐ ∘ id ⊗₁ φ⇐ ∘ φ⇐        ∎
-  where
-    open HomReasoning
+
+unitaryˡᵢ : Fλ {X} ∘ᵢ φ ∘ᵢ ε ⊗ᵢ idᵢ ≈ᵢ λ-
+unitaryˡᵢ = ⌞ unitaryˡ ⌟
+
+unitaryˡ-inv : ε⇐ ⊗₁ id ∘ φ⇐ ∘ F₁ (C.λ⇐ {X}) ≈ λ⇐
+unitaryˡ-inv = begin
+    ε⇐ ⊗₁ id ∘ φ⇐ ∘ F₁ C.λ⇐   ≈⟨ sym-assoc ⟩
+    (ε⇐ ⊗₁ id ∘ φ⇐) ∘ F₁ C.λ⇐ ≈⟨ to-≈ unitaryˡᵢ ⟩
+    λ⇐                        ∎
+
+unitaryʳᵢ : Fρ {X} ∘ᵢ φ ∘ᵢ idᵢ ⊗ᵢ ε ≈ᵢ ρ
+unitaryʳᵢ = ⌞ unitaryʳ ⌟
+
+unitaryʳ-inv : id ⊗₁ ε⇐ ∘ φ⇐ ∘ F₁ (C.ρ⇐ {X}) ≈ ρ⇐
+unitaryʳ-inv = begin
+    id ⊗₁ ε⇐ ∘ φ⇐ ∘ F₁ C.ρ⇐   ≈⟨ sym-assoc ⟩
+    (id ⊗₁ ε⇐ ∘ φ⇐) ∘ F₁ C.ρ⇐ ≈⟨ to-≈ unitaryʳᵢ ⟩
+    ρ⇐                        ∎
