@@ -26,7 +26,7 @@ open import Category.Instance.Nat.FinitelyCocomplete using (Nat-FinitelyCocomple
 open import Data.Empty using (⊥-elim)
 open import Data.Fin using (#_)
 open import Data.Fin.Base using (Fin; splitAt; join; zero; suc; _↑ˡ_; _↑ʳ_; Fin′; cast)
-open import Data.Fin.Patterns using (0F; 1F)
+open import Data.Fin.Patterns using (0F; 1F; 2F)
 open import Data.Fin.Permutation using (lift₀)
 open import Data.Fin.Properties
   using
@@ -68,58 +68,20 @@ open Lax using (SymmetricMonoidalFunctor)
 open BinaryProducts products using (-×-)
 open BinaryCoproducts coproducts using (-+-) renaming (+-assoc to Nat-+-assoc)
 
-
-data Gate : ℕ → Set where
-    ZERO  : Gate 1
-    ONE   : Gate 1
-    NOT   : Gate 2
-    AND   : Gate 3
-    OR    : Gate 3
-    XOR   : Gate 3
-    NAND  : Gate 3
-    NOR   : Gate 3
-    XNOR  : Gate 3
-
-cast-gate : {e e′ : ℕ} → .(e ≡ e′) → Gate e → Gate e′
-cast-gate {1} {1} eq g = g
-cast-gate {2} {2} eq g = g
-cast-gate {3} {3} eq g = g
-
-cast-gate-trans
-    : {m n o : ℕ}
-    → .(eq₁ : m ≡ n)
-      .(eq₂ : n ≡ o)
-      (g : Gate m)
-    → cast-gate eq₂ (cast-gate eq₁ g) ≡ cast-gate (trans eq₁ eq₂) g
-cast-gate-trans {1} {1} {1} eq₁ eq₂ g = refl
-cast-gate-trans {2} {2} {2} eq₁ eq₂ g = refl
-cast-gate-trans {3} {3} {3} eq₁ eq₂ g = refl
-
-cast-gate-is-id : {m : ℕ} .(eq : m ≡ m) (g : Gate m) → cast-gate eq g ≡ g
-cast-gate-is-id {1} eq g = refl
-cast-gate-is-id {2} eq g = refl
-cast-gate-is-id {3} eq g = refl
-
-subst-is-cast-gate : {m n : ℕ} (eq : m ≡ n) (g : Gate m) → subst Gate eq g ≡ cast-gate eq g
-subst-is-cast-gate refl g = sym (cast-gate-is-id refl g)
+open import Data.Circuit.Gate using (Gate; cast-gate; cast-gate-trans; cast-gate-is-id; subst-is-cast-gate)
 
 record Hypergraph (v : ℕ) : Set where
 
   field
     h : ℕ
     a : Fin h → ℕ
-
-  arity : Fin h → ℕ
-  arity = ℕ.suc ∘ a
-
-  field
-    j : (e : Fin h) → Fin (arity e) → Fin v
-    l : (e : Fin h) → Gate (arity e)
+    j : (e : Fin h) → Fin (a e) → Fin v
+    l : (e : Fin h) → Gate (a e)
 
 record Hypergraph-same {n : ℕ} (H H′ : Hypergraph n) : Set where
 
   open Hypergraph H public
-  open Hypergraph H′ renaming (h to h′; a to a′; arity to arity′; j to j′; l to l′) public
+  open Hypergraph H′ renaming (h to h′; a to a′; j to j′; l to l′) public
 
   field
     ↔h : Fin h ↔ Fin h′
@@ -128,18 +90,13 @@ record Hypergraph-same {n : ℕ} (H H′ : Hypergraph n) : Set where
 
   field
     ≗a : a ≗ a′ ∘ to
-
-  ≗arity : arity ≗ arity′ ∘ to
-  ≗arity e = cong ℕ.suc (≗a e)
-
-  field
     ≗j  : (e : Fin h)
-          (i : Fin (arity e))
+          (i : Fin (a e))
         → j e i
-        ≡ j′ (to e) (cast (≗arity e) i)
+        ≡ j′ (to e) (cast (≗a e) i)
     ≗l  : (e : Fin h)
         → l e
-        ≡ cast-gate (sym (≗arity e)) (l′ (to e))
+        ≡ cast-gate (sym (≗a e)) (l′ (to e))
 
 private
 
@@ -179,28 +136,28 @@ Hypergraph-same-sym {V} {H} {H′} ≡H = record
         a′ x                ∎
     id≗to∘from : id ≗ to ∘ from
     id≗to∘from e = sym (inverseˡ refl)
-    ≗arity′ : arity′ ≗ arity ∘ from
-    ≗arity′ e = cong ℕ.suc (sym (a∘from≗a′ e))
-    ≗arity- : arity′ ≗ arity′ ∘ to ∘ from
-    ≗arity- e = cong arity′ (id≗to∘from e)
+    ≗arity′ : a′ ≗ a ∘ from
+    ≗arity′ e = sym (a∘from≗a′ e)
+    ≗arity- : a′ ≗ a′ ∘ to ∘ from
+    ≗arity- e = cong a′ (id≗to∘from e)
 
-    ≗j′ : (e : Fin h′) (i : Fin (arity′ e)) → j′ e i ≡ j (from e) (cast (≗arity′ e) i)
+    ≗j′ : (e : Fin h′) (i : Fin (a′ e)) → j′ e i ≡ j (from e) (cast (≗arity′ e) i)
     ≗j′ e i = begin
-        j′ e i                                                          ≡⟨ dcong₂ j′ (id≗to∘from e) (subst-∘ (id≗to∘from e)) ⟩
-        j′ (to (from e)) (subst Fin (cong arity′ (id≗to∘from e)) i)     ≡⟨ cong (j′ (to (from e))) (subst-is-cast (cong arity′ (id≗to∘from e)) i) ⟩
-        j′ (to (from e)) (cast (cong arity′ (id≗to∘from e)) i)          ≡⟨⟩
-        j′ (to (from e)) (cast (trans (≗arity′ e) (≗arity (from e))) i) ≡⟨ cong (j′ (to (from e))) (cast-trans (≗arity′ e) (≗arity (from e)) i) ⟨
-        j′ (to (from e)) (cast (≗arity (from e)) (cast (≗arity′ e) i))  ≡⟨ ≗j (from e) (cast (≗arity′ e) i) ⟨
-        j (from e) (cast (≗arity′ e) i) ∎
+        j′ e i                                                      ≡⟨ dcong₂ j′ (id≗to∘from e) (subst-∘ (id≗to∘from e)) ⟩
+        j′ (to (from e)) (subst Fin (cong a′ (id≗to∘from e)) i)     ≡⟨ cong (j′ (to (from e))) (subst-is-cast (cong a′ (id≗to∘from e)) i) ⟩
+        j′ (to (from e)) (cast (cong a′ (id≗to∘from e)) i)          ≡⟨⟩
+        j′ (to (from e)) (cast (trans (≗arity′ e) (≗a (from e))) i) ≡⟨ cong (j′ (to (from e))) (cast-trans (≗arity′ e) (≗a (from e)) i) ⟨
+        j′ (to (from e)) (cast (≗a (from e)) (cast (≗arity′ e) i))  ≡⟨ ≗j (from e) (cast (≗arity′ e) i) ⟨
+        j (from e) (cast (≗arity′ e) i)                             ∎
 
-    ≗l′ : (e : Fin h′) → l′ e ≡ cast-gate (sym (cong ℕ.suc (sym (a∘from≗a′ e)))) (l (from e))
+    ≗l′ : (e : Fin h′) → l′ e ≡ cast-gate (sym (sym (a∘from≗a′ e))) (l (from e))
     ≗l′ e = begin
       l′ e                                                                              ≡⟨ dcong l′ (sym (id≗to∘from e)) ⟨
-      subst (Gate ∘ arity′) (sym (id≗to∘from e)) (l′ (to (from e)))                     ≡⟨ subst-∘ (sym (id≗to∘from e)) ⟩
-      subst Gate (cong arity′ (sym (id≗to∘from e))) (l′ (to (from e)))                  ≡⟨ subst-is-cast-gate (cong arity′ (sym (id≗to∘from e))) (l′ (to (from e))) ⟩
-      cast-gate _ (l′ (to (from e)))                                                    ≡⟨ cast-gate-trans _ (sym (cong ℕ.suc (sym (a∘from≗a′ e)))) (l′ (to (from e))) ⟨
-      cast-gate (sym (cong ℕ.suc (sym (a∘from≗a′ e)))) (cast-gate _ (l′ (to (from e)))) ≡⟨ cong (cast-gate (sym (cong ℕ.suc (sym (a∘from≗a′ e))))) (≗l (from e)) ⟨
-      cast-gate (sym (cong ℕ.suc (sym (a∘from≗a′ e)))) (l (from e))                     ∎
+      subst (Gate ∘ a′) (sym (id≗to∘from e)) (l′ (to (from e)))                     ≡⟨ subst-∘ (sym (id≗to∘from e)) ⟩
+      subst Gate (cong a′ (sym (id≗to∘from e))) (l′ (to (from e)))                  ≡⟨ subst-is-cast-gate (cong a′ (sym (id≗to∘from e))) (l′ (to (from e))) ⟩
+      cast-gate _ (l′ (to (from e)))                                                    ≡⟨ cast-gate-trans _ (sym (sym (a∘from≗a′ e))) (l′ (to (from e))) ⟨
+      cast-gate (sym (sym (a∘from≗a′ e))) (cast-gate _ (l′ (to (from e)))) ≡⟨ cong (cast-gate (sym (sym (a∘from≗a′ e)))) (≗l (from e)) ⟨
+      cast-gate (sym (sym (a∘from≗a′ e))) (l (from e))                     ∎
 
 Hypergraph-same-trans : Hypergraph-same H H′ → Hypergraph-same H′ H″ → Hypergraph-same H H″
 Hypergraph-same-trans ≡H₁ ≡H₂ = record
@@ -214,17 +171,17 @@ Hypergraph-same-trans ≡H₁ ≡H₂ = record
     open Inverse
     open ≡-Reasoning
     ≗j₂ : (e : Fin (h ≡H₁))
-          (i : Fin (arity ≡H₁ e))
-        → j ≡H₂ (to (↔h ≡H₁) e) (cast (≗arity ≡H₁ e) i)
-        ≡ j′ ≡H₂ (to (↔h ≡H₂) (to (↔h ≡H₁) e)) (cast (trans (≗arity ≡H₁ e) (≗arity ≡H₂ (to (↔h ≡H₁) e))) i)
+          (i : Fin (a ≡H₁ e))
+        → j ≡H₂ (to (↔h ≡H₁) e) (cast (≗a ≡H₁ e) i)
+        ≡ j′ ≡H₂ (to (↔h ≡H₂) (to (↔h ≡H₁) e)) (cast (trans (≗a ≡H₁ e) (≗a ≡H₂ (to (↔h ≡H₁) e))) i)
     ≗j₂ e i = begin
-        j ≡H₂ (to (↔h ≡H₁) e) (cast (≗arity ≡H₁ e) i)
-            ≡⟨ ≗j ≡H₂ (to (↔h ≡H₁) e) (cast (≗arity ≡H₁ e) i) ⟩
-        j′ ≡H₂ (to (↔h ≡H₂) (to (↔h ≡H₁) e)) (cast (≗arity ≡H₂ (to (↔h ≡H₁) e)) (cast (≗arity ≡H₁ e) i))
-            ≡⟨ cong (j′ ≡H₂ (to (↔h ≡H₂) (to (↔h ≡H₁) e))) (cast-trans (≗arity ≡H₁ e) (≗arity ≡H₂ (to (↔h ≡H₁) e)) i) ⟩
-        j′ ≡H₂ (to (↔h ≡H₂) (to (↔h ≡H₁) e)) (cast (trans (≗arity ≡H₁ e) (≗arity ≡H₂ (to (↔h ≡H₁) e))) i) ∎
+        j ≡H₂ (to (↔h ≡H₁) e) (cast (≗a ≡H₁ e) i)
+            ≡⟨ ≗j ≡H₂ (to (↔h ≡H₁) e) (cast (≗a ≡H₁ e) i) ⟩
+        j′ ≡H₂ (to (↔h ≡H₂) (to (↔h ≡H₁) e)) (cast (≗a ≡H₂ (to (↔h ≡H₁) e)) (cast (≗a ≡H₁ e) i))
+            ≡⟨ cong (j′ ≡H₂ (to (↔h ≡H₂) (to (↔h ≡H₁) e))) (cast-trans (≗a ≡H₁ e) (≗a ≡H₂ (to (↔h ≡H₁) e)) i) ⟩
+        j′ ≡H₂ (to (↔h ≡H₂) (to (↔h ≡H₁) e)) (cast (trans (≗a ≡H₁ e) (≗a ≡H₂ (to (↔h ≡H₁) e))) i) ∎
     ≗l₂ : (e : Fin (h ≡H₁)) → cast-gate _ (l′ ≡H₁ (to ≡H₁ e)) ≡ cast-gate _ (l′ ≡H₂ (to ≡H₂ (to ≡H₁ e)))
-    ≗l₂ e = trans (cong (cast-gate _) (≗l ≡H₂ (to ≡H₁ e))) (cast-gate-trans _ (sym (≗arity ≡H₁ e)) (l′ ≡H₂ (to ≡H₂ (to ≡H₁ e))))
+    ≗l₂ e = trans (cong (cast-gate _) (≗l ≡H₂ (to ≡H₁ e))) (cast-gate-trans _ (sym (≗a ≡H₁ e)) (l′ ≡H₂ (to ≡H₂ (to ≡H₁ e))))
 
 Hypergraph-setoid : ℕ → Setoid 0ℓ 0ℓ
 Hypergraph-setoid p = record
@@ -322,12 +279,12 @@ module _ (H₁ : Hypergraph n) (H₂ : Hypergraph m) where
     module H₁ = Hypergraph H₁
     module H₂ = Hypergraph H₂
   j+j : (e : Fin (H₁.h + H₂.h))
-      → Fin (ℕ.suc ([ H₁.a , H₂.a ] (splitAt H₁.h e)))
+      → Fin ([ H₁.a , H₂.a ] (splitAt H₁.h e))
       → Fin (n + m)
   j+j e i with splitAt H₁.h e
   ... | inj₁ e₁ = H₁.j e₁ i ↑ˡ m
   ... | inj₂ e₂ = n ↑ʳ H₂.j e₂ i
-  l+l : (e : Fin (H₁.h + H₂.h)) → Gate (ℕ.suc ([ H₁.a , H₂.a ] (splitAt H₁.h e)))
+  l+l : (e : Fin (H₁.h + H₂.h)) → Gate ([ H₁.a , H₂.a ] (splitAt H₁.h e))
   l+l e with splitAt H₁.h e
   ... | inj₁ e₁ = H₁.l e₁
   ... | inj₂ e₂ = H₂.l e₂
@@ -421,17 +378,15 @@ together-resp-same {n} {H₁} {H₁′} {m} {H₂} {H₂′} ≡H₁ ≡H₂ = r
       ([ ≡H₁.a′ ∘ ≡H₁.to , ≡H₂.a′ ∘ ≡H₂.to ] ∘ splitAt ≡H₁.h) e   ≡⟨ [,]-map (splitAt ≡H₁.h e) ⟨
       ([ ≡H₁.a′ , ≡H₂.a′ ] ∘ map ≡H₁.to ≡H₂.to ∘ splitAt ≡H₁.h) e ≡⟨ (cong [ ≡H₁.a′ , ≡H₂.a′ ] ∘ splitAt-join ≡H₁.h′ ≡H₂.h′ ∘ map ≡H₁.to ≡H₂.to ∘ splitAt ≡H₁.h) e ⟨
       ([ ≡H₁.a′ , ≡H₂.a′ ] ∘ splitAt ≡H₁.h′ ∘ join ≡H₁.h′ ≡H₂.h′ ∘ map ≡H₁.to ≡H₂.to ∘ splitAt ≡H₁.h) e ∎
-    ≗arity : H₁+H₂.arity ≗ H₁+H₂′.arity ∘ join ≡H₁.h′ ≡H₂.h′ ∘ map ≡H₁.to ≡H₂.to ∘ splitAt ≡H₁.h
-    ≗arity = cong ℕ.suc ∘ ≗a
     ≗j  : (e : Fin H₁+H₂.h)
-          (i : Fin (H₁+H₂.arity e))
+          (i : Fin (H₁+H₂.a e))
         → H₁+H₂.j e i
-        ≡ H₁+H₂′.j (to (+-resp-↔ ≡H₁.↔h ≡H₂.↔h) e) (cast (≗arity e) i)
+        ≡ H₁+H₂′.j (to (+-resp-↔ ≡H₁.↔h ≡H₂.↔h) e) (cast (≗a e) i)
     ≗j e i with splitAt ≡H₁.h e
     ... | inj₁ e₁ rewrite splitAt-↑ˡ ≡H₁.h′ (≡H₁.to e₁) ≡H₂.h′ = cong (_↑ˡ m) (≡H₁.≗j e₁ i)
     ... | inj₂ e₂ rewrite splitAt-↑ʳ ≡H₁.h′ ≡H₂.h′ (≡H₂.to e₂) = cong (n ↑ʳ_) (≡H₂.≗j e₂ i)
-    ≗l : (e : Fin H₁+H₂.h) → l+l H₁ H₂ e ≡ cast-gate (sym (≗arity e)) (l+l H₁′ H₂′ (to (+-resp-↔ ≡H₁.↔h ≡H₂.↔h) e))
-    ≗l e with splitAt ≡H₁.h e | .{≗arity e}
+    ≗l : (e : Fin H₁+H₂.h) → l+l H₁ H₂ e ≡ cast-gate (sym (≗a e)) (l+l H₁′ H₂′ (to (+-resp-↔ ≡H₁.↔h ≡H₂.↔h) e))
+    ≗l e with splitAt ≡H₁.h e | .{≗a e}
     ... | inj₁ e₁ rewrite splitAt-↑ˡ ≡H₁.h′ (≡H₁.to e₁) ≡H₂.h′ = ≡H₁.≗l e₁
     ... | inj₂ e₂ rewrite splitAt-↑ʳ ≡H₁.h′ ≡H₂.h′ (≡H₂.to e₂) = ≡H₂.≗l e₂
 
@@ -455,7 +410,7 @@ commute {n} {n′} {m} {m′} {H₁} {H₂} f g = record
     open Hypergraph
     open ≡-Reasoning
     ≗j  : (e : Fin (H₁.h + H₂.h))
-          (i : Fin ((ℕ.suc ∘ [ H₁.a , H₂.a ] ∘ splitAt H₁.h) e))
+          (i : Fin (([ H₁.a , H₂.a ] ∘ splitAt H₁.h) e))
         → j (together (map-nodes f H₁) (map-nodes g H₂)) e i
         ≡ j (map-nodes ([ (_↑ˡ m′) ∘ f , (n′ ↑ʳ_) ∘ g ] ∘ splitAt n) (together H₁ H₂)) (≡H₁+H₂.to e) (cast refl i)
     ≗j e i rewrite (cast-is-id refl i) with splitAt H₁.h e
@@ -545,9 +500,9 @@ associativity {X} {Y} {Z} {H₁} {H₂} {H₃} = record
             ≡⟨ cong ([ H₁.a , [ H₂.a , H₃.a ] ∘ splitAt H₂.h ] ∘ splitAt H₁.h) ([-,]-cong ([,]-∘ [ _↑ˡ H₂.h + H₃.h , H₁.h ↑ʳ_ ] ∘ splitAt H₁.h) (splitAt (H₁.h + H₂.h) x)) ⟩
         ([ H₁.a , [ H₂.a , H₃.a ] ∘ splitAt H₂.h ] ∘ splitAt H₁.h ∘ [ [ _↑ˡ H₂.h + H₃.h , (H₁.h ↑ʳ_) ∘ (_↑ˡ H₃.h) ] ∘ splitAt H₁.h , (H₁.h ↑ʳ_) ∘ (H₂.h ↑ʳ_) ] ∘ splitAt (H₁.h + H₂.h)) x ∎
     ≗j  : (e : Fin (H₁.h + H₂.h + H₃.h))
-          (i : Fin (ℕ.suc ([ [ H₁.a , H₂.a ] ∘ splitAt H₁.h , H₃.a ] (splitAt (H₁.h + H₂.h) e))))
+          (i : Fin ([ [ H₁.a , H₂.a ] ∘ splitAt H₁.h , H₃.a ] (splitAt (H₁.h + H₂.h) e)))
         → Inverse.to (+-assoc-↔ X Y Z) (j+j (together H₁ H₂) H₃ e i)
-        ≡ j+j H₁ (together H₂ H₃) (Inverse.to ↔h e) (cast (cong ℕ.suc (≗a e)) i)
+        ≡ j+j H₁ (together H₂ H₃) (Inverse.to ↔h e) (cast (≗a e) i)
     ≗j e i with splitAt (H₁.h + H₂.h) e
     ≗j e i | inj₁ e₁₂ with splitAt H₁.h e₁₂
     ≗j e i | inj₁ e₁₂ | inj₁ e₁
@@ -566,7 +521,7 @@ associativity {X} {Y} {Z} {H₁} {H₂} {H₃} = record
         rewrite splitAt-↑ʳ (X + Y) Z (H₃.j e₃ i) = cong ((X ↑ʳ_) ∘ (Y ↑ʳ_) ∘ H₃.j e₃) (sym (cast-is-id refl i))
     ≗l  : (e : Fin (H₁.h + H₂.h + H₃.h))
         → l (map-nodes (Inverse.to (+-assoc-↔ X Y Z)) (together (together H₁ H₂) H₃)) e
-        ≡ cast-gate (sym (cong ℕ.suc (≗a e))) (l (together H₁ (together H₂ H₃)) (Inverse.to ↔h e))
+        ≡ cast-gate (sym (≗a e)) (l (together H₁ (together H₂ H₃)) (Inverse.to ↔h e))
     ≗l e with splitAt (H₁.h + H₂.h) e
     ≗l e | inj₁ e₁₂ with splitAt H₁.h e₁₂
     ≗l e | inj₁ e₁₂ | inj₁ e₁
@@ -611,20 +566,20 @@ unitaryʳ {n} {H} = record
     ≗a : (e : Fin (H.h + 0)) → [ H.a , (λ ()) ] (splitAt H.h e) ≡ H.a (Inverse.to h+0↔h e)
     ≗a e with inj₁ e₁ ← splitAt H.h e in eq = refl
     ≗j  : (e : Fin (H.h + 0))
-          (i : Fin (ℕ.suc ([ H.a , (λ ()) ] (splitAt H.h e))))
+          (i : Fin ([ H.a , (λ ()) ] (splitAt H.h e)))
         → [ (λ x → x) , (λ ()) ] (splitAt n (j+j H empty-hypergraph e i))
-        ≡ H.j (Inverse.to h+0↔h e) (cast (cong ℕ.suc (≗a e)) i)
+        ≡ H.j (Inverse.to h+0↔h e) (cast (≗a e) i)
     ≗j e i = ≗j-aux (splitAt H.h e) refl (j+j H empty-hypergraph e) refl (≗a e) i
       where
         ≗j-aux
             : (w : Fin H.h ⊎ Fin 0)
             → (eq₁ : splitAt H.h e ≡ w)
-            → (w₁ : Fin (ℕ.suc ([ H.a , (λ ()) ] w)) → Fin (n + 0))
-            → j+j H empty-hypergraph e ≡ subst (λ hole → Fin (ℕ.suc ([ H.a , (λ ()) ] hole)) → Fin (n + 0)) (sym eq₁) w₁
+            → (w₁ : Fin ([ H.a , (λ ()) ] w) → Fin (n + 0))
+            → j+j H empty-hypergraph e ≡ subst (λ hole → Fin ([ H.a , (λ ()) ] hole) → Fin (n + 0)) (sym eq₁) w₁
             → (w₂ : [ H.a , (λ ()) ] w ≡ H.a (Inverse.to h+0↔h e))
-              (i : Fin (ℕ.suc ([ H.a , (λ ()) ] w)))
+              (i : Fin ([ H.a , (λ ()) ] w))
             → [ (λ x → x) , (λ ()) ] (splitAt n (w₁ i))
-            ≡ H.j (Inverse.to h+0↔h e) (cast (cong ℕ.suc w₂) i)
+            ≡ H.j (Inverse.to h+0↔h e) (cast w₂ i)
         ≗j-aux (inj₁ e₁) eq w₁ eq₁ w₂ i
             with (inj₁ x) ← splitAt n (w₁ i) in eq₂
             rewrite eq = trans
@@ -632,7 +587,7 @@ unitaryʳ {n} {H} = record
                 (cong (H.j e₁) (sym (cast-is-id refl i)))
     ≗l  : (e : Fin (H.h + 0))
         → l+l H empty-hypergraph e
-        ≡ cast-gate (sym (cong ℕ.suc (≗a e))) (H.l (Inverse.to h+0↔h e))
+        ≡ cast-gate (sym (≗a e)) (H.l (Inverse.to h+0↔h e))
     ≗l e with splitAt H.h e | {(≗a e)}
     ... | inj₁ e₁ = sym (cast-gate-is-id refl (H.l e₁))
 
@@ -686,9 +641,9 @@ braiding {n} {m} {H₁} {H₂} = record
         [ H₂.a , H₁.a ] (swap (splitAt H₁.h e))                                 ≡⟨ cong [ H₂.a , H₁.a ] (splitAt-join H₂.h H₁.h (swap (splitAt H₁.h e))) ⟨
         [ H₂.a , H₁.a ] (splitAt H₂.h (join H₂.h H₁.h (swap (splitAt H₁.h e)))) ∎
     ≗j  : (e : Fin (Hypergraph.h (map-nodes ([ m ↑ʳ_ , _↑ˡ n ] ∘ splitAt n) (together H₁ H₂))))
-          (i : Fin (Hypergraph.arity (map-nodes ([ m ↑ʳ_ , _↑ˡ n ] ∘ splitAt n) (together H₁ H₂)) e))
+          (i : Fin (Hypergraph.a (map-nodes ([ m ↑ʳ_ , _↑ˡ n ] ∘ splitAt n) (together H₁ H₂)) e))
         → Hypergraph.j (map-nodes ([ _↑ʳ_ m , _↑ˡ n ] ∘ splitAt n) (together H₁ H₂)) e i
-        ≡ Hypergraph.j (together H₂ H₁) (Inverse.to (+-comm-↔ H₁.h H₂.h) e) (cast (cong ℕ.suc (≗a e)) i)
+        ≡ Hypergraph.j (together H₂ H₁) (Inverse.to (+-comm-↔ H₁.h H₂.h) e) (cast (≗a e) i)
     ≗j e i with splitAt H₁.h e
     ≗j e i | inj₁ e₁
         rewrite splitAt-↑ˡ n (H₁.j e₁ i) m
@@ -698,7 +653,7 @@ braiding {n} {m} {H₁} {H₂} = record
         rewrite splitAt-↑ˡ H₂.h e₂ H₁.h = cong ((_↑ˡ n) ∘ H₂.j e₂) (sym (cast-is-id refl i))
     ≗l  : (e : Fin (H₁.h + H₂.h))
         → l+l H₁ H₂ e
-        ≡ cast-gate (sym (cong ℕ.suc (≗a e))) (l+l H₂ H₁ (Inverse.to (+-comm-↔ H₁.h H₂.h) e))
+        ≡ cast-gate (sym (≗a e)) (l+l H₂ H₁ (Inverse.to (+-comm-↔ H₁.h H₂.h) e))
     ≗l e with splitAt H₁.h e | .{≗a e}
     ≗l e | inj₁ e₁ rewrite splitAt-↑ʳ H₂.h H₁.h e₁ = sym (cast-gate-is-id refl (H₁.l e₁))
     ≗l e | inj₂ e₂ rewrite splitAt-↑ˡ H₂.h e₂ H₁.h = sym (cast-gate-is-id refl (H₂.l e₂))
@@ -729,6 +684,8 @@ hypergraph = record
 
 module F = SymmetricMonoidalFunctor hypergraph
 
+open Gate
+
 and-gate : Func (SingletonSetoid {0ℓ} {0ℓ}) (F.₀ 3)
 and-gate = record
     { to = λ { (lift tt) → and-graph }
@@ -738,7 +695,7 @@ and-gate = record
     and-graph : Hypergraph 3
     and-graph = record
         { h = 1
-        ; a = λ { 0F → 2 }
+        ; a = λ { 0F → 3 }
         ; j = λ { 0F → edge-0-nodes }
         ; l = λ { 0F → AND }
         }
