@@ -5,10 +5,12 @@ module Functor.Instance.Nat.System {ℓ} where
 open import Categories.Category.Instance.Nat using (Nat)
 open import Categories.Category.Instance.Setoids using (Setoids)
 open import Categories.Functor.Core using (Functor)
+open import Data.Circuit.Value using (Value)
 open import Data.Fin.Base using (Fin)
 open import Data.Nat.Base using (ℕ)
 open import Data.Product.Base using (_,_; _×_)
-open import Data.System using (System; ≤-System; Systemₛ; module ≋)
+open import Data.System using (System; ≤-System; Systemₛ)
+open import Data.System.Values Value using (module ≋)
 open import Function.Bundles using (Func; _⟶ₛ_)
 open import Function.Base using (id; _∘_)
 open import Function.Construct.Setoid using (_∙_)
@@ -17,7 +19,7 @@ open import Functor.Instance.Nat.Push using (Push₁; Push-identity; Push-homomo
 open import Level using (suc)
 open import Relation.Binary.PropositionalEquality as ≡ using (_≗_)
 
-import Relation.Binary.Reasoning.Setoid as ≈-Reasoning
+-- import Relation.Binary.Reasoning.Setoid as ≈-Reasoning
 import Function.Construct.Identity as Id
 
 open Func

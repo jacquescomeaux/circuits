@@ -17,7 +17,8 @@ open import Function.Construct.Setoid using (setoid; _∙_)
 open import Level using (0ℓ)
 open import Relation.Binary using (Rel; Setoid)
 open import Relation.Binary.PropositionalEquality as ≡ using (_≗_)
-open import Data.System using (Values)
+open import Data.Circuit.Value using (Value)
+open import Data.System.Values Value using (Values)
 
 open Func
 open Functor

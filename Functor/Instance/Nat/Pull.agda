@@ -2,28 +2,23 @@
 
 module Functor.Instance.Nat.Pull where
 
-open import Categories.Category.Core using (module Category)
-open import Categories.Category.Instance.Nat using (Nat)
+open import Categories.Category.Instance.Nat using (Natop)
 open import Categories.Category.Instance.Setoids using (Setoids)
 open import Categories.Functor using (Functor)
-open import Data.Circuit.Merge using (merge; merge-cong₁; merge-cong₂; merge-⁅⁆; merge-preimage)
 open import Data.Fin.Base using (Fin)
-open import Data.Fin.Preimage using (preimage; preimage-cong₁)
 open import Data.Nat.Base using (ℕ)
-open import Data.Subset.Functional using (⁅_⁆)
-open import Function.Base using (id; flip; _∘_)
+open import Function.Base using (id; _∘_)
 open import Function.Bundles using (Func; _⟶ₛ_)
 open import Function.Construct.Identity using () renaming (function to Id)
 open import Function.Construct.Setoid using (setoid; _∙_)
 open import Level using (0ℓ)
 open import Relation.Binary using (Rel; Setoid)
 open import Relation.Binary.PropositionalEquality as ≡ using (_≗_)
-open import Data.System using (Values)
+open import Data.Circuit.Value using (Value)
+open import Data.System.Values Value using (Values)
 
 open Functor
 open Func
-
-module Nat = Category Nat
 
 _≈_ : {X Y : Setoid 0ℓ 0ℓ} → Rel (X ⟶ₛ Y) 0ℓ
 _≈_ {X} {Y} = Setoid._≈_ (setoid X Y)
@@ -31,6 +26,7 @@ infixr 4 _≈_
 
 private
   variable A B C : ℕ
+
 
 -- action on objects is Values n (Vector Value n)
 
@@ -59,7 +55,7 @@ Pull-resp-≈
 Pull-resp-≈ f≗g {v} = ≡.cong v ∘ f≗g
 
 -- the Pull functor
-Pull : Functor Nat.op (Setoids 0ℓ 0ℓ)
+Pull : Functor Natop (Setoids 0ℓ 0ℓ)
 F₀ Pull = Values
 F₁ Pull = Pull₁
 identity Pull = Pull-identity

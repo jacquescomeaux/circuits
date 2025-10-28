@@ -2,8 +2,7 @@
 
 module Functor.Instance.Nat.Preimage where
 
-open import Categories.Category.Core using (module Category)
-open import Categories.Category.Instance.Nat using (Nat)
+open import Categories.Category.Instance.Nat using (Natop)
 open import Categories.Category.Instance.Setoids using (Setoids)
 open import Categories.Functor using (Functor)
 open import Data.Fin.Base using (Fin)
@@ -11,7 +10,7 @@ open import Data.Bool.Base using (Bool)
 open import Data.Nat.Base using (ℕ)
 open import Data.Subset.Functional using (Subset)
 open import Data.Vec.Functional.Relation.Binary.Equality.Setoid using (≋-setoid)
-open import Function.Base using (id; flip; _∘_)
+open import Function.Base using (id; _∘_)
 open import Function.Bundles using (Func; _⟶ₛ_)
 open import Function.Construct.Identity using () renaming (function to Id)
 open import Function.Construct.Setoid using (setoid; _∙_)
@@ -21,8 +20,6 @@ open import Relation.Binary.PropositionalEquality as ≡ using (_≗_)
 
 open Functor
 open Func
-
-module Nat = Category Nat
 
 _≈_ : {X Y : Setoid 0ℓ 0ℓ} → Rel (X ⟶ₛ Y) 0ℓ
 _≈_ {X} {Y} = Setoid._≈_ (setoid X Y)
@@ -60,7 +57,7 @@ Preimage-resp-≈
 Preimage-resp-≈ f≗g {v} = ≡.cong v ∘ f≗g
 
 -- the Preimage functor
-Preimage : Functor Nat.op (Setoids 0ℓ 0ℓ)
+Preimage : Functor Natop (Setoids 0ℓ 0ℓ)
 F₀ Preimage = Subsetₛ
 F₁ Preimage = Preimage₁
 identity Preimage = Preimage-identity
