@@ -9,7 +9,7 @@ open import Function.Base using (_∘_; case_of_; _$_; id)
 open import Function.Bundles using (Func; _⟶ₛ_; _⟨$⟩_)
 open import Level using (0ℓ; Level)
 open import Relation.Binary using (Rel; Setoid)
-open import Functor.Instance.Nat.Push using (Values; Push; Push₁; Push-identity)
+open import Functor.Instance.Nat.Push using (Push; Push₁; Push-identity)
 open import Categories.Category.Instance.SingletonSet using (SingletonSetoid)
 open import Categories.NaturalTransformation using (NaturalTransformation; ntHelper)
 open import Data.Vec.Functional using (Vector; []; _++_; head; tail)
@@ -52,7 +52,7 @@ open import Data.Fin.Permutation using (Permutation; _⟨$⟩ʳ_; _⟨$⟩ˡ_)
 open Dual.op-binaryProducts using () renaming (assocˡ∘⟨⟩ to []∘assocʳ; swap∘⟨⟩ to []∘swap)
 open import Relation.Nullary.Decidable using (does; does-⇔; dec-false)
 
-
+open import Data.System.Values Value using (Values)
 
 open Func
 Push-ε : SingletonSetoid {0ℓ} {0ℓ} ⟶ₛ Values 0

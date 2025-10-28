@@ -16,15 +16,17 @@ import Categories.Category.Construction.Core as Core
 open import Categories.Functor.Monoidal using (StrongMonoidalFunctor)
 open import Categories.Functor.Properties using ([_]-resp-≅)
 
-module C where
-  open MonoidalCategory C public
-  open ⊗-Utilities.Shorthands monoidal public using (α⇐; λ⇐; ρ⇐)
+private
 
-module D where
-  open MonoidalCategory D public
-  open ⊗-Utilities.Shorthands monoidal using (α⇐; λ⇐; ρ⇐) public
-  open Core.Shorthands U using (_∘ᵢ_; idᵢ; _≈ᵢ_; ⌞_⌟; to-≈; _≅_; module HomReasoningᵢ) public
-  open ⊗-Utilities monoidal using (_⊗ᵢ_) public
+  module C where
+    open MonoidalCategory C public
+    open ⊗-Utilities.Shorthands monoidal public using (α⇐; λ⇐; ρ⇐)
+
+  module D where
+    open MonoidalCategory D public
+    open ⊗-Utilities.Shorthands monoidal using (α⇐; λ⇐; ρ⇐) public
+    open Core.Shorthands U using (_∘ᵢ_; idᵢ; _≈ᵢ_; ⌞_⌟; to-≈; _≅_; module HomReasoningᵢ) public
+    open ⊗-Utilities monoidal using (_⊗ᵢ_) public
 
 open D
 
@@ -35,11 +37,11 @@ private
   variable
     X Y Z : C.Obj
 
-  Fα : F₀ ((X C.⊗₀ Y) C.⊗₀ Z) ≅ F₀ (X C.⊗₀ (Y C.⊗₀ Z))
-  Fα = [ F ]-resp-≅ C.associator
-
   α : {A B C : Obj} → (A ⊗₀ B) ⊗₀ C ≅ A ⊗₀ (B ⊗₀ C)
   α = associator
+
+  Fα : F₀ ((X C.⊗₀ Y) C.⊗₀ Z) ≅ F₀ (X C.⊗₀ (Y C.⊗₀ Z))
+  Fα = [ F ]-resp-≅ C.associator
 
   λ- : {A : Obj} → unit ⊗₀ A ≅ A
   λ- = unitorˡ
