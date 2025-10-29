@@ -2,12 +2,14 @@
 
 module Data.Circuit.Convert where
 
+open import Level using (0ℓ)
+
 open import Data.Nat.Base using (ℕ)
-open import Data.Circuit.Gate using (Gate; GateLabel; cast-gate; cast-gate-is-id; subst-is-cast-gate)
+open import Data.Circuit.Gate using (Gate; Gates; cast-gate; cast-gate-is-id; subst-is-cast-gate)
 open import Data.Fin.Base using (Fin)
-open import Data.Hypergraph.Edge GateLabel using (Edge)
-open import Data.Hypergraph.Base GateLabel using (Hypergraph; sortHypergraph; mkHypergraph)
-open import Data.Hypergraph.Setoid GateLabel using (Hypergraph-Setoid; ≈-Hypergraph)
+open import Data.Hypergraph.Edge Gates using (Edge)
+open import Data.Hypergraph.Base {0ℓ} Gates using (Hypergraph; normalize; mkHypergraph)
+open import Data.Hypergraph.Setoid {0ℓ} {0ℓ} Gates using (Hypergraphₛ; _≈_)
 open import Data.Permutation using (fromList-↭; toList-↭)
 open import Data.List using (length)
 open import Data.Vec.Functional using (toVec; fromVec; toList; fromList)
@@ -21,7 +23,7 @@ open import Relation.Binary.PropositionalEquality as ≡ using (_≡_; _≗_)
 import Function.Reasoning as →-Reasoning
 import Data.List.Relation.Binary.Permutation.Propositional as L
 import Data.Vec.Functional.Relation.Binary.Permutation as V
-import DecorationFunctor.Hypergraph.Labeled as LabeledHypergraph
+import DecorationFunctor.Hypergraph.Labeled {0ℓ} {0ℓ} as LabeledHypergraph
 
 open LabeledHypergraph using (Hypergraph-same) renaming (Hypergraph to Hypergraph′; Hypergraph-setoid to Hypergraph-Setoid′)
 
@@ -45,7 +47,7 @@ from {v} H = record
     asEdge : Fin h → Edge v
     asEdge e = record { label = l e ; ports = toVec (j e) }
 
-to-cong : {v : ℕ} {H H′ : Hypergraph v} → ≈-Hypergraph H H′ → Hypergraph-same (to H) (to H′)
+to-cong : {v : ℕ} {H H′ : Hypergraph v} → H ≈ H′ → Hypergraph-same (to H) (to H′)
 to-cong {v} {H} {H′} ≈H = record
     { ↔h = flip ρ
     ; ≗a = ≗a
@@ -54,18 +56,18 @@ to-cong {v} {H} {H′} ≈H = record
     }
   where
     open Edge using (arity; ports; label)
-    open ≈-Hypergraph ≈H
+    open _≈_ ≈H
     open import Data.Fin.Permutation using (_⟨$⟩ʳ_; _⟨$⟩ˡ_; Permutation′; inverseʳ)
     open import Data.Fin.Base using (cast)
     open import Data.Fin.Properties using (cast-is-id)
     ρ : Fin (length H′.edges) ↔ Fin (length H.edges)
-    ρ = proj₁ (fromList-↭ ↭edges)
+    ρ = proj₁ (fromList-↭ ↭-edges)
 
     open ≡.≡-Reasoning
     edges≗ρ∘edges′ : (i : Fin (length H.edges)) → fromList H.edges i ≡ fromList H′.edges (ρ ⟨$⟩ˡ i)
     edges≗ρ∘edges′ i = begin
         fromList H.edges i                    ≡⟨ ≡.cong (fromList H.edges) (inverseʳ ρ) ⟨
-        fromList H.edges (ρ ⟨$⟩ʳ (ρ ⟨$⟩ˡ i))  ≡⟨ proj₂ (fromList-↭ ↭edges) (ρ ⟨$⟩ˡ i) ⟩
+        fromList H.edges (ρ ⟨$⟩ʳ (ρ ⟨$⟩ˡ i))  ≡⟨ proj₂ (fromList-↭ ↭-edges) (ρ ⟨$⟩ˡ i) ⟩
         fromList H′.edges (ρ ⟨$⟩ˡ i)          ∎
 
     ≗a : (e : Fin (Hypergraph′.h (to H)))
@@ -90,21 +92,21 @@ to-cong {v} {H} {H′} ≈H = record
           ≡.refl
 
 module _ {v : ℕ} where
-  open import Data.Hypergraph.Edge GateLabel using (decTotalOrder; ≈-Edge; ≈-Edge-IsEquivalence; ≈-Edge⇒≡)
+  open import Data.Hypergraph.Edge Gates using (decTotalOrder; ≈-Edge; ≈-Edge-IsEquivalence; ≈-Edge⇒≡)
   open import Data.List.Sort (decTotalOrder {v}) using (sort; sort-↭)
   open import Data.Permutation.Sort (decTotalOrder {v}) using (sorted-≋)
   open import Data.List.Relation.Binary.Pointwise using (Pointwise; Pointwise-≡⇒≡; map)
   open import Data.Product.Base using (_,_)
   open import Data.Hypergraph.Label using (HypergraphLabel)
-  open HypergraphLabel GateLabel using (isCastable)
+  open HypergraphLabel Gates using (isCastable)
   open import Data.Castable using (IsCastable)
   open IsCastable isCastable using (≈-reflexive; ≈-sym; ≈-trans)
   from-cong
       : {H H′ : Hypergraph′ v}
       → Hypergraph-same H H′
-      → ≈-Hypergraph (from H) (from H′)
+      → from H ≈ from H′
   from-cong {H} {H′} ≈H = record
-      { ≡sorted = ≡sorted
+      { ≡-normalized = ≡-normalized
       }
     where
       module H = Hypergraph′ H
@@ -182,17 +184,17 @@ module _ {v : ℕ} where
 
       open Hypergraph using (edges)
       open →-Reasoning
-      ≡sorted : sortHypergraph (from H) ≡ sortHypergraph (from H′)
-      ≡sorted =
+      ≡-normalized : normalize (from H) ≡ normalize (from H′)
+      ≡-normalized =
              flip ↔h , H∘ρ≗H′             ∶ asEdge H V.↭ asEdge H′
           |> toList-↭                     ∶ toList (asEdge H) L.↭ toList (asEdge H′)
           |> L.↭⇒↭ₛ′ ≈-Edge-IsEquivalence ∶ Permutation ≈-Edge (edges (from H)) (edges (from H′))
           |> sorted-≋                     ∶ Pointwise ≈-Edge (sort (edges (from H))) (sort (edges (from H′)))
           |> map ≈-Edge⇒≡                 ∶ Pointwise _≡_ (sort (edges (from H))) (sort (edges (from H′)))
           |> Pointwise-≡⇒≡                ∶ sort (edges (from H)) ≡ sort (edges (from H′))
-          |> ≡.cong mkHypergraph          ∶ sortHypergraph (from H) ≡ sortHypergraph (from H′)
+          |> ≡.cong mkHypergraph          ∶ normalize (from H) ≡ normalize (from H′)
 
-equiv : (v : ℕ) → Equivalence (Hypergraph-Setoid v) (Hypergraph-Setoid′ v)
+equiv : (v : ℕ) → Equivalence (Hypergraphₛ v) (Hypergraph-Setoid′ v)
 equiv v = record
     { to = to
     ; from = from
