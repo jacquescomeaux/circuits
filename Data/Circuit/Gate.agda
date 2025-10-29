@@ -108,8 +108,8 @@ _≟_ {n} x y = Dec.map′ toℕ-injective (cong (toℕ n)) (toℕ n x Nat.≟ t
 _≤?_ : {n : ℕ} → Decidable (n [_≤_])
 _≤?_ {n} x y = toℕ n x Nat.≤? toℕ n y
 
-GateLabel : HypergraphLabel
-GateLabel = record
+Gates : HypergraphLabel
+Gates = record
     { Label = Gate
     ; showLabel = showGate
     ; isCastable = record
