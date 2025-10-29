@@ -4,12 +4,21 @@ open import Data.Hypergraph.Label using (HypergraphLabel)
 
 module Data.Hypergraph.Edge (HL : HypergraphLabel) where
 
+import Data.List.Sort as ListSort
+import Data.Fin as Fin
+import Data.Fin.Properties as FinProp
+import Data.Vec as Vec
+import Data.Vec.Relation.Binary.Equality.Cast as VecCast
+import Data.Vec.Relation.Binary.Lex.Strict as Lex
+import Relation.Binary.PropositionalEquality as ≡
+import Relation.Binary.Properties.DecTotalOrder as DTOP
+import Relation.Binary.Properties.StrictTotalOrder as STOP
 
 open import Relation.Binary using (Rel; IsStrictTotalOrder; Tri; Trichotomous; _Respects_)
 open import Data.Castable using (IsCastable)
 open import Data.Fin using (Fin)
 open import Data.Fin.Show using () renaming (show to showFin)
-open import Data.Nat.Base using (ℕ; _<_)
+open import Data.Nat using (ℕ; _<_)
 open import Data.Nat.Properties using (<-irrefl; <-trans; <-resp₂-≡; <-cmp)
 open import Data.Product.Base using (_,_; proj₁; proj₂)
 open import Data.String using (String; _<+>_)
@@ -20,24 +29,24 @@ open import Relation.Binary.Bundles using (DecTotalOrder; StrictTotalOrder)
 open import Relation.Binary.Structures using (IsEquivalence)
 open import Relation.Nullary using (¬_)
 
-import Data.Fin.Base as Fin
-import Data.Fin.Properties as FinProp
-import Data.Vec.Base as VecBase
-import Data.Vec.Relation.Binary.Equality.Cast as VecCast
-import Data.Vec.Relation.Binary.Lex.Strict as Lex
-import Relation.Binary.PropositionalEquality as ≡
-import Relation.Binary.Properties.DecTotalOrder as DTOP
-import Relation.Binary.Properties.StrictTotalOrder as STOP
 
 module HL = HypergraphLabel HL
 open HL using (Label; cast; cast-is-id)
-open VecBase using (Vec)
+open Vec using (Vec)
 
 record Edge (v : ℕ) : Set where
   field
     {arity} : ℕ
     label : Label arity
     ports : Vec (Fin v) arity
+
+map : {n m : ℕ} → (Fin n → Fin m) → Edge n → Edge m
+map {n} {m} f edge = record
+    { label = label
+    ; ports = Vec.map f ports
+    }
+  where
+    open Edge edge
 
 open ≡ using (_≡_)
 open VecCast using (_≈[_]_)
@@ -105,7 +114,7 @@ data <-Edge {v : ℕ} : Edge v → Edge v → Set where
       : {x y : Edge v}
         (≡a : Edge.arity x ≡ Edge.arity y)
         (≡l : Edge.label x HL.≈[ ≡a ] Edge.label y)
-      → VecBase.cast ≡a (Edge.ports x) << Edge.ports y
+      → Vec.cast ≡a (Edge.ports x) << Edge.ports y
       → <-Edge x y
 
 <-Edge-irrefl : {v : ℕ} {x y : Edge v} → ≈-Edge x y → ¬ <-Edge x y
@@ -324,8 +333,8 @@ strictTotalOrder {v} = record
     ; isStrictTotalOrder = isStrictTotalOrder {v}
     }
 
-showEdge : {v : ℕ} → Edge v → String
-showEdge record { arity = a ; label = l ; ports = p} = HL.showLabel a l <+> showVec showFin p
+show : {v : ℕ} → Edge v → String
+show record { arity = a ; label = l ; ports = p} = HL.showLabel a l <+> showVec showFin p
 
 open module STOP′ {v} = STOP (strictTotalOrder {v}) using (decTotalOrder) public
 
@@ -333,3 +342,6 @@ open module STOP′ {v} = STOP (strictTotalOrder {v}) using (decTotalOrder) publ
 ≈-Edge⇒≡ {v} {record { label = l ; ports = p }} record { ≡arity = ≡.refl ; ≡label = ≡.refl ; ≡ports = ≡.refl }
   rewrite cast-is-id ≡.refl l
   rewrite VecCast.cast-is-id ≡.refl p = ≡.refl
+
+module Sort {v} = ListSort (decTotalOrder {v})
+open Sort using (sort) public

@@ -1,26 +1,25 @@
 {-# OPTIONS --without-K --safe #-}
 
+open import Level using (Level)
 open import Data.Hypergraph.Label using (HypergraphLabel)
 
-module Data.Hypergraph.Base (HL : HypergraphLabel) where
+module Data.Hypergraph.Base {ℓ : Level} (HL : HypergraphLabel) where
 
-open import Data.Hypergraph.Edge HL using (Edge; decTotalOrder; showEdge)
-open import Data.List.Base using (List; map)
+import Data.Hypergraph.Edge HL as Edge
+
+open import Data.List using (List; map)
 open import Data.Nat.Base using (ℕ)
 open import Data.String using (String; unlines)
 
-import Data.List.Sort as Sort
+open Edge using (Edge)
 
-record Hypergraph (v : ℕ) : Set where
+record Hypergraph (v : ℕ) : Set ℓ where
   constructor mkHypergraph
   field
     edges : List (Edge v)
 
-sortHypergraph : {v : ℕ} → Hypergraph v → Hypergraph v
-sortHypergraph {v} H = record { edges = sort edges }
-  where
-    open Hypergraph H
-    open Sort decTotalOrder using (sort)
+normalize : {v : ℕ} → Hypergraph v → Hypergraph v
+normalize (mkHypergraph e) = mkHypergraph (Edge.sort e)
 
-showHypergraph : {v : ℕ} → Hypergraph v → String
-showHypergraph record { edges = e} = unlines (map showEdge e)
+show : {v : ℕ} → Hypergraph v → String
+show (mkHypergraph e) = unlines (map Edge.show e)

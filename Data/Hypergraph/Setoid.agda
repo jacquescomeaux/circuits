@@ -1,47 +1,56 @@
 {-# OPTIONS --without-K --safe #-}
 
+open import Level using (Level; _⊔_)
 open import Data.Hypergraph.Label using (HypergraphLabel)
 
-module Data.Hypergraph.Setoid (HL : HypergraphLabel) where
+module Data.Hypergraph.Setoid {c ℓ : Level} (HL : HypergraphLabel) where
 
-open import Data.Hypergraph.Edge HL using (decTotalOrder)
-open import Data.Hypergraph.Base HL using (Hypergraph; sortHypergraph)
-open import Data.Nat.Base using (ℕ)
-open import Level using (0ℓ)
-open import Relation.Binary.Bundles using (Setoid)
+import Data.List.Relation.Binary.Permutation.Propositional as List-↭
+
+open import Data.Hypergraph.Edge HL using (module Sort)
+open import Data.Hypergraph.Base {c} HL using (Hypergraph; normalize)
+open import Data.Nat using (ℕ)
+open import Relation.Binary using (Setoid)
 open import Relation.Binary.PropositionalEquality as ≡ using (_≡_)
 
-record ≈-Hypergraph {v : ℕ} (H H′ : Hypergraph v) : Set where
+-- an equivalence relation on hypergraphs
+record _≈_ {v : ℕ} (H H′ : Hypergraph v) : Set (c ⊔ ℓ) where
+
+  constructor mk≈
+
   module H = Hypergraph H
   module H′ = Hypergraph H′
+
   field
-    ≡sorted : sortHypergraph H ≡ sortHypergraph H′
+    ≡-normalized : normalize H ≡ normalize H′
+
   open Hypergraph using (edges)
-  ≡edges : edges (sortHypergraph H) ≡ edges (sortHypergraph H′)
-  ≡edges = ≡.cong edges ≡sorted
-  open import Data.List.Relation.Binary.Permutation.Propositional using (_↭_; ↭-reflexive; ↭-sym; ↭-trans)
-  open import Data.List.Sort decTotalOrder using (sort-↭)
-  ↭edges : H.edges ↭ H′.edges
-  ↭edges = ↭-trans (↭-sym (sort-↭ H.edges)) (↭-trans (↭-reflexive ≡edges) (sort-↭ H′.edges))
 
-≈-refl : {v : ℕ} {H : Hypergraph v} → ≈-Hypergraph H H
-≈-refl = record { ≡sorted = ≡.refl }
+  ≡-edges : edges (normalize H) ≡ edges (normalize H′)
+  ≡-edges = ≡.cong edges ≡-normalized
 
-≈-sym : {v : ℕ} {H H′ : Hypergraph v} → ≈-Hypergraph H H′ → ≈-Hypergraph H′ H
-≈-sym ≈H = record { ≡sorted = ≡.sym ≡sorted }
-  where
-    open ≈-Hypergraph ≈H 
+  open List-↭ using (_↭_; ↭-reflexive; ↭-sym; ↭-trans)
+  open Sort using (sort-↭)
 
-≈-trans : {v : ℕ} {H H′ H″ : Hypergraph v} → ≈-Hypergraph H H′ → ≈-Hypergraph H′ H″ → ≈-Hypergraph H H″
-≈-trans ≈H₁ ≈H₂ = record { ≡sorted = ≡.trans ≈H₁.≡sorted ≈H₂.≡sorted }
-  where
-    module ≈H₁ = ≈-Hypergraph ≈H₁
-    module ≈H₂ = ≈-Hypergraph ≈H₂
+  ↭-edges : H.edges ↭ H′.edges
+  ↭-edges = ↭-trans (↭-sym (sort-↭ H.edges)) (↭-trans (↭-reflexive ≡-edges) (sort-↭ H′.edges))
 
-Hypergraph-Setoid : (v : ℕ) → Setoid 0ℓ 0ℓ
-Hypergraph-Setoid v = record
+infixr 4 _≈_
+
+≈-refl : {v : ℕ} {H : Hypergraph v} → H ≈ H
+≈-refl = mk≈ ≡.refl
+
+≈-sym : {v : ℕ} {H H′ : Hypergraph v} → H ≈ H′ → H′ ≈ H
+≈-sym (mk≈ ≡n) = mk≈ (≡.sym ≡n)
+
+≈-trans : {v : ℕ} {H H′ H″ : Hypergraph v} → H ≈ H′ → H′ ≈ H″ → H ≈ H″
+≈-trans (mk≈ ≡n₁) (mk≈ ≡n₂) = mk≈ (≡.trans ≡n₁ ≡n₂)
+
+-- The setoid of labeled hypergraphs with v nodes
+Hypergraphₛ : ℕ → Setoid c (c ⊔ ℓ)
+Hypergraphₛ v = record
     { Carrier = Hypergraph v
-    ; _≈_ = ≈-Hypergraph
+    ; _≈_ = _≈_
     ; isEquivalence = record
         { refl = ≈-refl
         ; sym = ≈-sym
