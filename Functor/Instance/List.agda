@@ -16,7 +16,7 @@ open import Function.Bundles using (Func; _⟶ₛ_; _⟨$⟩_)
 open import Relation.Binary using (Setoid)
 
 open Functor
-open Setoid
+open Setoid using (reflexive)
 open Func
 
 private
@@ -36,15 +36,19 @@ mapₛ : A ⟶ₛ B → Listₛ A ⟶ₛ Listₛ B
 mapₛ f .to = List.map (to f)
 mapₛ f .cong = PW.map⁺ (to f) (to f) ∘ PW.map (cong f)
 
-map-id : (xs : ∣ Listₛ A ∣) → PW.Pointwise (_≈_ A) (List.map id xs) xs
-map-id {A} = PW.map (reflexive A) ∘ PW.≡⇒Pointwise-≡ ∘ ListProps.map-id
+map-id
+    : (xs : ∣ Listₛ A ∣)
+    → (open Setoid (Listₛ A))
+    → List.map id xs ≈ xs
+map-id {A} = reflexive (Listₛ A) ∘ ListProps.map-id
 
 List-homo
     : (f : A ⟶ₛ B)
       (g : B ⟶ₛ C)
     → (xs : ∣ Listₛ A ∣)
-    → PW.Pointwise (_≈_ C) (List.map (to g ∘ to f) xs) (List.map (to g) (List.map (to f) xs))
-List-homo {C = C} f g = PW.map (reflexive C) ∘ PW.≡⇒Pointwise-≡ ∘ ListProps.map-∘
+    → (open Setoid (Listₛ C))
+    → List.map (to g ∘ to f) xs ≈ List.map (to g) (List.map (to f) xs)
+List-homo {C = C} f g = reflexive (Listₛ C) ∘ ListProps.map-∘
 
 List : Functor (Setoids c ℓ) (Setoids c (c ⊔ ℓ))
 List .F₀ = Listₛ
