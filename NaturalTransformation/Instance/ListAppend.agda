@@ -1,6 +1,8 @@
 {-# OPTIONS --without-K --safe #-}
 
-module NaturalTransformation.Instance.ListAppend where
+open import Level using (Level; _⊔_)
+
+module NaturalTransformation.Instance.ListAppend {c ℓ : Level} where
 
 open import Categories.NaturalTransformation using (NaturalTransformation; ntHelper)
 open import Categories.Category.Product using (_※_)
@@ -8,35 +10,34 @@ open import Categories.Category.BinaryProducts using (module BinaryProducts)
 open import Categories.Category.Monoidal.Instance.Setoids using (Setoids-Cartesian)
 open import Categories.Category.Cartesian using (Cartesian)
 open import Categories.Functor using (Functor; _∘F_)
-open import Data.List using (_++_)
+open import Data.List using (_++_; map)
 open import Data.List.Properties using (map-++)
-open import Data.List.Relation.Binary.Pointwise using (Pointwise; ++⁺; refl; reflexive; symmetric; ≡⇒Pointwise-≡)
+open import Data.List.Relation.Binary.Pointwise using (++⁺)
 open import Data.Product.Relation.Binary.Pointwise.NonDependent using (_×ₛ_)
 open import Data.Product using (_,_)
-open import Functor.Instance.List using (List)
+open import Functor.Instance.List {c} {ℓ} using (List)
 open import Function using (Func; _⟶ₛ_)
-open import Level using (0ℓ)
 open import Relation.Binary using (Setoid)
 
-module List = Functor (List {0ℓ} {0ℓ})
+module List = Functor List
 
-open Cartesian (Setoids-Cartesian {0ℓ} {0ℓ}) using (products)
+open Cartesian (Setoids-Cartesian {c} {c ⊔ ℓ}) using (products)
 open BinaryProducts products using (-×-)
 open Func
 
-++ₛ : {X : Setoid 0ℓ 0ℓ} → List.₀ X ×ₛ List.₀ X ⟶ₛ List.₀ X
+++ₛ : {X : Setoid c ℓ} → List.₀ X ×ₛ List.₀ X ⟶ₛ List.₀ X
 ++ₛ .to (xs , ys) = xs ++ ys
-++ₛ .cong (≈xs , ≈ys)  = ++⁺ ≈xs ≈ys
+++ₛ .cong (≈xs , ≈ys) = ++⁺ ≈xs ≈ys
 
 map-++ₛ
-  : {A B : Setoid 0ℓ 0ℓ}
+  : {A B : Setoid c ℓ}
     (f : Func A B)
     (xs ys : Data.List.List (Setoid.Carrier A))
-  → (open Setoid B)
-  → Pointwise _≈_ (Data.List.map (to f) xs ++ Data.List.map (to f) ys) (Data.List.map (to f) (xs ++ ys))
-map-++ₛ {_} {B} f xs ys = symmetric B.sym (reflexive B.reflexive (≡⇒Pointwise-≡ (map-++ (to f) xs ys)))
-    where
-      module B = Setoid B
+  → (open Setoid (List.₀ B))
+  → map (to f) xs ++ map (to f) ys ≈ map (to f) (xs ++ ys)
+map-++ₛ {_} {B} f xs ys = ListB.sym (ListB.reflexive (map-++ (to f) xs ys))
+  where
+    module ListB = Setoid (List.₀ B)
 
 ++ : NaturalTransformation (-×- ∘F (List ※ List)) List
 ++ = ntHelper record
