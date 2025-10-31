@@ -11,7 +11,7 @@ open import Categories.Category.Instance.Nat using (Nat)
 open import Categories.Category.Instance.Setoids using (Setoids)
 open import Categories.Functor using (Functor)
 open import Data.Fin using (Fin)
-open import Data.Hypergraph.Edge HL as Edge using (≈-Edge-IsEquivalence; map; ≈-Edge)
+open import Data.Hypergraph.Edge HL as Edge using (≈-Edge-IsEquivalence; map; ≈-Edge; Edgeₛ)
 open import Data.Nat using (ℕ)
 open import Data.Vec.Relation.Binary.Equality.Cast using (≈-cong′; ≈-reflexive)
 open import Level using (0ℓ)
@@ -26,9 +26,6 @@ open Func
 open Functor
 open Setoid
 open ≈-Edge
-
-Edgeₛ : (v : ℕ) → Setoid 0ℓ 0ℓ
-Edgeₛ v = record { isEquivalence = ≈-Edge-IsEquivalence {v} }
 
 Edge₁ : {n m : ℕ} → (Fin n → Fin m) → Edgeₛ n ⟶ₛ Edgeₛ m
 Edge₁ f .to = map f

@@ -12,15 +12,16 @@ open import Data.Fin using (Fin)
 open import Data.Hypergraph {c} {ℓ} Gates
   using
     ( Hypergraph
-    ; mkHypergraph
     ; Hypergraphₛ
+    ; mkHypergraphₛ
+    ; List∘Edgeₛ
     ; module Edge
-    ; normalize
+    ; mkHypergraph
     ; _≈_
     ; mk≈
     )
 open import Data.Nat using (ℕ)
-open import Relation.Binary using (Rel; Setoid)
+open import Relation.Binary using (Setoid)
 open import Function.Bundles using (Func; _⟶ₛ_)
 
 open List using (List)
@@ -34,6 +35,9 @@ map f (mkHypergraph edges) = mkHypergraph (List.map (Edge.map f) edges)
 
 Circuitₛ : ℕ → Setoid c (c ⊔ ℓ)
 Circuitₛ = Hypergraphₛ
+
+mkCircuitₛ : {n : ℕ} → List∘Edgeₛ n ⟶ₛ Circuitₛ n
+mkCircuitₛ = mkHypergraphₛ
 
 open Func
 open Edge.Sort using (sort)

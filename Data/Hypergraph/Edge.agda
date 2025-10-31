@@ -25,8 +25,7 @@ open import Data.String using (String; _<+>_)
 open import Data.Vec.Relation.Binary.Pointwise.Inductive using (≡⇒Pointwise-≡; Pointwise-≡⇒≡)
 open import Data.Vec.Show using () renaming (show to showVec)
 open import Level using (0ℓ)
-open import Relation.Binary.Bundles using (DecTotalOrder; StrictTotalOrder)
-open import Relation.Binary.Structures using (IsEquivalence)
+open import Relation.Binary using (Setoid; DecTotalOrder; StrictTotalOrder; IsEquivalence)
 open import Relation.Nullary using (¬_)
 
 
@@ -89,7 +88,6 @@ record ≈-Edge {n : ℕ} (E E′ : Edge n) : Set where
     module i≈j = ≈-Edge i≈j
     module j≈k = ≈-Edge j≈k
 
-open import Relation.Binary using (IsEquivalence)
 ≈-Edge-IsEquivalence : {v : ℕ} → IsEquivalence (≈-Edge {v})
 ≈-Edge-IsEquivalence = record
     { refl = ≈-Edge-refl
@@ -345,3 +343,6 @@ open module STOP′ {v} = STOP (strictTotalOrder {v}) using (decTotalOrder) publ
 
 module Sort {v} = ListSort (decTotalOrder {v})
 open Sort using (sort) public
+
+Edgeₛ : (v : ℕ) → Setoid 0ℓ 0ℓ
+Edgeₛ v = record { isEquivalence = ≈-Edge-IsEquivalence {v} }
