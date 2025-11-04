@@ -1,70 +1,38 @@
 {-# OPTIONS --without-K --safe #-}
 
-open import Level using (Level; _⊔_)
+open import Level using (Level)
 
 module Data.Circuit {c ℓ : Level} where
 
-import Data.List as List
-
 open import Data.Circuit.Gate using (Gates)
 
+import Data.List as List
+import Data.Hypergraph {c} {ℓ} Gates as Hypergraph
+
 open import Data.Fin using (Fin)
-open import Data.Hypergraph {c} {ℓ} Gates
-  using
-    ( Hypergraph
-    ; Hypergraphₛ
-    ; mkHypergraphₛ
-    ; List∘Edgeₛ
-    ; module Edge
-    ; mkHypergraph
-    ; _≈_
-    ; mk≈
-    )
 open import Data.Nat using (ℕ)
-open import Relation.Binary using (Setoid)
-open import Function.Bundles using (Func; _⟶ₛ_)
-
-open List using (List)
-open Edge using (Edge; ≈-Edge⇒≡)
-
-Circuit : ℕ → Set c
-Circuit = Hypergraph
-
-map : {n m : ℕ} → (Fin n → Fin m) → Circuit n → Circuit m
-map f (mkHypergraph edges) = mkHypergraph (List.map (Edge.map f) edges)
-
-Circuitₛ : ℕ → Setoid c (c ⊔ ℓ)
-Circuitₛ = Hypergraphₛ
-
-mkCircuitₛ : {n : ℕ} → List∘Edgeₛ n ⟶ₛ Circuitₛ n
-mkCircuitₛ = mkHypergraphₛ
+open import Function using (Func; _⟶ₛ_)
+open import Data.List.Relation.Binary.Permutation.Propositional.Properties using (map⁺)
 
 open Func
-open Edge.Sort using (sort)
+open Hypergraph using (List∘Edgeₛ)
+open Hypergraph
+  using (_≈_ ; mk≈ ; module Edge)
+  renaming
+    ( Hypergraph to Circuit
+    ; Hypergraphₛ to Circuitₛ
+    ; mkHypergraph to mkCircuit
+    ; mkHypergraphₛ to mkCircuitₛ
+    )
+  public
+open List using ([])
 
-open import Relation.Binary.PropositionalEquality as ≡ using (_≡_)
-open import Data.List.Relation.Binary.Permutation.Propositional using (_↭_; ↭⇒↭ₛ′)
-open import Data.List.Relation.Binary.Permutation.Propositional.Properties using (map⁺)
-open import Data.List.Relation.Binary.Pointwise as PW using (Pointwise; Pointwise-≡⇒≡)
-open import Data.List.Relation.Binary.Permutation.Homogeneous using (Permutation)
+map : {n m : ℕ} → (Fin n → Fin m) → Circuit n → Circuit m
+map f (mkCircuit edges) = mkCircuit (List.map (Edge.map f) edges)
 
-import Data.Permutation.Sort as ↭-Sort
+discrete : (n : ℕ) → Circuit n
+discrete n = mkCircuit []
 
 mapₛ : {n m : ℕ} → (Fin n → Fin m) → Circuitₛ n ⟶ₛ Circuitₛ m
-mapₛ {n} {m} f .to = map f
-mapₛ {n} {m} f .cong {mkHypergraph xs} {mkHypergraph ys} x≈y = mk≈ ≡-norm
-  where
-    open _≈_ x≈y using (↭-edges)
-    open ↭-Sort (Edge.decTotalOrder {m}) using (sorted-≋)
-    open import Function.Reasoning
-    xs′ ys′ : List (Edge m)
-    xs′ = List.map (Edge.map f) xs
-    ys′ = List.map (Edge.map f) ys
-    ≡-norm : mkHypergraph (sort xs′) ≡ mkHypergraph (sort ys′)
-    ≡-norm = ↭-edges                        ∶ xs ↭ ys
-        |> map⁺ (Edge.map f)                ∶ xs′ ↭ ys′
-        |> ↭⇒↭ₛ′ Edge.≈-Edge-IsEquivalence  ∶ Permutation Edge.≈-Edge xs′ ys′
-        |> sorted-≋                         ∶ Pointwise Edge.≈-Edge (sort xs′) (sort ys′)
-        |> PW.map ≈-Edge⇒≡                  ∶ Pointwise _≡_ (sort xs′) (sort ys′)
-        |> Pointwise-≡⇒≡                    ∶ sort xs′ ≡ sort ys′
-        |> ≡.cong mkHypergraph              ∶ mkHypergraph (sort xs′) ≡ mkHypergraph (sort ys′)
+mapₛ f .to = map f
+mapₛ f .cong (mk≈ x≈y) = mk≈ (map⁺ (Edge.map f) x≈y)

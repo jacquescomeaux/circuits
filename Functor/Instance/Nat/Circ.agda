@@ -24,7 +24,7 @@ module List∘Edge = Functor List∘Edge
 open Func
 open Functor
 
-Circ : Functor Nat (Setoids c (c ⊔ ℓ))
+Circ : Functor Nat (Setoids c ℓ)
 Circ .F₀ = Circuitₛ
 Circ .F₁ = mapₛ
 Circ .identity = cong mkCircuitₛ List∘Edge.identity

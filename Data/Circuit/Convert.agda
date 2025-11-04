@@ -4,50 +4,53 @@ module Data.Circuit.Convert where
 
 open import Level using (0ℓ)
 
+import Data.Vec as Vec
+import Data.Vec.Relation.Binary.Equality.Cast as VecCast
+import Data.List.Relation.Binary.Permutation.Propositional as L
+import Data.Vec.Functional.Relation.Binary.Permutation as V
+import DecorationFunctor.Hypergraph.Labeled {0ℓ} {0ℓ} as LabeledHypergraph
+
 open import Data.Nat.Base using (ℕ)
 open import Data.Circuit.Gate using (Gate; Gates; cast-gate; cast-gate-is-id; subst-is-cast-gate)
+open import Data.Circuit {0ℓ} {0ℓ} using (Circuit; Circuitₛ; _≈_; mkCircuit; module Edge; mk≈)
 open import Data.Fin.Base using (Fin)
-open import Data.Hypergraph.Edge Gates using (Edge)
-open import Data.Hypergraph.Base {0ℓ} Gates using (Hypergraph; normalize; mkHypergraph)
-open import Data.Hypergraph.Setoid {0ℓ} {0ℓ} Gates using (Hypergraphₛ; _≈_)
+open import Data.Product.Base using (_,_)
 open import Data.Permutation using (fromList-↭; toList-↭)
 open import Data.List using (length)
 open import Data.Vec.Functional using (toVec; fromVec; toList; fromList)
 open import Function.Bundles using (Equivalence; _↔_)
 open import Function.Base using (_∘_; id)
+open import Data.Vec.Properties using (tabulate-cong; tabulate-∘; map-cast)
+open import Data.Fin.Base using () renaming (cast to fincast)
+open import Data.Fin.Properties using () renaming (cast-trans to fincast-trans; cast-is-id to fincast-is-id)
 open import Data.List.Relation.Binary.Permutation.Homogeneous using (Permutation)
 open import Data.Product.Base using (proj₁; proj₂; _×_)
 open import Data.Fin.Permutation using (flip; _⟨$⟩ˡ_)
 open import Relation.Binary.PropositionalEquality as ≡ using (_≡_; _≗_)
 
-import Function.Reasoning as →-Reasoning
-import Data.List.Relation.Binary.Permutation.Propositional as L
-import Data.Vec.Functional.Relation.Binary.Permutation as V
-import DecorationFunctor.Hypergraph.Labeled {0ℓ} {0ℓ} as LabeledHypergraph
-
 open LabeledHypergraph using (Hypergraph-same) renaming (Hypergraph to Hypergraph′; Hypergraph-setoid to Hypergraph-Setoid′)
 
-to : {v : ℕ} → Hypergraph v → Hypergraph′ v
-to H = record
+to : {v : ℕ} → Circuit v → Hypergraph′ v
+to C = record
     { h = length edges
     ; a = arity ∘ fromList edges
     ; j = fromVec ∘ ports ∘ fromList edges
     ; l = label ∘ fromList edges
     }
   where
-    open Edge using (arity; ports; label)
-    open Hypergraph H
+    open Edge.Edge using (arity; ports; label)
+    open Circuit C
 
-from : {v : ℕ} → Hypergraph′ v → Hypergraph v
+from : {v : ℕ} → Hypergraph′ v → Circuit v
 from {v} H = record
     { edges = toList asEdge
     }
   where
     open Hypergraph′ H
-    asEdge : Fin h → Edge v
+    asEdge : Fin h → Edge.Edge v
     asEdge e = record { label = l e ; ports = toVec (j e) }
 
-to-cong : {v : ℕ} {H H′ : Hypergraph v} → H ≈ H′ → Hypergraph-same (to H) (to H′)
+to-cong : {v : ℕ} {H H′ : Circuit v} → H ≈ H′ → Hypergraph-same (to H) (to H′)
 to-cong {v} {H} {H′} ≈H = record
     { ↔h = flip ρ
     ; ≗a = ≗a
@@ -55,7 +58,7 @@ to-cong {v} {H} {H′} ≈H = record
     ; ≗l = ≗l
     }
   where
-    open Edge using (arity; ports; label)
+    open Edge.Edge using (arity; ports; label)
     open _≈_ ≈H
     open import Data.Fin.Permutation using (_⟨$⟩ʳ_; _⟨$⟩ˡ_; Permutation′; inverseʳ)
     open import Data.Fin.Base using (cast)
@@ -92,11 +95,6 @@ to-cong {v} {H} {H′} ≈H = record
           ≡.refl
 
 module _ {v : ℕ} where
-  open import Data.Hypergraph.Edge Gates using (decTotalOrder; ≈-Edge; ≈-Edge-IsEquivalence; ≈-Edge⇒≡)
-  open import Data.List.Sort (decTotalOrder {v}) using (sort; sort-↭)
-  open import Data.Permutation.Sort (decTotalOrder {v}) using (sorted-≋)
-  open import Data.List.Relation.Binary.Pointwise using (Pointwise; Pointwise-≡⇒≡; map)
-  open import Data.Product.Base using (_,_)
   open import Data.Hypergraph.Label using (HypergraphLabel)
   open HypergraphLabel Gates using (isCastable)
   open import Data.Castable using (IsCastable)
@@ -105,15 +103,14 @@ module _ {v : ℕ} where
       : {H H′ : Hypergraph′ v}
       → Hypergraph-same H H′
       → from H ≈ from H′
-  from-cong {H} {H′} ≈H = record
-      { ≡-normalized = ≡-normalized
-      }
+  from-cong {H} {H′} ≈H = mk≈ (toList-↭ (flip ↔h , H∘ρ≗H′))
     where
+ 
       module H = Hypergraph′ H
       module H′ = Hypergraph′ H′
       open Hypergraph′
       open Hypergraph-same ≈H using (↔h; ≗a; ≗l; ≗j; inverseˡ) renaming (from to f; to to t)
-      asEdge : (H : Hypergraph′ v) → Fin (h H) → Edge v
+      asEdge : (H : Hypergraph′ v) → Fin (h H) → Edge.Edge v
       asEdge H e = record { label = l H e ; ports = toVec (j H e) }
 
       to-from : (e : Fin H′.h) → t (f e) ≡ e
@@ -133,13 +130,6 @@ module _ {v : ℕ} where
 
       ≗l′ : (e : Fin H′.h) → cast-gate (≗a′ e) (H.l (f e)) ≡ H′.l e
       ≗l′ e = ≈-trans {H.a _} (l≗ (f e)) (l∘to-from e)
-
-      import Data.Vec.Relation.Binary.Equality.Cast as VecCast
-      open import Data.Vec using (cast) renaming (map to vecmap)
-      open import Data.Vec.Properties using (tabulate-cong; tabulate-∘; map-cast)
-
-      open import Data.Fin.Base using () renaming (cast to fincast)
-      open import Data.Fin.Properties using () renaming (cast-trans to fincast-trans; cast-is-id to fincast-is-id)
 
       j∘to-from
           : (e : Fin H′.h) (i : Fin (H′.a (t (f e))))
@@ -161,40 +151,28 @@ module _ {v : ℕ} where
             {A : Set}
             (m≡n : m ≡ n)
             (f : Fin n → A)
-          → cast m≡n (toVec (f ∘ fincast m≡n)) ≡ toVec f
+          → Vec.cast m≡n (toVec (f ∘ fincast m≡n)) ≡ toVec f
       cast-toVec m≡n f rewrite m≡n = begin
-          cast _ (toVec (f ∘ (fincast _)))  ≡⟨ VecCast.cast-is-id ≡.refl (toVec (f ∘ fincast ≡.refl)) ⟩
+          Vec.cast _ (toVec (f ∘ (fincast _)))  ≡⟨ VecCast.cast-is-id ≡.refl (toVec (f ∘ fincast ≡.refl)) ⟩
           toVec (f ∘ fincast _)             ≡⟨ tabulate-∘ f (fincast ≡.refl) ⟩
-          vecmap f (toVec (fincast _))      ≡⟨ ≡.cong (vecmap f) (tabulate-cong (fincast-is-id ≡.refl)) ⟩
-          vecmap f (toVec id)               ≡⟨ tabulate-∘ f id ⟨
+          Vec.map f (toVec (fincast _))     ≡⟨ ≡.cong (Vec.map f) (tabulate-cong (fincast-is-id ≡.refl)) ⟩
+          Vec.map f (toVec id)              ≡⟨ tabulate-∘ f id ⟨
           toVec f                           ∎
 
-      ≗p′ : (e : Fin H′.h) → cast (≗a′ e) (toVec (H.j (f e))) ≡ toVec (H′.j e)
+      ≗p′ : (e : Fin H′.h) → Vec.cast (≗a′ e) (toVec (H.j (f e))) ≡ toVec (H′.j e)
       ≗p′ e = begin
-          cast (≗a′ e) (toVec (H.j (f e)))    ≡⟨ ≡.cong (cast (≗a′ e)) (tabulate-cong (≗j′ e)) ⟩
-          cast _ (toVec (H′.j e ∘ fincast _)) ≡⟨ cast-toVec (≗a′ e) (H′.j e) ⟩
+          Vec.cast (≗a′ e) (toVec (H.j (f e)))    ≡⟨ ≡.cong (Vec.cast (≗a′ e)) (tabulate-cong (≗j′ e)) ⟩
+          Vec.cast _ (toVec (H′.j e ∘ fincast _)) ≡⟨ cast-toVec (≗a′ e) (H′.j e) ⟩
           toVec (H′.j e)                      ∎
 
       H∘ρ≗H′ : (e : Fin H′.h) → asEdge H (↔h ⟨$⟩ˡ e) ≡ asEdge H′ e
-      H∘ρ≗H′ e = ≈-Edge⇒≡ record
+      H∘ρ≗H′ e = Edge.≈⇒≡ record
           { ≡arity = ≗a′ e
           ; ≡label = ≗l′ e
           ; ≡ports = ≗p′ e
           }
 
-      open Hypergraph using (edges)
-      open →-Reasoning
-      ≡-normalized : normalize (from H) ≡ normalize (from H′)
-      ≡-normalized =
-             flip ↔h , H∘ρ≗H′             ∶ asEdge H V.↭ asEdge H′
-          |> toList-↭                     ∶ toList (asEdge H) L.↭ toList (asEdge H′)
-          |> L.↭⇒↭ₛ′ ≈-Edge-IsEquivalence ∶ Permutation ≈-Edge (edges (from H)) (edges (from H′))
-          |> sorted-≋                     ∶ Pointwise ≈-Edge (sort (edges (from H))) (sort (edges (from H′)))
-          |> map ≈-Edge⇒≡                 ∶ Pointwise _≡_ (sort (edges (from H))) (sort (edges (from H′)))
-          |> Pointwise-≡⇒≡                ∶ sort (edges (from H)) ≡ sort (edges (from H′))
-          |> ≡.cong mkHypergraph          ∶ normalize (from H) ≡ normalize (from H′)
-
-equiv : (v : ℕ) → Equivalence (Hypergraphₛ v) (Hypergraph-Setoid′ v)
+equiv : (v : ℕ) → Equivalence (Circuitₛ v) (Hypergraph-Setoid′ v)
 equiv v = record
     { to = to
     ; from = from
