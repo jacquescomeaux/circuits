@@ -1,6 +1,8 @@
 {-# OPTIONS --without-K --safe #-}
 
-module DecorationFunctor.Hypergraph.Labeled where
+open import Level using (Level; 0ℓ; lift)
+
+module DecorationFunctor.Hypergraph.Labeled {c ℓ : Level} where
 
 import Categories.Morphism as Morphism
 
@@ -37,19 +39,16 @@ open import Data.Fin.Properties
     )
 open import Data.Nat using (ℕ; _+_)
 open import Data.Product.Base using (_,_; Σ)
-open import Data.Product.Relation.Binary.Pointwise.NonDependent using (×-setoid)
+open import Data.Product.Relation.Binary.Pointwise.NonDependent using (_×ₛ_)
 open import Data.Sum.Base using (_⊎_; map; inj₁; inj₂; swap; map₂) renaming ([_,_]′ to [_,_])
 open import Data.Sum.Properties using (map-map; [,]-map; [,]-∘; [-,]-cong; [,-]-cong; [,]-cong; map-cong; swap-involutive)
-open import Data.Unit using (tt)
 open import Data.Unit.Properties using () renaming (≡-setoid to ⊤-setoid)
 
 open import Function.Base using (_∘_; id; const; case_of_; case_returning_of_)
-open import Function.Bundles using (Func; Inverse; _↔_; mk↔)
+open import Function.Bundles using (Func; Inverse; _↔_; mk↔; _⟶ₛ_)
 open import Function.Construct.Composition using (_↔-∘_)
 open import Function.Construct.Identity using (↔-id)
 open import Function.Construct.Symmetry using (↔-sym)
-
-open import Level using (0ℓ; lift)
 
 open import Relation.Binary.Bundles using (Setoid)
 open import Relation.Binary.PropositionalEquality using (_≗_)
@@ -57,12 +56,13 @@ open import Relation.Binary.PropositionalEquality.Core using (_≡_; erefl; refl
 open import Relation.Binary.PropositionalEquality.Properties using (isEquivalence; module ≡-Reasoning; dcong; dcong₂; subst-∘; subst-subst; sym-cong; subst-subst-sym; trans-cong; cong-∘; trans-reflʳ)
 open import Relation.Nullary.Negation.Core using (¬_)
 
-open Cartesian (Setoids-Cartesian {0ℓ} {0ℓ}) using (products)
+open Cartesian (Setoids-Cartesian {c} {ℓ}) using (products)
 open Cocartesian Nat-Cocartesian using (coproducts)
 open FinitelyCocompleteCategory Nat-FinitelyCocomplete
     using ()
     renaming (symmetricMonoidalCategory to Nat-smc)
-open Morphism (Setoids 0ℓ 0ℓ) using (_≅_)
+open import Category.Monoidal.Instance.Nat using (Nat,+,0)
+open Morphism (Setoids c ℓ) using (_≅_)
 open Lax using (SymmetricMonoidalFunctor)
 
 open BinaryProducts products using (-×-)
@@ -70,7 +70,7 @@ open BinaryCoproducts coproducts using (-+-) renaming (+-assoc to Nat-+-assoc)
 
 open import Data.Circuit.Gate using (Gate; cast-gate; cast-gate-trans; cast-gate-is-id; subst-is-cast-gate)
 
-record Hypergraph (v : ℕ) : Set where
+record Hypergraph (v : ℕ) : Set c where
 
   field
     h : ℕ
@@ -78,7 +78,7 @@ record Hypergraph (v : ℕ) : Set where
     j : (e : Fin h) → Fin (a e) → Fin v
     l : (e : Fin h) → Gate (a e)
 
-record Hypergraph-same {n : ℕ} (H H′ : Hypergraph n) : Set where
+record Hypergraph-same {n : ℕ} (H H′ : Hypergraph n) : Set ℓ where
 
   open Hypergraph H public
   open Hypergraph H′ renaming (h to h′; a to a′; j to j′; l to l′) public
@@ -183,7 +183,7 @@ Hypergraph-same-trans ≡H₁ ≡H₂ = record
     ≗l₂ : (e : Fin (h ≡H₁)) → cast-gate _ (l′ ≡H₁ (to ≡H₁ e)) ≡ cast-gate _ (l′ ≡H₂ (to ≡H₂ (to ≡H₁ e)))
     ≗l₂ e = trans (cong (cast-gate _) (≗l ≡H₂ (to ≡H₁ e))) (cast-gate-trans _ (sym (≗a ≡H₁ e)) (l′ ≡H₂ (to ≡H₂ (to ≡H₁ e))))
 
-Hypergraph-setoid : ℕ → Setoid 0ℓ 0ℓ
+Hypergraph-setoid : ℕ → Setoid c ℓ
 Hypergraph-setoid p = record
     { Carrier = Hypergraph p
     ; _≈_ = Hypergraph-same
@@ -217,7 +217,7 @@ Hypergraph-same-cong f ≡H = record
   where
     open Hypergraph-same ≡H
 
-Hypergraph-Func : (Fin n → Fin m) → Func (Hypergraph-setoid n) (Hypergraph-setoid m)
+Hypergraph-Func : (Fin n → Fin m) → Hypergraph-setoid n ⟶ₛ Hypergraph-setoid m
 Hypergraph-Func f = record
     { to = map-nodes f
     ; cong = Hypergraph-same-cong f
@@ -249,9 +249,9 @@ homomorphism {n} {m} {o} {H} f g = record
   where
     open Hypergraph-same Hypergraph-same-refl
 
-F : Functor Nat (Setoids 0ℓ 0ℓ)
+F : Functor Nat (Setoids c ℓ)
 F = record
-    { F₀ = Hypergraph-setoid
+    { F₀ = λ n → Hypergraph-setoid n
     ; F₁ = Hypergraph-Func
     ; identity = λ { {n} {H} → Hypergraph-same-refl {H = H} }
     ; homomorphism = λ { {f = f} {g = g} → homomorphism f g }
@@ -268,7 +268,7 @@ empty-hypergraph = record
     ; l = λ ()
     }
 
-ε : Func (SingletonSetoid {0ℓ} {0ℓ}) (Hypergraph-setoid 0)
+ε : SingletonSetoid {c} {ℓ} ⟶ₛ Hypergraph-setoid 0
 ε = record
     { to = const empty-hypergraph
     ; cong = const Hypergraph-same-refl
@@ -430,7 +430,7 @@ commute {n} {n′} {m} {m′} {H₁} {H₂} f g = record
     ; sym-commute = λ { (f , g) {H₁ , H₂} → Hypergraph-same-sym (commute {H₁ = H₁} {H₂ = H₂} f g) }
     }
   where
-    η : Func (×-setoid (Hypergraph-setoid n) (Hypergraph-setoid m)) (Hypergraph-setoid (n + m))
+    η : Hypergraph-setoid n ×ₛ Hypergraph-setoid m ⟶ₛ Hypergraph-setoid (n + m)
     η = record
         { to = λ { (H₁ , H₂) → together H₁ H₂ }
         ; cong = λ { (≡H₁ , ≡H₂) → together-resp-same ≡H₁ ≡H₂ }
@@ -551,7 +551,7 @@ n+0↔n n = record
     to∘from : (x : Fin n) → to (from x) ≡ x
     to∘from x rewrite splitAt-↑ˡ n x 0 = refl
 
-unitaryʳ : Hypergraph-same (map-nodes ([ (λ x → x) , (λ ()) ] ∘ splitAt n) (together H empty-hypergraph)) H
+unitaryʳ : Hypergraph-same (map-nodes ([ id , (λ ()) ] ∘ splitAt n) (together H empty-hypergraph)) H
 unitaryʳ {n} {H} = record
     { ↔h = h+0↔h
     ; ≗a = ≗a
@@ -658,8 +658,8 @@ braiding {n} {m} {H₁} {H₂} = record
     ≗l e | inj₁ e₁ rewrite splitAt-↑ʳ H₂.h H₁.h e₁ = sym (cast-gate-is-id refl (H₁.l e₁))
     ≗l e | inj₂ e₂ rewrite splitAt-↑ˡ H₂.h e₂ H₁.h = sym (cast-gate-is-id refl (H₂.l e₂))
 
-hypergraph : SymmetricMonoidalFunctor Nat-smc (Setoids-× {0ℓ})
-hypergraph = record
+Circ : SymmetricMonoidalFunctor Nat,+,0 Setoids-×
+Circ = record
     { F = F
     ; isBraidedMonoidal = record
         { isMonoidal = record
@@ -676,20 +676,20 @@ hypergraph = record
         }
     }
   where
-    η : Func (×-setoid (Hypergraph-setoid n) (Hypergraph-setoid m)) (Hypergraph-setoid (n + m))
+    η : Hypergraph-setoid n ×ₛ Hypergraph-setoid m ⟶ₛ Hypergraph-setoid (n + m)
     η = record
         { to = λ { (H₁ , H₂) → together H₁ H₂ }
         ; cong = λ { (≡H₁ , ≡H₂) → together-resp-same ≡H₁ ≡H₂ }
         }
 
-module F = SymmetricMonoidalFunctor hypergraph
+module F = SymmetricMonoidalFunctor Circ
 
 open Gate
 
-and-gate : Func (SingletonSetoid {0ℓ} {0ℓ}) (F.₀ 3)
+and-gate : SingletonSetoid {c} {ℓ} ⟶ₛ F.₀ 3
 and-gate = record
-    { to = λ { (lift tt) → and-graph }
-    ; cong = λ { (lift tt) → Hypergraph-same-refl }
+    { to = λ _ → and-graph
+    ; cong = λ _ → Hypergraph-same-refl
     }
   where
     and-graph : Hypergraph 3

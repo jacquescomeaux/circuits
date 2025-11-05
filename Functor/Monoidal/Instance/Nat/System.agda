@@ -1,25 +1,25 @@
 {-# OPTIONS --without-K --safe #-}
 
-open import Level using (Level; 0ℓ; suc)
-
-module Functor.Monoidal.Instance.Nat.System {ℓ : Level} where
+module Functor.Monoidal.Instance.Nat.System where
 
 open import Function.Construct.Identity using () renaming (function to Id)
 import Function.Construct.Constant as Const
 
+open import Level using (0ℓ; suc; Level)
+
 open import Category.Monoidal.Instance.Nat using (Nat,+,0; Natop,+,0)
 open import Categories.Category.Instance.Nat using (Natop)
-open import Category.Instance.Setoids.SymmetricMonoidal {suc ℓ} {ℓ} using (Setoids-×)
+open import Category.Instance.Setoids.SymmetricMonoidal {suc 0ℓ} {suc 0ℓ} using (Setoids-×)
 open import Categories.Category.Instance.SingletonSet using (SingletonSetoid)
 open import Data.Circuit.Value using (Value)
 open import Data.Setoid using (_⇒ₛ_; ∣_∣)
-open import Data.System {ℓ} using (Systemₛ; System; ≤-System)
+open import Data.System {suc 0ℓ} using (Systemₛ; System; ≤-System)
 open import Data.System.Values Value using (Values; _≋_; module ≋)
 open import Data.Unit.Polymorphic using (⊤; tt)
 open import Data.Vec.Functional using ([])
 open import Relation.Binary using (Setoid)
 open import Relation.Binary.PropositionalEquality as ≡ using (_≡_; _≗_)
-open import Functor.Instance.Nat.System {ℓ} using (Sys; map)
+open import Functor.Instance.Nat.System using (Sys; map)
 open import Function.Base using (_∘_)
 open import Function.Bundles using (Func; _⟶ₛ_; _⟨$⟩_)
 open import Function.Construct.Setoid using (setoid)
@@ -36,12 +36,12 @@ module _ where
   discrete .fₛ = Const.function (Values 0) (SingletonSetoid ⇒ₛ SingletonSetoid) (Id SingletonSetoid)
   discrete .fₒ = Const.function SingletonSetoid (Values 0) []
 
-Sys-ε : SingletonSetoid {suc ℓ} {ℓ} ⟶ₛ Systemₛ 0
+Sys-ε : SingletonSetoid {suc 0ℓ} {suc 0ℓ} ⟶ₛ Systemₛ 0
 Sys-ε = Const.function SingletonSetoid (Systemₛ 0) discrete
 
 open import Categories.Category.Cartesian using (Cartesian)
 open import Categories.Category.Monoidal.Instance.Setoids using (Setoids-Cartesian)
-open Cartesian (Setoids-Cartesian {suc ℓ} {ℓ}) using (products)
+open Cartesian (Setoids-Cartesian {suc 0ℓ} {suc 0ℓ}) using (products)
 open import Categories.Category.BinaryProducts using (module BinaryProducts)
 open BinaryProducts products using (-×-)
 open import Categories.Functor using (_∘F_)
@@ -216,12 +216,14 @@ System-⊗-≥ {n} {n′} {m} {m′} X Y f g = record
   where
     open Cartesian (Setoids-Cartesian {0ℓ} {0ℓ}) using () renaming (products to 0ℓ-products)
     open BinaryProducts 0ℓ-products using (assocˡ)
-    open Cartesian (Setoids-Cartesian {ℓ} {ℓ}) using () renaming (products to prod)
+    open Cartesian (Setoids-Cartesian {0ℓ} {0ℓ}) using () renaming (products to prod)
     open BinaryProducts prod using () renaming (assocˡ to ×-assocˡ)
     module Pull,++,[] = SymmetricMonoidalFunctor Pull,++,[]
+    Pull,++,[]B : BraidedMonoidalFunctor
+    Pull,++,[]B = record { isBraidedMonoidal = Pull,++,[].isBraidedMonoidal }
     module Pull,++,[]B = BraidedMonoidalFunctor (record { isBraidedMonoidal = Pull,++,[].isBraidedMonoidal })
 
-    open import Functor.Monoidal.Braided.Strong.Properties Pull,++,[].braidedMonoidalFunctor using (associativity-inv)
+    open import Functor.Monoidal.Braided.Strong.Properties Pull,++,[]B using (associativity-inv)
 
     module X = System X
     module Y = System Y
@@ -238,7 +240,7 @@ System-⊗-≥ {n} {n′} {m} {m′} X Y f g = record
     ; ≗-fₒ = λ (s₁ , s₂ , s₃) → sym-++-assoc {(X.fₒ′ s₁ , Y.fₒ′ s₂) , Z.fₒ′ s₃}
     }
   where
-    open Cartesian (Setoids-Cartesian {ℓ} {ℓ}) using () renaming (products to prod)
+    open Cartesian (Setoids-Cartesian {0ℓ} {0ℓ}) using () renaming (products to prod)
     open BinaryProducts prod using () renaming (assocʳ to ×-assocʳ)
     open Cartesian (Setoids-Cartesian {0ℓ} {0ℓ}) using () renaming (products to 0ℓ-products)
     open BinaryProducts 0ℓ-products using (×-assoc; assocˡ; assocʳ)
@@ -323,7 +325,7 @@ Sys-unitaryʳ-≥ {n} X = record
     { ⇒S = < Id X.S , Const.function X.S SingletonSetoid tt >ₛ
     ; ≗-fₛ = λ i s →
         cong
-            (X.fₛ ×-⇒ Const.function (Values 0) (SingletonSetoid ⇒ₛ SingletonSetoid) (Id (SingletonSetoid {ℓ} {ℓ})) ∙ Id (Values n) ×-function ε⇒)
+            (X.fₛ ×-⇒ Const.function (Values 0) (SingletonSetoid ⇒ₛ SingletonSetoid) (Id (SingletonSetoid {suc 0ℓ} {0ℓ})) ∙ Id (Values n) ×-function ε⇒)
             sym-split-unitaryʳ
             {s , tt}
     ; ≗-fₒ = λ s → sym-++-unitaryʳ {X.fₒ′ s , tt}
@@ -371,8 +373,9 @@ Sys-braiding-compat-≤ {n} {m} X Y = record
     module X = System X
     module Y = System Y
     module Pull,++,[] = SymmetricMonoidalFunctor Pull,++,[]
-    module Pull,++,[]B = BraidedMonoidalFunctor (record { isBraidedMonoidal = Pull,++,[].isBraidedMonoidal })
-    open import Functor.Monoidal.Braided.Strong.Properties Pull,++,[].braidedMonoidalFunctor using (braiding-compat-inv)
+    Pull,++,[]B : BraidedMonoidalFunctor
+    Pull,++,[]B = record { isBraidedMonoidal = Pull,++,[].isBraidedMonoidal }
+    open import Functor.Monoidal.Braided.Strong.Properties Pull,++,[]B using (braiding-compat-inv)
     open import Categories.Functor.Monoidal.Symmetric Nat,+,0 0ℓ-Setoids-× using (module Lax)
     module Push,++,[] = Lax.SymmetricMonoidalFunctor Push,++,[]
 
@@ -389,8 +392,9 @@ Sys-braiding-compat-≥ {n} {m} X Y = record
     module X = System X
     module Y = System Y
     module Pull,++,[] = SymmetricMonoidalFunctor Pull,++,[]
-    module Pull,++,[]B = BraidedMonoidalFunctor (record { isBraidedMonoidal = Pull,++,[].isBraidedMonoidal })
-    open import Functor.Monoidal.Braided.Strong.Properties Pull,++,[].braidedMonoidalFunctor using (braiding-compat-inv)
+    Pull,++,[]B : BraidedMonoidalFunctor
+    Pull,++,[]B = record { isBraidedMonoidal = Pull,++,[].isBraidedMonoidal }
+    open import Functor.Monoidal.Braided.Strong.Properties Pull,++,[]B using (braiding-compat-inv)
     open import Categories.Functor.Monoidal.Symmetric Nat,+,0 0ℓ-Setoids-× using (module Lax)
     module Push,++,[] = Lax.SymmetricMonoidalFunctor Push,++,[]
 

@@ -2,7 +2,8 @@
 
 open import Data.Hypergraph.Label using (HypergraphLabel)
 
-module Data.Hypergraph.Edge (HL : HypergraphLabel) where
+open import Level using (Level; 0ℓ)
+module Data.Hypergraph.Edge {ℓ : Level} (HL : HypergraphLabel) where
 
 import Data.Vec as Vec
 import Data.Vec.Relation.Binary.Equality.Cast as VecCast
@@ -15,13 +16,15 @@ open import Data.String using (String; _<+>_)
 open import Data.Vec.Show using () renaming (show to showVec)
 open import Level using (0ℓ)
 open import Relation.Binary using (Setoid; IsEquivalence)
+open import Function using (_⟶ₛ_; Func)
 
 module HL = HypergraphLabel HL
 
 open HL using (Label; cast; cast-is-id)
 open Vec using (Vec)
+open Func
 
-record Edge (v : ℕ) : Set where
+record Edge (v : ℕ) : Set ℓ where
   constructor mkEdge
   field
     {arity} : ℕ
@@ -42,7 +45,7 @@ open VecCast using (_≈[_]_)
 module _ {v : ℕ} where
 
   -- an equivalence relation on edges with v nodes
-  record _≈_ (E E′ : Edge v) : Set where
+  record _≈_ (E E′ : Edge v) : Set ℓ where
     constructor mk≈
     module E = Edge E
     module E′ = Edge E′
@@ -92,5 +95,9 @@ module _ {v : ℕ} where
     rewrite cast-is-id ≡.refl l
     rewrite VecCast.cast-is-id ≡.refl p = ≡.refl
 
-Edgeₛ : (v : ℕ) → Setoid 0ℓ 0ℓ
+Edgeₛ : (v : ℕ) → Setoid ℓ ℓ
 Edgeₛ v = record { isEquivalence = ≈-IsEquivalence {v} }
+
+mapₛ : {n m : ℕ} → (Fin n → Fin m) → Edgeₛ n ⟶ₛ Edgeₛ m
+mapₛ f .to = map f
+mapₛ f .cong (mk≈ ≡a ≡l ≡p) = mk≈ ≡a ≡l (VecCast.≈-cong′ (Vec.map f) ≡p)

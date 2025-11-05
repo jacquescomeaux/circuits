@@ -1,18 +1,18 @@
 {-# OPTIONS --without-K --safe #-}
 
-open import Level using (Level; 0ℓ)
 open import Data.Hypergraph.Label using (HypergraphLabel)
+open import Level using (Level; 0ℓ)
 
-module Data.Hypergraph {c ℓ : Level} (HL : HypergraphLabel) where
+module Data.Hypergraph {ℓ : Level} (HL : HypergraphLabel) where
 
 import Data.List.Relation.Binary.Pointwise as PW
 import Function.Reasoning as →-Reasoning
 import Relation.Binary.PropositionalEquality as ≡
-import Data.Hypergraph.Edge HL as Hyperedge
+import Data.Hypergraph.Edge {ℓ} HL as Hyperedge
 import Data.List.Relation.Binary.Permutation.Propositional as List-↭
+import Data.List.Relation.Binary.Permutation.Setoid as ↭
 
 open import Data.List using (List; map)
-open import Data.List.Relation.Binary.Permutation.Propositional using (_↭_; ↭-refl; ↭-sym; ↭-trans)
 open import Data.Nat using (ℕ)
 open import Data.String using (String; unlines)
 open import Function using (_∘_; _⟶ₛ_; Func)
@@ -22,12 +22,14 @@ module Edge = Hyperedge
 open Edge using (Edge; Edgeₛ)
 
 -- A hypergraph is a list of edges
-record Hypergraph (v : ℕ) : Set c where
+record Hypergraph (v : ℕ) : Set ℓ where
   constructor mkHypergraph
   field
     edges : List (Edge v)
 
 module _ {v : ℕ} where
+
+  open ↭ (Edgeₛ v) using (_↭_; ↭-refl; ↭-sym; ↭-trans)
 
   show : Hypergraph v → String
   show (mkHypergraph e) = unlines (map Edge.show e)
@@ -55,7 +57,7 @@ module _ {v : ℕ} where
   ≈-trans (mk≈ ≡n₁) (mk≈ ≡n₂) = mk≈ (↭-trans ≡n₁ ≡n₂)
 
 -- The setoid of labeled hypergraphs with v nodes
-Hypergraphₛ : ℕ → Setoid c ℓ
+Hypergraphₛ : ℕ → Setoid ℓ ℓ
 Hypergraphₛ v = record
     { Carrier = Hypergraph v
     ; _≈_ = _≈_
@@ -68,15 +70,11 @@ Hypergraphₛ v = record
 
 open Func
 
-List∘Edgeₛ : (n : ℕ) → Setoid 0ℓ 0ℓ
-List∘Edgeₛ = PW.setoid ∘ Edgeₛ
+open ↭ using (↭-setoid)
 
-mkHypergraphₛ : {n : ℕ} → List∘Edgeₛ n ⟶ₛ Hypergraphₛ n
+Multiset∘Edgeₛ : (n : ℕ) → Setoid ℓ ℓ
+Multiset∘Edgeₛ = ↭-setoid ∘ Edgeₛ
+
+mkHypergraphₛ : {n : ℕ} → Multiset∘Edgeₛ n ⟶ₛ Hypergraphₛ n
 mkHypergraphₛ .to = mkHypergraph
-mkHypergraphₛ {n} .cong ≋-edges = ≋-edges
-    |> PW.map Edge.≈⇒≡
-    |> PW.Pointwise-≡⇒≡
-    |> ≡.cong mkHypergraph
-    |> Setoid.reflexive (Hypergraphₛ n)
-  where
-    open →-Reasoning
+mkHypergraphₛ {n} .cong = mk≈

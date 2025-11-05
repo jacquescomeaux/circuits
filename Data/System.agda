@@ -1,7 +1,6 @@
 {-# OPTIONS --without-K --safe #-}
 
-open import Level using (Level)
-
+open import Level using (Level; 0ℓ; suc)
 module Data.System {ℓ : Level} where
 
 import Function.Construct.Identity as Id
@@ -11,7 +10,7 @@ open import Data.Circuit.Value using (Value)
 open import Data.Nat.Base using (ℕ)
 open import Data.Setoid using (_⇒ₛ_; ∣_∣)
 open import Data.System.Values Value using (Values; _≋_; module ≋)
-open import Level using (Level; _⊔_; 0ℓ; suc)
+open import Level using (Level; 0ℓ; suc)
 open import Relation.Binary.PropositionalEquality as ≡ using (_≡_)
 open import Relation.Binary using (Reflexive; Transitive; Preorder; _⇒_; Setoid)
 open import Function.Base using (_∘_)
@@ -20,10 +19,10 @@ open import Function.Construct.Setoid using (_∙_)
 
 open Func
 
-record System (n : ℕ) : Set (suc ℓ) where
+record System (n : ℕ) : Set₁ where
 
   field
-    S : Setoid ℓ ℓ
+    S : Setoid 0ℓ 0ℓ
     fₛ : ∣ Values n ⇒ₛ S ⇒ₛ S ∣
     fₒ : ∣ S ⇒ₛ Values n ∣
 
@@ -66,7 +65,7 @@ module _ {n : ℕ} where
   ≗-fₛ (≤-trans {x} {y} {z} a b) i s = System.trans z (cong (⇒S b) (≗-fₛ a i s)) (≗-fₛ b i (⇒S a ⟨$⟩ s))
   ≗-fₒ (≤-trans a b) s = ≋.trans (≗-fₒ a s) (≗-fₒ b (⇒S a ⟨$⟩ s))
 
-  System-Preorder : Preorder (suc ℓ) (suc ℓ) ℓ
+  System-Preorder : Preorder (suc 0ℓ) (suc 0ℓ) ℓ
   System-Preorder = record
       { Carrier = System n
       ; _≈_ = _≡_
@@ -82,5 +81,5 @@ module _ (n : ℕ) where
 
   open PreorderProperties (System-Preorder {n}) using (InducedEquivalence)
 
-  Systemₛ : Setoid (suc ℓ) ℓ
+  Systemₛ : Setoid (suc 0ℓ) ℓ
   Systemₛ = InducedEquivalence

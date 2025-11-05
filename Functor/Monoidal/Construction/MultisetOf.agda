@@ -10,9 +10,9 @@ open import Category.Construction.CMonoids using (CMonoids)
 open import Level using (Level)
 
 module Functor.Monoidal.Construction.MultisetOf
-    {o ℓ e : Level}
+    {o o′ ℓ ℓ′ e e′ : Level}
     {𝒞 : CocartesianCategory o ℓ e}
-    {S : SymmetricMonoidalCategory o ℓ e}
+    {S : SymmetricMonoidalCategory o′ ℓ′ e′}
     (let module 𝒞 = CocartesianCategory 𝒞)
     (let module S = SymmetricMonoidalCategory S)
     (G : Functor 𝒞.U S.U)

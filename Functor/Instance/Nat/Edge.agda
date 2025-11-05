@@ -1,8 +1,9 @@
 {-# OPTIONS --without-K --safe #-}
 
 open import Data.Hypergraph.Label using (HypergraphLabel)
+open import Level using (Level; 0ℓ)
 
-module Functor.Instance.Nat.Edge (HL : HypergraphLabel) where
+module Functor.Instance.Nat.Edge {ℓ : Level} (HL : HypergraphLabel) where
 
 import Data.Vec as Vec
 import Data.Vec.Properties as VecProps
@@ -11,10 +12,9 @@ open import Categories.Category.Instance.Nat using (Nat)
 open import Categories.Category.Instance.Setoids using (Setoids)
 open import Categories.Functor using (Functor)
 open import Data.Fin using (Fin)
-open import Data.Hypergraph.Edge HL as Edge using (Edgeₛ; map; _≈_)
+open import Data.Hypergraph.Edge {ℓ} HL as Edge using (Edgeₛ; map; mapₛ; _≈_)
 open import Data.Nat using (ℕ)
-open import Data.Vec.Relation.Binary.Equality.Cast using (≈-cong′; ≈-reflexive)
-open import Level using (0ℓ)
+open import Data.Vec.Relation.Binary.Equality.Cast using (≈-reflexive)
 open import Function using (id; _∘_; Func; _⟶ₛ_)
 open import Relation.Binary using (Setoid)
 open import Relation.Binary.PropositionalEquality as ≡ using (_≡_; _≗_)
@@ -25,14 +25,6 @@ open Edge.Edge
 open Edge._≈_
 open Func
 open Functor
-
-Edge₁ : {n m : ℕ} → (Fin n → Fin m) → Edgeₛ n ⟶ₛ Edgeₛ m
-Edge₁ f .to = map f
-Edge₁ f .cong x≈y = record
-    { ≡arity = ≡arity x≈y
-    ; ≡label = ≡label x≈y
-    ; ≡ports = ≈-cong′ (Vec.map f) (≡ports x≈y)
-    }
 
 map-id : {v : ℕ} {e : Edge.Edge v} → map id e ≈ e
 map-id .≡arity = ≡.refl
@@ -59,9 +51,9 @@ map-resp-≗ f≗g .≡arity = ≡.refl
 map-resp-≗ f≗g .≡label = HL.≈-reflexive ≡.refl
 map-resp-≗ f≗g {e} .≡ports = ≈-reflexive (VecProps.map-cong f≗g (ports e))
 
-Edge : Functor Nat (Setoids 0ℓ 0ℓ)
+Edge : Functor Nat (Setoids ℓ ℓ)
 Edge .F₀ = Edgeₛ
-Edge .F₁ = Edge₁
+Edge .F₁ = mapₛ
 Edge .identity = map-id
 Edge .homomorphism = map-∘ _ _
 Edge .F-resp-≈ = map-resp-≗

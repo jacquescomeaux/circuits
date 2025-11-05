@@ -8,9 +8,9 @@ open import Categories.Functor using (Functor) renaming (_∘F_ to _∙_)
 open import Level using (Level)
 
 module Functor.Monoidal.Construction.ListOf
-    {o ℓ e : Level}
+    {o o′ ℓ ℓ′ e e′ : Level}
     {𝒞 : CocartesianCategory o ℓ e}
-    {S : MonoidalCategory o ℓ e}
+    {S : MonoidalCategory o′ ℓ′ e′}
     (let module 𝒞 = CocartesianCategory 𝒞)
     (let module S = MonoidalCategory S)
     (G : Functor 𝒞.U S.U)
