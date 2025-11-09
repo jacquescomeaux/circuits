@@ -3,11 +3,12 @@
 module Data.Circuit.Merge where
 
 open import Data.Nat.Base using (ℕ)
-open import Data.Fin.Base using (Fin; pinch; punchIn; punchOut)
+open import Data.Fin.Base using (Fin; pinch; punchIn; punchOut; splitAt)
 open import Data.Fin.Properties using (punchInᵢ≢i; punchIn-punchOut)
 open import Data.Bool.Properties using (if-eta)
 open import Data.Bool using (Bool; if_then_else_)
 open import Data.Circuit.Value using (Value; join; join-comm; join-assoc)
+open import Data.Sum.Properties using ([,]-cong; [,-]-cong; [-,]-cong; [,]-∘; [,]-map)
 open import Data.Subset.Functional
   using
       ( Subset
@@ -18,6 +19,7 @@ open import Data.Subset.Functional
       ; foldl-fusion
       )
 open import Data.Vector as V using (Vector; head; tail; removeAt)
+open import Data.Vec.Functional using (_++_)
 open import Data.Fin.Permutation
   using
     ( Permutation
@@ -31,13 +33,15 @@ open import Data.Fin.Permutation
     )
 open import Data.Product using (Σ-syntax; _,_)
 open import Data.Fin.Preimage using (preimage; preimage-cong₁; preimage-cong₂)
-open import Function.Base using (∣_⟩-_; _∘_)
-open import Relation.Binary.PropositionalEquality as ≡ using (_≡_; _≗_)
+open import Function.Base using (∣_⟩-_; _∘_; case_of_; _$_)
+open import Relation.Binary.PropositionalEquality as ≡ using (_≡_; _≢_; _≗_; module ≡-Reasoning)
 
 open Value using (U)
 open ℕ
 open Fin
 open Bool
+
+open ≡-Reasoning
 
 _when_ : Value → Bool → Value
 x when b = if b then x else U
@@ -90,8 +94,6 @@ merge-with-U {suc A} e S = begin
     merge-with e (tail (λ _ → U)) (tail S)  ≡⟨⟩
     merge-with e (λ _ → U) (tail S)         ≡⟨ merge-with-U e (tail S) ⟩
     e                                       ∎
-  where
-    open ≡.≡-Reasoning
 
 merge : {A : ℕ} → Vector Value A → Subset A → Value
 merge v = merge-with U v
@@ -146,8 +148,6 @@ merge-removeAt {A} zero v S = begin
     merge-with U v S                                            ≡⟨ merge-suc v S ⟩
     merge-with (head v when head S) (tail v) (tail S)           ≡⟨ join-merge (head v when head S) (tail v) (tail S) ⟨
     join (head v when head S) (merge-with U (tail v) (tail S))  ∎
-  where
-    open ≡.≡-Reasoning
 merge-removeAt {suc A} (suc k) v S = begin
     merge-with U v S                                  ≡⟨ merge-suc v S ⟩
     merge-with v0? (tail v) (tail S)                  ≡⟨ join-merge _ (tail v) (tail S) ⟨
@@ -166,7 +166,6 @@ merge-removeAt {suc A} (suc k) v S = begin
     v- = removeAt v (suc k)
     S- : Subset (suc A)
     S- = removeAt S (suc k)
-    open ≡.≡-Reasoning
 
 import Function.Structures as FunctionStructures
 open module FStruct {A B : Set} = FunctionStructures {_} {_} {_} {_} {A} _≡_ {B} _≡_ using (IsInverse)
@@ -211,7 +210,6 @@ merge-preimage-ρ {suc A} {suc B} ρ v S = begin
     S- = tail S
     vρˡ0? : Value
     vρˡ0? = head (v ∘ ρˡ) when head S
-    open ≡.≡-Reasoning
     ≡vρˡ0?  : head (v ∘ ρˡ) when S (ρʳ (head ρˡ)) ≡ head (v ∘ ρˡ) when head S
     ≡vρˡ0? = ≡.cong ((head (v ∘ ρˡ) when_) ∘ S) (inverseʳ ρ)
     v∘ρˡ- : v- ∘ ρˡ- ≗ tail (v ∘ ρˡ)
@@ -252,8 +250,6 @@ mutual
       U                       ≡⟨ merge-with-U U S ⟨
       merge (λ _ → U) S       ≡⟨ merge-cong₁ (λ x → ≡.sym (merge-[] v (⁅ x ⁆ ∘ f))) S ⟩
       merge (push v f) S      ∎
-    where
-      open ≡.≡-Reasoning
   merge-preimage {suc A} {zero} f v S with () ← f zero
   merge-preimage {suc A} {suc B} f v S with insert-f0-0 f
   ... | ρ , ρf0≡0 = begin
@@ -266,7 +262,6 @@ mutual
           merge (merge v ∘ preimage (ρˡ ∘ ρʳ ∘ f) ∘ ⁅_⁆) S          ≡⟨ merge-cong₁ (merge-cong₂ v ∘ preimage-cong₁ (λ y → inverseˡ ρ {f y}) ∘ ⁅_⁆) S ⟩
           merge (merge v ∘ preimage f ∘ ⁅_⁆) S                      ∎
         where
-          open ≡.≡-Reasoning
           ρʳ ρˡ : Fin (ℕ.suc B) → Fin (ℕ.suc B)
           ρʳ = ρ ⟨$⟩ʳ_
           ρˡ = ρ ⟨$⟩ˡ_
@@ -319,7 +314,6 @@ mutual
             v0? = v0 when f⁻¹[S]0
             v0?+[f[v-]0?] = (if S0 then join v0? f[v-]0 else v0?)
             f[v]0? = f[v]0 when S0
-            open ≡.≡-Reasoning
             ≡f[v]0 : v0?+[f[v-]0?] ≡ f[v]0?
             ≡f[v]0 rewrite f0≡0 with S0
             ... | true = begin
@@ -339,3 +333,95 @@ mutual
               where
                 v0?′ : Value
                 v0?′ = v0 when head (preimage f ⁅ suc x ⁆)
+
+merge-++
+    : {n m : ℕ}
+      (xs : Vector Value n)
+      (ys : Vector Value m)
+      (S₁ : Subset n)
+      (S₂ : Subset m)
+    → merge (xs ++ ys) (S₁ ++ S₂)
+    ≡ join (merge xs S₁) (merge ys S₂)
+merge-++ {zero} {m} xs ys S₁ S₂ = begin
+    merge (xs ++ ys) (S₁ ++ S₂)       ≡⟨ merge-cong₂ (xs ++ ys) (λ _ → ≡.refl) ⟩
+    merge (xs ++ ys) S₂               ≡⟨ merge-cong₁ (λ _ → ≡.refl) S₂ ⟩
+    merge ys S₂                       ≡⟨ ≡.cong (λ h → join h (merge ys S₂)) (merge-[] xs S₁) ⟨
+    join (merge xs S₁) (merge ys S₂)  ∎
+merge-++ {suc n} {m} xs ys S₁ S₂ = begin
+    merge (xs ++ ys) (S₁ ++ S₂)                                                   ≡⟨ merge-suc (xs ++ ys) (S₁ ++ S₂) ⟩
+    merge-with (head xs when head S₁) (tail (xs ++ ys)) (tail (S₁ ++ S₂))         ≡⟨ join-merge (head xs when head S₁) (tail (xs ++ ys)) (tail (S₁ ++ S₂)) ⟨
+    join (head xs when head S₁) (merge (tail (xs ++ ys)) (tail (S₁ ++ S₂)))
+        ≡⟨ ≡.cong (join (head xs when head S₁)) (merge-cong₁ ([,]-map ∘ splitAt n) (tail (S₁ ++ S₂))) ⟩
+    join (head xs when head S₁) (merge (tail xs ++ ys) (tail (S₁ ++ S₂)))
+        ≡⟨ ≡.cong (join (head xs when head S₁)) (merge-cong₂ (tail xs ++ ys) ([,]-map ∘ splitAt n)) ⟩
+    join (head xs when head S₁) (merge (tail xs ++ ys) (tail S₁ ++ S₂))           ≡⟨ ≡.cong (join (head xs when head S₁)) (merge-++ (tail xs) ys (tail S₁) S₂) ⟩
+    join (head xs when head S₁) (join (merge (tail xs) (tail S₁)) (merge ys S₂))  ≡⟨ join-assoc (head xs when head S₁) (merge (tail xs) (tail S₁)) _ ⟨
+    join (join (head xs when head S₁) (merge (tail xs) (tail S₁))) (merge ys S₂)
+        ≡⟨ ≡.cong (λ h → join h (merge ys S₂)) (join-merge (head xs when head S₁) (tail xs) (tail S₁)) ⟩
+    join (merge-with (head xs when head S₁) (tail xs) (tail S₁)) (merge ys S₂)    ≡⟨ ≡.cong (λ h → join h (merge ys S₂)) (merge-suc xs S₁) ⟨
+    join (merge xs S₁) (merge ys S₂)                                              ∎
+
+open import Function using (Equivalence)
+open Equivalence
+open import Data.Nat using (_+_)
+open import Data.Fin using (_↑ˡ_; _↑ʳ_; _≟_)
+open import Data.Fin.Properties using (↑ˡ-injective; ↑ʳ-injective; splitAt⁻¹-↑ˡ; splitAt-↑ˡ; splitAt⁻¹-↑ʳ; splitAt-↑ʳ)
+open import Relation.Nullary.Decidable using (does; does-⇔; dec-false)
+
+open Fin
+⁅⁆-≟ : {n : ℕ} (x y : Fin n) → ⁅ x ⁆ y ≡ does (x ≟ y)
+⁅⁆-≟ zero zero = ≡.refl
+⁅⁆-≟ zero (suc y) = ≡.refl
+⁅⁆-≟ (suc x) zero = ≡.refl
+⁅⁆-≟ (suc x) (suc y) = ⁅⁆-≟ x y
+
+open import Data.Sum using ([_,_]′; inj₁; inj₂)
+⁅⁆-++
+    : {n′ m′ : ℕ}
+      (i : Fin (n′ + m′))
+    → [ (λ x → ⁅ x ⁆ ++ ⊥) , (λ x → ⊥ ++ ⁅ x ⁆) ]′ (splitAt n′ i) ≗ ⁅ i ⁆
+⁅⁆-++ {n′} {m′} i x with splitAt n′ i in eq₁
+... | inj₁ i′ with splitAt n′ x in eq₂
+...   | inj₁ x′ = begin
+            ⁅ i′ ⁆ x′                   ≡⟨ ⁅⁆-≟ i′ x′ ⟩
+            does (i′ ≟ x′)              ≡⟨ does-⇔ ⇔ (i′ ≟ x′) (i′ ↑ˡ m′ ≟ x′ ↑ˡ m′) ⟩
+            does (i′ ↑ˡ m′ ≟ x′ ↑ˡ m′)  ≡⟨ ⁅⁆-≟ (i′ ↑ˡ m′) (x′ ↑ˡ m′) ⟨
+            ⁅ i′ ↑ˡ m′ ⁆ (x′ ↑ˡ m′)     ≡⟨ ≡.cong₂ ⁅_⁆ (splitAt⁻¹-↑ˡ eq₁) (splitAt⁻¹-↑ˡ eq₂) ⟩
+            ⁅ i ⁆ x                 ∎
+          where
+            ⇔ : Equivalence (≡.setoid (i′ ≡ x′)) (≡.setoid (i′ ↑ˡ m′ ≡ x′ ↑ˡ m′))
+            ⇔ .to = ≡.cong (_↑ˡ m′)
+            ⇔ .from = ↑ˡ-injective m′ i′ x′
+            ⇔ .to-cong ≡.refl = ≡.refl
+            ⇔ .from-cong ≡.refl = ≡.refl
+...   | inj₂ x′ = begin
+            false                       ≡⟨ dec-false (i′ ↑ˡ m′ ≟ n′ ↑ʳ x′) ↑ˡ≢↑ʳ ⟨
+            does (i′ ↑ˡ m′ ≟ n′ ↑ʳ x′)  ≡⟨ ⁅⁆-≟ (i′ ↑ˡ m′) (n′ ↑ʳ x′) ⟨
+            ⁅ i′ ↑ˡ m′ ⁆ (n′ ↑ʳ x′)     ≡⟨ ≡.cong₂ ⁅_⁆ (splitAt⁻¹-↑ˡ eq₁) (splitAt⁻¹-↑ʳ eq₂) ⟩
+            ⁅ i ⁆ x                     ∎
+          where
+            ↑ˡ≢↑ʳ : i′ ↑ˡ m′ ≢ n′ ↑ʳ x′
+            ↑ˡ≢↑ʳ ≡ = case ≡.trans (≡.sym (splitAt-↑ˡ n′ i′ m′)) (≡.trans (≡.cong (splitAt n′) ≡) (splitAt-↑ʳ n′ m′ x′)) of λ { () }
+⁅⁆-++ {n′} i x | inj₂ i′ with splitAt n′ x in eq₂
+⁅⁆-++ {n′} {m′} i x | inj₂ i′ | inj₁ x′ = begin
+    [ ⊥ , ⁅ i′ ⁆ ]′ (splitAt n′ x)  ≡⟨ ≡.cong ([ ⊥ , ⁅ i′ ⁆ ]′) eq₂ ⟩
+    false                           ≡⟨ dec-false (n′ ↑ʳ i′ ≟ x′ ↑ˡ m′) ↑ʳ≢↑ˡ ⟨
+    does (n′ ↑ʳ i′ ≟ x′ ↑ˡ m′)      ≡⟨ ⁅⁆-≟ (n′ ↑ʳ i′) (x′ ↑ˡ m′) ⟨
+    ⁅ n′ ↑ʳ i′ ⁆ (x′ ↑ˡ m′)         ≡⟨ ≡.cong₂ ⁅_⁆ (splitAt⁻¹-↑ʳ eq₁) (splitAt⁻¹-↑ˡ eq₂) ⟩
+    ⁅ i ⁆ x                         ∎
+  where
+    ↑ʳ≢↑ˡ : n′ ↑ʳ i′ ≢ x′ ↑ˡ m′
+    ↑ʳ≢↑ˡ ≡ = case ≡.trans (≡.sym (splitAt-↑ʳ n′ m′ i′)) (≡.trans (≡.cong (splitAt n′) ≡) (splitAt-↑ˡ n′ x′ m′)) of λ { () }
+⁅⁆-++ {n′} i x | inj₂ i′ | inj₂ x′ = begin
+    [ ⊥ , ⁅ i′ ⁆ ]′ (splitAt n′ x)  ≡⟨ ≡.cong [ ⊥ , ⁅ i′ ⁆ ]′ eq₂ ⟩
+    ⁅ i′ ⁆ x′                       ≡⟨ ⁅⁆-≟ i′ x′ ⟩
+    does (i′ ≟ x′)                  ≡⟨ does-⇔ ⇔ (i′ ≟ x′) (n′ ↑ʳ i′ ≟ n′ ↑ʳ x′) ⟩
+    does (n′ ↑ʳ i′ ≟ n′ ↑ʳ x′)      ≡⟨ ⁅⁆-≟ (n′ ↑ʳ i′) (n′ ↑ʳ x′) ⟨
+    ⁅ n′ ↑ʳ i′ ⁆ (n′ ↑ʳ x′)         ≡⟨ ≡.cong₂ ⁅_⁆ (splitAt⁻¹-↑ʳ eq₁) (splitAt⁻¹-↑ʳ eq₂) ⟩
+    ⁅ i ⁆ x                         ∎
+  where
+    ⇔ : Equivalence (≡.setoid (i′ ≡ x′)) (≡.setoid (n′ ↑ʳ i′ ≡ n′ ↑ʳ x′))
+    ⇔ .to = ≡.cong (n′ ↑ʳ_)
+    ⇔ .from = ↑ʳ-injective n′ i′ x′
+    ⇔ .to-cong ≡.refl = ≡.refl
+    ⇔ .from-cong ≡.refl = ≡.refl

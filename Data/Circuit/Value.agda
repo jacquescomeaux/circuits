@@ -2,11 +2,21 @@
 
 module Data.Circuit.Value where
 
-open import Relation.Binary.Lattice.Bundles using (BoundedJoinSemilattice)
+import Relation.Binary.Lattice.Properties.BoundedJoinSemilattice as LatticeProp
+
+open import Algebra.Bundles using (CommutativeMonoid)
+open import Algebra.Structures using (IsCommutativeMonoid; IsMonoid; IsSemigroup; IsMagma)
 open import Data.Product.Base using (_×_; _,_)
 open import Data.String.Base using (String)
 open import Level using (0ℓ)
+open import Relation.Binary.Lattice.Bundles using (BoundedJoinSemilattice)
 open import Relation.Binary.PropositionalEquality as ≡ using (_≡_)
+
+open CommutativeMonoid
+open IsCommutativeMonoid
+open IsMagma
+open IsMonoid
+open IsSemigroup
 
 data Value : Set where
   U T F X : Value
@@ -129,8 +139,8 @@ join-assoc X X T = ≡.refl
 join-assoc X X F = ≡.refl
 join-assoc X X X = ≡.refl
 
-ValueLattice : BoundedJoinSemilattice 0ℓ 0ℓ 0ℓ
-ValueLattice = record
+Lattice : BoundedJoinSemilattice 0ℓ 0ℓ 0ℓ
+Lattice = record
     { Carrier = Value
     ; _≈_ = _≡_
     ; _≤_ = ≤-Value
@@ -155,3 +165,16 @@ ValueLattice = record
             X → U≤X
         }
     }
+
+module Lattice = BoundedJoinSemilattice Lattice
+
+Monoid : CommutativeMonoid 0ℓ 0ℓ
+Monoid .Carrier = Lattice.Carrier
+Monoid ._≈_ = Lattice._≈_
+Monoid ._∙_ = Lattice._∨_
+Monoid .ε = Lattice.⊥
+Monoid .isCommutativeMonoid .isMonoid .isSemigroup .isMagma .isEquivalence = ≡.isEquivalence
+Monoid .isCommutativeMonoid .isMonoid .isSemigroup .isMagma .∙-cong = ≡.cong₂ join
+Monoid .isCommutativeMonoid .isMonoid .isSemigroup .assoc = join-assoc
+Monoid .isCommutativeMonoid .isMonoid .identity = LatticeProp.identity Lattice
+Monoid .isCommutativeMonoid .comm = join-comm

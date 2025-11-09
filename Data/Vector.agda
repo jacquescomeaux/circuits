@@ -3,10 +3,10 @@
 module Data.Vector where
 
 open import Data.Nat.Base using (ℕ)
-open import Data.Vec.Functional using (Vector; head; tail; []; removeAt; map) public
-open import Relation.Binary.PropositionalEquality as ≡ using (_≡_; _≗_)
+open import Data.Vec.Functional using (Vector; head; tail; []; removeAt; map; _++_) public
+open import Relation.Binary.PropositionalEquality as ≡ using (_≡_; _≗_; module ≡-Reasoning)
 open import Function.Base using (∣_⟩-_; _∘_)
-open import Data.Fin.Base using (Fin; toℕ)
+open import Data.Fin.Base using (Fin; toℕ; _↑ˡ_; _↑ʳ_)
 open ℕ
 open Fin
 
@@ -80,3 +80,47 @@ foldl-[]
       {e : B 0}
     → foldl B f e [] ≡ e
 foldl-[] _ _ = ≡.refl
+
+open import Data.Sum using ([_,_]′)
+open import Data.Sum.Properties using ([,-]-cong; [-,]-cong; [,]-∘)
+open import Data.Fin.Properties using (splitAt-↑ˡ; splitAt-↑ʳ)
+open import Data.Fin using (splitAt)
+open import Data.Nat using (_+_)
+++-↑ˡ
+    : {n m : ℕ}
+      {A : Set}
+      (X : Vector A n)
+      (Y : Vector A m)
+    → (X ++ Y) ∘ (_↑ˡ m) ≗ X
+++-↑ˡ {n} {m} X Y i = ≡.cong [ X , Y ]′ (splitAt-↑ˡ n i m)
+
+++-↑ʳ
+    : {n m : ℕ}
+      {A : Set}
+      (X : Vector A n)
+      (Y : Vector A m)
+    → (X ++ Y) ∘ (n ↑ʳ_) ≗ Y
+++-↑ʳ {n} {m} X Y i = ≡.cong [ X , Y ]′ (splitAt-↑ʳ n m i)
+
++-assocʳ : {m n o : ℕ} → Fin (m + (n + o)) → Fin (m + n + o)
++-assocʳ {m} {n} {o} = [ (λ x → x ↑ˡ n ↑ˡ o) , [ (λ x → (m ↑ʳ x) ↑ˡ o) , m + n ↑ʳ_  ]′ ∘ splitAt n ]′ ∘ splitAt m
+
+open ≡-Reasoning
+++-assoc
+    : {m n o : ℕ}
+      {A : Set}
+      (X : Vector A m)
+      (Y : Vector A n)
+      (Z : Vector A o)
+    → ((X ++ Y) ++ Z) ∘ +-assocʳ {m} ≗ X ++ (Y ++ Z)
+++-assoc {m} {n} {o} X Y Z i = begin
+    ((X ++ Y) ++ Z) (+-assocʳ {m} i)                                          ≡⟨⟩
+    ((X ++ Y) ++ Z) ([ (λ x → x ↑ˡ n ↑ˡ o) , _ ]′ (splitAt m i))              ≡⟨ [,]-∘ ((X ++ Y) ++ Z) (splitAt m i) ⟩
+    [ ((X ++ Y) ++ Z) ∘ (λ x → x ↑ˡ n ↑ˡ o) , _ ]′ (splitAt m i)              ≡⟨ [-,]-cong (++-↑ˡ (X ++ Y) Z ∘ (_↑ˡ n)) (splitAt m i) ⟩
+    [ (X ++ Y) ∘ (_↑ˡ n) , _ ]′ (splitAt m i)                                 ≡⟨ [-,]-cong (++-↑ˡ X Y) (splitAt m i) ⟩
+    [ X , ((X ++ Y) ++ Z) ∘ [ _ , _ ]′ ∘ splitAt n ]′ (splitAt m i)           ≡⟨ [,-]-cong ([,]-∘ ((X ++ Y) ++ Z) ∘ splitAt n) (splitAt m i) ⟩
+    [ X , [ (_ ++ Z) ∘ (_↑ˡ o) ∘ (m ↑ʳ_) , _ ]′ ∘ splitAt n ]′ (splitAt m i)  ≡⟨ [,-]-cong ([-,]-cong (++-↑ˡ (X ++ Y) Z ∘ (m ↑ʳ_)) ∘ splitAt n) (splitAt m i) ⟩
+    [ X , [ (X ++ Y) ∘ (m ↑ʳ_) , _ ]′ ∘ splitAt n ]′ (splitAt m i)            ≡⟨ [,-]-cong ([-,]-cong (++-↑ʳ X Y) ∘ splitAt n) (splitAt m i) ⟩
+    [ X , [ Y , ((X ++ Y) ++ Z) ∘ (m + n ↑ʳ_) ]′ ∘ splitAt n ]′ (splitAt m i) ≡⟨ [,-]-cong ([,-]-cong (++-↑ʳ (X ++ Y) Z) ∘ splitAt n) (splitAt m i) ⟩
+    [ X , [ Y , Z ]′ ∘ splitAt n ]′ (splitAt m i)                             ≡⟨⟩
+    (X ++ (Y ++ Z)) i                                                         ∎

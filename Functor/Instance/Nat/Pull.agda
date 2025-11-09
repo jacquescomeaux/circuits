@@ -14,50 +14,68 @@ open import Function.Construct.Setoid using (setoid; _∙_)
 open import Level using (0ℓ)
 open import Relation.Binary using (Rel; Setoid)
 open import Relation.Binary.PropositionalEquality as ≡ using (_≗_)
-open import Data.Circuit.Value using (Value)
-open import Data.System.Values Value using (Values)
+open import Data.Circuit.Value using (Monoid)
+open import Data.System.Values Monoid using (Values)
+open import Data.Unit using (⊤; tt)
 
 open Functor
 open Func
 
-_≈_ : {X Y : Setoid 0ℓ 0ℓ} → Rel (X ⟶ₛ Y) 0ℓ
-_≈_ {X} {Y} = Setoid._≈_ (setoid X Y)
-infixr 4 _≈_
+-- Pull takes a natural number n to the setoid Values n
 
 private
+
   variable A B C : ℕ
 
+  _≈_ : {X Y : Setoid 0ℓ 0ℓ} → Rel (X ⟶ₛ Y) 0ℓ
+  _≈_ {X} {Y} = Setoid._≈_ (setoid X Y)
 
--- action on objects is Values n (Vector Value n)
+  infixr 4 _≈_
 
--- action of Pull on morphisms (contravariant)
-Pull₁ : (Fin A → Fin B) → Values B ⟶ₛ Values A
-to (Pull₁ f) i = i ∘ f
-cong (Pull₁ f) x≗y = x≗y ∘ f
+  opaque
 
--- Pull respects identity
-Pull-identity : Pull₁ id ≈ Id (Values A)
-Pull-identity {A} = Setoid.refl (Values A)
+    unfolding Values
 
--- Pull flips composition
-Pull-homomorphism
-    : {A B C : ℕ}
-      (f : Fin A → Fin B)
-      (g : Fin B → Fin C)
-    → Pull₁ (g ∘ f) ≈ Pull₁ f ∙ Pull₁ g
-Pull-homomorphism {A} _ _ = Setoid.refl (Values A)
+    -- action of Pull on morphisms (contravariant)
+    Pull₁ : (Fin A → Fin B) → Values B ⟶ₛ Values A
+    to (Pull₁ f) i = i ∘ f
+    cong (Pull₁ f) x≗y = x≗y ∘ f
 
--- Pull respects equality
-Pull-resp-≈
-    : {f g : Fin A → Fin B}
-    → f ≗ g
-    → Pull₁ f ≈ Pull₁ g
-Pull-resp-≈ f≗g {v} = ≡.cong v ∘ f≗g
+    -- Pull respects identity
+    Pull-identity : Pull₁ id ≈ Id (Values A)
+    Pull-identity {A} = Setoid.refl (Values A)
+
+  opaque
+
+    unfolding Pull₁
+
+    -- Pull flips composition
+    Pull-homomorphism
+        : (f : Fin A → Fin B)
+          (g : Fin B → Fin C)
+        → Pull₁ (g ∘ f) ≈ Pull₁ f ∙ Pull₁ g
+    Pull-homomorphism {A} _ _ = Setoid.refl (Values A)
+
+    -- Pull respects equality
+    Pull-resp-≈
+        : {f g : Fin A → Fin B}
+        → f ≗ g
+        → Pull₁ f ≈ Pull₁ g
+    Pull-resp-≈ f≗g {v} = ≡.cong v ∘ f≗g
+
+opaque
+
+  unfolding Pull₁
+
+  Pull-defs : ⊤
+  Pull-defs = tt
 
 -- the Pull functor
 Pull : Functor Natop (Setoids 0ℓ 0ℓ)
 F₀ Pull = Values
 F₁ Pull = Pull₁
 identity Pull = Pull-identity
-homomorphism Pull {f = f} {g} {v} = Pull-homomorphism g f {v}
+homomorphism Pull {f = f} {g} = Pull-homomorphism g f
 F-resp-≈ Pull = Pull-resp-≈
+
+module Pull = Functor Pull

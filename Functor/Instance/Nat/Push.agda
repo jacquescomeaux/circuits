@@ -17,43 +17,56 @@ open import Function.Construct.Setoid using (setoid; _∙_)
 open import Level using (0ℓ)
 open import Relation.Binary using (Rel; Setoid)
 open import Relation.Binary.PropositionalEquality as ≡ using (_≗_)
-open import Data.Circuit.Value using (Value)
-open import Data.System.Values Value using (Values)
+open import Data.Circuit.Value using (Monoid)
+open import Data.System.Values Monoid using (Values)
+open import Data.Unit using (⊤; tt)
 
 open Func
 open Functor
 
+-- Push sends a natural number n to Values n
+
 private
+
   variable A B C : ℕ
 
-_≈_ : {X Y : Setoid 0ℓ 0ℓ} → Rel (X ⟶ₛ Y) 0ℓ
-_≈_ {X} {Y} = Setoid._≈_ (setoid X Y)
-infixr 4 _≈_
+  _≈_ : {X Y : Setoid 0ℓ 0ℓ} → Rel (X ⟶ₛ Y) 0ℓ
+  _≈_ {X} {Y} = Setoid._≈_ (setoid X Y)
+  infixr 4 _≈_
 
--- action of Push on objects is Values n (Vector Value n)
+  opaque
 
--- action of Push on morphisms (covariant)
-Push₁ : (Fin A → Fin B) → Values A ⟶ₛ Values B
-to (Push₁ f) v = merge v ∘ preimage f ∘ ⁅_⁆
-cong (Push₁ f) x≗y = merge-cong₁ x≗y ∘ preimage f ∘ ⁅_⁆
+    unfolding Values
 
--- Push respects identity
-Push-identity : Push₁ id ≈ Id (Values A)
-Push-identity {_} {v} = merge-⁅⁆ v
+    -- action of Push on morphisms (covariant)
+    Push₁ : (Fin A → Fin B) → Values A ⟶ₛ Values B
+    to (Push₁ f) v = merge v ∘ preimage f ∘ ⁅_⁆
+    cong (Push₁ f) x≗y = merge-cong₁ x≗y ∘ preimage f ∘ ⁅_⁆
 
--- Push respects composition
-Push-homomorphism
-    : {f : Fin A → Fin B}
-      {g : Fin B → Fin C}
-    → Push₁ (g ∘ f) ≈ Push₁ g ∙ Push₁ f
-Push-homomorphism {f = f} {g} {v} = merge-preimage f v ∘ preimage g ∘ ⁅_⁆
+    -- Push respects identity
+    Push-identity : Push₁ id ≈ Id (Values A)
+    Push-identity {_} {v} = merge-⁅⁆ v
 
--- Push respects equality
-Push-resp-≈
-    : {f g : Fin A → Fin B}
-    → f ≗ g
-    → Push₁ f ≈ Push₁ g
-Push-resp-≈ f≗g {v} = merge-cong₂ v ∘ preimage-cong₁ f≗g ∘ ⁅_⁆
+    -- Push respects composition
+    Push-homomorphism
+        : {f : Fin A → Fin B}
+          {g : Fin B → Fin C}
+        → Push₁ (g ∘ f) ≈ Push₁ g ∙ Push₁ f
+    Push-homomorphism {f = f} {g} {v} = merge-preimage f v ∘ preimage g ∘ ⁅_⁆
+
+    -- Push respects equality
+    Push-resp-≈
+        : {f g : Fin A → Fin B}
+        → f ≗ g
+        → Push₁ f ≈ Push₁ g
+    Push-resp-≈ f≗g {v} = merge-cong₂ v ∘ preimage-cong₁ f≗g ∘ ⁅_⁆
+
+opaque
+
+  unfolding Push₁
+
+  Push-defs : ⊤
+  Push-defs = tt
 
 -- the Push functor
 Push : Functor Nat (Setoids 0ℓ 0ℓ)
@@ -62,3 +75,5 @@ F₁ Push = Push₁
 identity Push = Push-identity
 homomorphism Push = Push-homomorphism
 F-resp-≈ Push = Push-resp-≈
+
+module Push = Functor Push
