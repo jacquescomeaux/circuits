@@ -28,5 +28,5 @@ Circ : Functor Nat (Setoids ℓ ℓ)
 Circ .F₀ = Circuitₛ
 Circ .F₁ = mapₛ
 Circ .identity = cong mkCircuitₛ Multiset∘Edge.identity
-Circ .homomorphism = cong mkCircuitₛ Multiset∘Edge.homomorphism
+Circ .homomorphism {f = f} {g = g} = cong mkCircuitₛ (Multiset∘Edge.homomorphism {f = f} {g = g})
 Circ .F-resp-≈ f≗g = cong mkCircuitₛ (Multiset∘Edge.F-resp-≈ f≗g)

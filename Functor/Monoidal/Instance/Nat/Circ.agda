@@ -46,29 +46,29 @@ Nat-Cocartesian-Category : CocartesianCategory 0ℓ 0ℓ 0ℓ
 Nat-Cocartesian-Category = record { cocartesian = Nat-Cocartesian }
 
 open import Functor.Monoidal.Construction.MultisetOf
-     {𝒞 = Nat-Cocartesian-Category} (Edge Gates) FreeCMonoid using (BagOf,++,[])
+     {𝒞 = Nat-Cocartesian-Category} (Edge Gates) FreeCMonoid using (MultisetOf,++,[])
 
 open Lax using (SymmetricMonoidalFunctor)
 
-module BagOf,++,[] = SymmetricMonoidalFunctor BagOf,++,[]
+module MultisetOf,++,[] = SymmetricMonoidalFunctor MultisetOf,++,[]
 
 open SymmetricMonoidalFunctor
 
 ε⇒ : SingletonSetoid ⟶ₛ Circuitₛ 0
-ε⇒ = mkCircuitₛ ∙ BagOf,++,[].ε
+ε⇒ = mkCircuitₛ ∙ MultisetOf,++,[].ε
 
 open Cocartesian Nat-Cocartesian using (-+-)
 
 open Func
 
 η : {n m : ℕ} → Circuitₛ n ×ₛ Circuitₛ m ⟶ₛ Circuitₛ (n + m)
-η {n} {m} .to (mkCircuit X , mkCircuit Y) = mkCircuit (BagOf,++,[].⊗-homo.η (n , m) ⟨$⟩ (X , Y))
-η {n} {m} .cong (mk≈ x , mk≈ y) = mk≈ (cong (BagOf,++,[].⊗-homo.η (n , m)) (x , y))
+η {n} {m} .to (mkCircuit X , mkCircuit Y) = mkCircuit (MultisetOf,++,[].⊗-homo.η (n , m) ⟨$⟩ (X , Y))
+η {n} {m} .cong (mk≈ x , mk≈ y) = mk≈ (cong (MultisetOf,++,[].⊗-homo.η (n , m)) (x , y))
 
 ⊗-homomorphism : NaturalTransformation (-×- ∘F (Circ ⁂ Circ)) (Circ ∘F -+-)
 ⊗-homomorphism = ntHelper record
     { η = λ (n , m) → η {n} {m}
-    ; commute = λ { (f , g) {mkCircuit X , mkCircuit Y} → mk≈ (BagOf,++,[].⊗-homo.commute (f , g) {X , Y}) }
+    ; commute = λ { (f , g) {mkCircuit X , mkCircuit Y} → mk≈ (MultisetOf,++,[].⊗-homo.commute (f , g) {X , Y}) }
     }
 
 Circ,⊗,ε : SymmetricMonoidalFunctor Nat,+,0 Setoids-×
@@ -78,10 +78,10 @@ Circ,⊗,ε .isBraidedMonoidal = record
         { ε = ε⇒
         ; ⊗-homo = ⊗-homomorphism
         ; associativity = λ { {n} {m} {o} {(mkCircuit x , mkCircuit y) , mkCircuit z} →
-                  mk≈ (BagOf,++,[].associativity {n} {m} {o} {(x , y) , z}) }
-        ; unitaryˡ = λ { {n} {_ , mkCircuit x} → mk≈ (BagOf,++,[].unitaryˡ {n} {_ , x}) }
-        ; unitaryʳ = λ { {n} {mkCircuit x , _} → mk≈ (BagOf,++,[].unitaryʳ {n} {x , _}) }
+                  mk≈ (MultisetOf,++,[].associativity {n} {m} {o} {(x , y) , z}) }
+        ; unitaryˡ = λ { {n} {_ , mkCircuit x} → mk≈ (MultisetOf,++,[].unitaryˡ {n} {_ , x}) }
+        ; unitaryʳ = λ { {n} {mkCircuit x , _} → mk≈ (MultisetOf,++,[].unitaryʳ {n} {x , _}) }
         }
     ; braiding-compat = λ { {n} {m} {mkCircuit x , mkCircuit y} →
-        mk≈ (BagOf,++,[].braiding-compat {n} {m} {x , y}) }
+        mk≈ (MultisetOf,++,[].braiding-compat {n} {m} {x , y}) }
     }

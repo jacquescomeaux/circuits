@@ -12,6 +12,7 @@ open import Categories.Category.Instance.Nat using (Nat)
 open import Categories.Category.Instance.Setoids using (Setoids)
 open import Categories.Functor using (Functor)
 open import Data.Fin using (Fin)
+open import Data.Fin.Properties using (cast-is-id)
 open import Data.Hypergraph.Edge {ℓ} HL as Edge using (Edgeₛ; map; mapₛ; _≈_)
 open import Data.Nat using (ℕ)
 open import Data.Vec.Relation.Binary.Equality.Cast using (≈-reflexive)
@@ -29,7 +30,7 @@ open Functor
 map-id : {v : ℕ} {e : Edge.Edge v} → map id e ≈ e
 map-id .≡arity = ≡.refl
 map-id .≡label = HL.≈-reflexive ≡.refl
-map-id {_} {e} .≡ports = ≈-reflexive (VecProps.map-id (ports e))
+map-id {_} {e} .≡ports = ≡.cong (ports e) ∘ ≡.sym ∘ cast-is-id ≡.refl
 
 map-∘
     : {n m o : ℕ}
@@ -39,7 +40,7 @@ map-∘
     → map (g ∘ f) e ≈ map g (map f e)
 map-∘ f g .≡arity = ≡.refl
 map-∘ f g .≡label = HL.≈-reflexive ≡.refl
-map-∘ f g {e} .≡ports = ≈-reflexive (VecProps.map-∘ g f (ports e))
+map-∘ f g {e} .≡ports = ≡.cong (g ∘ f ∘ ports e) ∘ ≡.sym ∘ cast-is-id ≡.refl
 
 map-resp-≗
     : {n m : ℕ}
@@ -49,11 +50,11 @@ map-resp-≗
     → map f e ≈ map g e
 map-resp-≗ f≗g .≡arity = ≡.refl
 map-resp-≗ f≗g .≡label = HL.≈-reflexive ≡.refl
-map-resp-≗ f≗g {e} .≡ports = ≈-reflexive (VecProps.map-cong f≗g (ports e))
+map-resp-≗ {g = g} f≗g {e} .≡ports i = ≡.trans (f≗g (ports e i)) (≡.cong (g ∘ ports e) (≡.sym (cast-is-id ≡.refl i)))
 
 Edge : Functor Nat (Setoids ℓ ℓ)
 Edge .F₀ = Edgeₛ
 Edge .F₁ = mapₛ
 Edge .identity = map-id
-Edge .homomorphism = map-∘ _ _
+Edge .homomorphism {f = f} {g} = map-∘ f g
 Edge .F-resp-≈ = map-resp-≗

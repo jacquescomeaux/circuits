@@ -81,9 +81,9 @@ open SymmetricMonoidalFunctor
 
 module ListOf,++,[] = MonoidalFunctor ListOf,++,[]
 
-BagOf,++,[] : SymmetricMonoidalFunctor 𝒞-SMC S
-BagOf,++,[] .F = List∘G
-BagOf,++,[] .isBraidedMonoidal = record
+MultisetOf,++,[] : SymmetricMonoidalFunctor 𝒞-SMC S
+MultisetOf,++,[] .F = List∘G
+MultisetOf,++,[] .isBraidedMonoidal = record
     { isMonoidal = ListOf,++,[].isMonoidal
     ; braiding-compat = ++-⊗-σ
     }

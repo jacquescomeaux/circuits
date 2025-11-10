@@ -12,6 +12,8 @@ import Data.Hypergraph.Edge {ℓ} HL as Hyperedge
 import Data.List.Relation.Binary.Permutation.Propositional as List-↭
 import Data.List.Relation.Binary.Permutation.Setoid as ↭
 
+open HypergraphLabel HL using (Label) public
+
 open import Data.List using (List; map)
 open import Data.Nat using (ℕ)
 open import Data.String using (String; unlines)
