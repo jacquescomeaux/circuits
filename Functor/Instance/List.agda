@@ -18,7 +18,7 @@ open Functor
 open Setoid using (reflexive)
 open Func
 
-open import Data.Opaque.List as List hiding (List)
+open import Data.Opaque.List as L hiding (List)
 
 private
   variable
@@ -29,7 +29,7 @@ open import Function.Construct.Setoid using (_∙_)
 
 opaque
 
-  unfolding List.List
+  unfolding L.List
 
   map-id
       : (xs : ∣ Listₛ A ∣)
@@ -58,8 +58,10 @@ opaque
 -- which applies the same function to every element of a list
 
 List : Functor (Setoids c ℓ) (Setoids c (c ⊔ ℓ))
-List .F₀ = List.Listₛ
-List .F₁ = List.mapₛ
+List .F₀ = Listₛ
+List .F₁ = mapₛ
 List .identity {_} {xs} = map-id xs
 List .homomorphism {f = f} {g} {xs} = List-homo f g xs
 List .F-resp-≈ {f = f} {g} f≈g = List-resp-≈ f g f≈g
+
+module List = Functor List

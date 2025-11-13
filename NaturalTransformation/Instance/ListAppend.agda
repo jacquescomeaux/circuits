@@ -10,37 +10,34 @@ open import Categories.Category.BinaryProducts using (module BinaryProducts)
 open import Categories.Category.Monoidal.Instance.Setoids using (Setoids-Cartesian)
 open import Categories.Category.Cartesian using (Cartesian)
 open import Categories.Functor using (Functor; _∘F_)
-open import Data.List using (_++_; map)
+open import Data.Opaque.List as L using (mapₛ; ++ₛ)
 open import Data.List.Properties using (map-++)
-open import Data.List.Relation.Binary.Pointwise using (++⁺)
 open import Data.Product.Relation.Binary.Pointwise.NonDependent using (_×ₛ_)
 open import Data.Product using (_,_)
 open import Functor.Instance.List {c} {ℓ} using (List)
-open import Function using (Func; _⟶ₛ_)
+open import Function using (Func; _⟶ₛ_; _⟨$⟩_)
 open import Relation.Binary using (Setoid)
-
-module List = Functor List
 
 open Cartesian (Setoids-Cartesian {c} {c ⊔ ℓ}) using (products)
 open BinaryProducts products using (-×-)
 open Func
 
-++ₛ : {X : Setoid c ℓ} → List.₀ X ×ₛ List.₀ X ⟶ₛ List.₀ X
-++ₛ .to (xs , ys) = xs ++ ys
-++ₛ .cong (≈xs , ≈ys) = ++⁺ ≈xs ≈ys
+opaque
 
-map-++ₛ
-  : {A B : Setoid c ℓ}
-    (f : Func A B)
-    (xs ys : Data.List.List (Setoid.Carrier A))
-  → (open Setoid (List.₀ B))
-  → map (to f) xs ++ map (to f) ys ≈ map (to f) (xs ++ ys)
-map-++ₛ {_} {B} f xs ys = ListB.sym (ListB.reflexive (map-++ (to f) xs ys))
-  where
-    module ListB = Setoid (List.₀ B)
+  unfolding ++ₛ
+
+  map-++ₛ
+    : {A B : Setoid c ℓ}
+      (f : Func A B)
+      (xs ys : Setoid.Carrier (L.Listₛ A))
+      (open Setoid (L.Listₛ B))
+    → ++ₛ ⟨$⟩ (mapₛ f ⟨$⟩ xs , mapₛ f ⟨$⟩ ys) ≈ mapₛ f ⟨$⟩ (++ₛ ⟨$⟩ (xs , ys))
+  map-++ₛ {_} {B} f xs ys = sym (reflexive (map-++ (to f) xs ys))
+    where
+      open Setoid (List.₀ B)
 
 ++ : NaturalTransformation (-×- ∘F (List ※ List)) List
 ++ = ntHelper record
-    { η = λ X → ++ₛ {X}
+    { η = λ X → ++ₛ {c} {ℓ} {X}
     ; commute = λ { {A} {B} f {xs , ys} → map-++ₛ f xs ys }
     }
