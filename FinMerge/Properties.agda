@@ -13,10 +13,11 @@ open import Data.Maybe.Base using (Maybe; map; nothing; just; fromMaybe)
 open import Function using (id;  _∘_)
 open import Relation.Binary.Definitions using (tri<; tri≈; tri>)
 
-open import Util using (_<_<_; _<_≤_; toℕ<; Ordering; less; equal; greater; compare)
+open import FinMerge.Util using (_<_≤_; Ordering; compare)
 
 open import FinMerge using (merge; unmerge; pluck; glue-once; glue-unglue-once; glue-iter; unpluck)
 
+open Ordering
 
 private
   variable

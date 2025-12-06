@@ -13,8 +13,9 @@ open import Relation.Binary.PropositionalEquality.Properties using (module ≡-R
 open import Function using (id ; _∘_ ; _$_)
 open import Data.Maybe.Base using (Maybe; just; nothing; fromMaybe; map)
 
-open import Util using (_<_<_; _<_≤_; toℕ<; Ordering; less; equal; greater; compare)
+open import FinMerge.Util using (_<_≤_; Ordering; compare)
 
+open Ordering
 
 private
   variable

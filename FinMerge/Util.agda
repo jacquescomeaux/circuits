@@ -1,5 +1,5 @@
 {-# OPTIONS --without-K --safe #-}
-module Util where
+module FinMerge.Util where
 
 open import Data.Fin using (Fin; toℕ)
 open import Data.Nat using (ℕ; _≤_; _<_ ; z<s; s≤s)
