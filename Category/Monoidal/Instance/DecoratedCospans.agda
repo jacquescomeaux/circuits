@@ -55,7 +55,6 @@ open CocartesianMonoidal 𝒞.U 𝒞.cocartesian using (⊥+--id; -+⊥-id; ⊥+
 open import Categories.Category.Monoidal.Utilities +-monoidal using (associator-naturalIsomorphism)
 
 module LiftUnitorˡ where
-    module ⊗ = Functor ⊗
     module F = SymmetricMonoidalFunctor F
     open 𝒞 using (⊥; _+-; i₂; _+_; _+₁_; ¡; +₁-cong₂; ¡-unique; -+-)
     open Shorthands 𝒟.monoidal using (ρ⇒; ρ⇐; λ⇒)
@@ -77,7 +76,7 @@ module LiftUnitorˡ where
             𝒟.≈ F.₁ (𝒞.id +₁ f) ∘ (F.⊗-homo.η (𝒞.⊥ , X) ∘ (F.₁ ¡ ∘ F.ε) ⊗₁ x ∘ ρ⇐) ∘ id
         ned {X} {Y} f {x} = begin
               F.⊗-homo.η (⊥ , Y) ∘ (F.₁ ¡ ∘ F.ε) ⊗₁ (F.₁ f ∘ x ∘ id) ∘ ρ⇐            ≈⟨ refl⟩∘⟨ refl⟩⊗⟨ (refl⟩∘⟨ identityʳ) ⟩∘⟨refl ⟩
-              F.⊗-homo.η (⊥ , Y) ∘ (F.₁ ¡ ∘ F.ε) ⊗₁ (F.₁ f ∘ x) ∘ ρ⇐                 ≈⟨ push-center (sym split₂ˡ) ⟩
+              F.⊗-homo.η (⊥ , Y) ∘ (F.₁ ¡ ∘ F.ε) ⊗₁ (F.₁ f ∘ x) ∘ ρ⇐                 ≈⟨ push-center split₂ˡ ⟩
               F.⊗-homo.η (⊥ , Y) ∘ id ⊗₁ F.₁ f ∘ (F.₁ ¡ ∘ F.ε) ⊗₁ x ∘ ρ⇐             ≈⟨ refl⟩∘⟨ F.identity ⟩⊗⟨refl ⟩∘⟨refl ⟨
               F.⊗-homo.η (⊥ , Y) ∘ F.₁ 𝒞.id ⊗₁ F.₁ f ∘ (F.₁ ¡ ∘ F.ε) ⊗₁ x ∘ ρ⇐       ≈⟨ extendʳ (F.⊗-homo.commute (𝒞.id , f)) ⟩
               F.₁ (𝒞.id +₁ f) ∘ F.⊗-homo.η (⊥ , X) ∘ (F.₁ ¡ ∘ F.ε) ⊗₁ x ∘ ρ⇐         ≈⟨ refl⟩∘⟨ identityʳ ⟨
@@ -117,7 +116,6 @@ module LiftUnitorˡ where
 open LiftUnitorˡ using (module Unitorˡ)
 
 module LiftUnitorʳ where
-    module ⊗ = Functor ⊗
     module F = SymmetricMonoidalFunctor F
     open 𝒞 using (⊥; -+_; i₁; _+_; _+₁_; ¡; +₁-cong₂; ¡-unique; -+-)
     open Shorthands 𝒟.monoidal using (ρ⇒; ρ⇐)
@@ -139,7 +137,7 @@ module LiftUnitorʳ where
             𝒟.≈ F.₁ (f +₁ 𝒞.id) ∘ (F.⊗-homo.η (X , ⊥) ∘ x ⊗₁ (F.₁ ¡ ∘ F.ε) ∘ ρ⇐) ∘ id
         ned {X} {Y} f {x} = begin
               F.⊗-homo.η (Y , ⊥) ∘ (F.₁ f ∘ x ∘ id) ⊗₁ (F.₁ ¡ ∘ F.ε) ∘ ρ⇐             ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ identityʳ) ⟩⊗⟨refl ⟩∘⟨refl ⟩
-              F.⊗-homo.η (Y , ⊥) ∘ (F.₁ f ∘ x) ⊗₁ (F.₁ ¡ ∘ F.ε) ∘ ρ⇐                  ≈⟨ push-center (sym split₁ˡ) ⟩
+              F.⊗-homo.η (Y , ⊥) ∘ (F.₁ f ∘ x) ⊗₁ (F.₁ ¡ ∘ F.ε) ∘ ρ⇐                  ≈⟨ push-center split₁ˡ ⟩
               F.⊗-homo.η (Y , ⊥) ∘ F.₁ f ⊗₁ id ∘ x ⊗₁ (F.₁ ¡ ∘ F.ε) ∘ ρ⇐              ≈⟨ refl⟩∘⟨ refl⟩⊗⟨ F.identity ⟩∘⟨refl ⟨
               F.⊗-homo.η (Y , ⊥) ∘ F.₁ f ⊗₁ F.₁ 𝒞.id ∘ x ⊗₁ (F.₁ ¡ ∘ F.ε) ∘ ρ⇐        ≈⟨ extendʳ (F.⊗-homo.commute (f , 𝒞.id)) ⟩
               F.₁ (f +₁ 𝒞.id) ∘ F.⊗-homo.η (X , ⊥) ∘ x ⊗₁ (F.₁ ¡ ∘ F.ε) ∘ ρ⇐          ≈⟨ refl⟩∘⟨ identityʳ ⟨
@@ -177,7 +175,6 @@ module LiftUnitorʳ where
 open LiftUnitorʳ using (module Unitorʳ)
 
 module LiftAssociator where
-    module ⊗ = Functor ⊗
     module F = SymmetricMonoidalFunctor F
     open 𝒞 using (⊥; -+_; i₁; _+_; _+₁_; ¡; +₁-cong₂; ¡-unique; -+-)
     open Shorthands 𝒟.monoidal using (ρ⇒; ρ⇐)
@@ -208,11 +205,11 @@ module LiftAssociator where
             F.⊗-homo.η (X′ + Y′ , Z′) ∘ (F.⊗-homo.η (X′ , Y′) ∘ (F.₁ x ∘ f ∘ id) ⊗₁ (F.₁ y ∘ g ∘ id) ∘ ρ⇐) ⊗₁ (F.₁ z ∘ h ∘ id) ∘ ρ⇐
                 ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ (refl⟩∘⟨ identityʳ) ⟩⊗⟨ (refl⟩∘⟨ identityʳ) ⟩∘⟨refl) ⟩⊗⟨ (refl⟩∘⟨ identityʳ) ⟩∘⟨refl ⟩
             F.⊗-homo.η (X′ + Y′ , Z′) ∘ (F.⊗-homo.η (X′ , Y′) ∘ (F.₁ x ∘ f) ⊗₁ (F.₁ y ∘ g) ∘ ρ⇐) ⊗₁ (F.₁ z ∘ h) ∘ ρ⇐
-                ≈⟨ refl⟩∘⟨ push-center (sym ⊗-distrib-over-∘) ⟩⊗⟨refl ⟩∘⟨refl ⟩
+                ≈⟨ refl⟩∘⟨ push-center ⊗-distrib-over-∘ ⟩⊗⟨refl ⟩∘⟨refl ⟩
             F.⊗-homo.η (X′ + Y′ , Z′) ∘ (F.⊗-homo.η (X′ , Y′) ∘ F.₁ x ⊗₁ F.₁ y ∘ f ⊗₁ g ∘ ρ⇐) ⊗₁ (F.₁ z ∘ h) ∘ ρ⇐
                 ≈⟨ refl⟩∘⟨ extendʳ (F.⊗-homo.commute (x , y)) ⟩⊗⟨refl ⟩∘⟨refl ⟩
             F.⊗-homo.η (X′ + Y′ , Z′) ∘ (F.₁ (x +₁ y) ∘ F.⊗-homo.η (X , Y) ∘ f ⊗₁ g ∘ ρ⇐) ⊗₁ (F.₁ z ∘ h) ∘ ρ⇐
-                ≈⟨ push-center (sym ⊗-distrib-over-∘) ⟩
+                ≈⟨ push-center ⊗-distrib-over-∘ ⟩
             F.⊗-homo.η (X′ + Y′ , Z′) ∘ F.₁ (x +₁ y) ⊗₁ F.₁ z ∘ (F.⊗-homo.η (X , Y) ∘ f ⊗₁ g ∘ ρ⇐) ⊗₁ h ∘ ρ⇐
                 ≈⟨ extendʳ (F.⊗-homo.commute (x +₁ y , z)) ⟩
             F.₁ ((x +₁ y) +₁ z) ∘ F.⊗-homo.η (X + Y , Z) ∘ (F.⊗-homo.η (X , Y) ∘ f ⊗₁ g ∘ ρ⇐) ⊗₁ h ∘ ρ⇐
@@ -246,11 +243,11 @@ module LiftAssociator where
             F.⊗-homo.η (X′ , Y′ + Z′) ∘ (F.₁ x ∘ f ∘ id) ⊗₁ (F.⊗-homo.η (Y′ , Z′) ∘ (F.₁ y ∘ g ∘ id) ⊗₁ (F.₁ z ∘ h ∘ id) ∘ ρ⇐) ∘ ρ⇐
                 ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ identityʳ) ⟩⊗⟨ (refl⟩∘⟨ (refl⟩∘⟨ identityʳ) ⟩⊗⟨ (refl⟩∘⟨ identityʳ) ⟩∘⟨refl) ⟩∘⟨refl ⟩
             F.⊗-homo.η (X′ , Y′ + Z′) ∘ (F.₁ x ∘ f) ⊗₁ (F.⊗-homo.η (Y′ , Z′) ∘ (F.₁ y ∘ g) ⊗₁ (F.₁ z ∘ h) ∘ ρ⇐) ∘ ρ⇐
-                ≈⟨ refl⟩∘⟨ refl⟩⊗⟨ push-center (sym ⊗-distrib-over-∘) ⟩∘⟨refl ⟩
+                ≈⟨ refl⟩∘⟨ refl⟩⊗⟨ push-center ⊗-distrib-over-∘ ⟩∘⟨refl ⟩
             F.⊗-homo.η (X′ , Y′ + Z′) ∘ (F.₁ x ∘ f) ⊗₁ (F.⊗-homo.η (Y′ , Z′) ∘ F.₁ y ⊗₁ F.₁ z ∘ g ⊗₁ h ∘ ρ⇐) ∘ ρ⇐
                 ≈⟨ refl⟩∘⟨ refl⟩⊗⟨ extendʳ (F.⊗-homo.commute (y , z)) ⟩∘⟨refl ⟩
             F.⊗-homo.η (X′ , Y′ + Z′) ∘ (F.₁ x ∘ f) ⊗₁ (F.₁ (y +₁ z) ∘ F.⊗-homo.η (Y , Z) ∘ g ⊗₁ h ∘ ρ⇐) ∘ ρ⇐
-                ≈⟨ push-center (sym ⊗-distrib-over-∘) ⟩
+                ≈⟨ push-center ⊗-distrib-over-∘ ⟩
             F.⊗-homo.η (X′ , Y′ + Z′) ∘ F.₁ x ⊗₁ F.₁ (y +₁ z) ∘ f ⊗₁ (F.⊗-homo.η (Y , Z) ∘ g ⊗₁ h ∘ ρ⇐) ∘ ρ⇐
                 ≈⟨ extendʳ (F.⊗-homo.commute (x , y +₁ z)) ⟩
             F.₁ (x +₁ (y +₁ z)) ∘ F.⊗-homo.η (X , Y + Z) ∘ f ⊗₁ (F.⊗-homo.η (Y , Z) ∘ g ⊗₁ h ∘ ρ⇐) ∘ ρ⇐
@@ -288,7 +285,6 @@ module LiftAssociator where
 open LiftAssociator using (module Associator)
 
 module LiftBraiding where
-    module ⊗ = Functor ⊗
     module F = SymmetricMonoidalFunctor F
     open 𝒞 using (⊥; -+_; i₁; _+_; _+₁_; ¡; +₁-cong₂; ¡-unique; -+-)
     open Shorthands 𝒟.monoidal using (ρ⇒; ρ⇐)
@@ -364,7 +360,6 @@ CospansMonoidal = record
     ; pentagon = pentagon
     }
   where
-    module ⊗ = Functor ⊗
     open Category DecoratedCospans using (id; module Equiv; module HomReasoning)
     open Equiv
     open HomReasoning

@@ -4,7 +4,7 @@ open import Category.Cocomplete.Finitely.Bundle using (FinitelyCocompleteCategor
 
 module Category.Monoidal.Instance.Cospans.Lift {o ℓ e} where
 
-open import Category.Instance.Cospans using (Cospans; Cospan; Same)
+open import Category.Instance.Cospans using (Cospans)
 
 open import Categories.Category.Core using (Category)
 
@@ -16,6 +16,7 @@ import Category.Diagram.Pushout as PushoutDiagram′
 import Functor.Instance.Cospan.Embed as CospanEmbed
 
 open import Categories.Category using (_[_,_]; _[_≈_]; _[_∘_]; module Definitions)
+open import Category.Diagram.Cospan using (Cospan; cospan)
 open import Categories.Functor.Core using (Functor)
 open import Categories.Functor.Properties using ([_]-resp-≅)
 open import Categories.NaturalTransformation.NaturalIsomorphism using (NaturalIsomorphism; _≃_)
@@ -26,7 +27,7 @@ module _ {𝒞 : FinitelyCocompleteCategory o ℓ e} {𝒟 : FinitelyCocompleteC
   module 𝒞 = FinitelyCocompleteCategory 𝒞
   module 𝒟 = FinitelyCocompleteCategory 𝒟
 
-  open CospanEmbed 𝒟 using (L; B₁; B∘L; R∘B; ≅-L-R)
+  open CospanEmbed 𝒟 using (L; B∘L; R∘B; ≅-L-R)
 
   module Square {F G : Functor 𝒞.U 𝒟.U} (F≃G : F ≃ G) where
 
@@ -51,21 +52,21 @@ module _ {𝒞 : FinitelyCocompleteCategory o ℓ e} {𝒟 : FinitelyCocompleteC
       open Cospan fg renaming (f₁ to f; f₂ to g)
       open 𝒟 using (_∘_)
 
-      squares⇒cospan : Cospans 𝒟 [ B₁ (G.₁ f ∘ FX≅GX.from) (G.₁ g ∘ FX≅GX.from) ≈ B₁ (F.₁ f) (F.₁ g) ]
+      squares⇒cospan : Cospans 𝒟 [ cospan (G.₁ f ∘ FX≅GX.from) (G.₁ g ∘ FX≅GX.from) ≈ cospan (F.₁ f) (F.₁ g) ]
       squares⇒cospan = record
           { ≅N = ≅.sym 𝒟.U FX≅GX
-          ; from∘f₁≈f₁′ = sym (switch-fromtoˡ FX≅GX (⇒.commute f))
-          ; from∘f₂≈f₂′ = sym (switch-fromtoˡ FX≅GX (⇒.commute g))
+          ; from∘f₁≈f₁ = sym (switch-fromtoˡ FX≅GX (⇒.commute f))
+          ; from∘f₂≈f₂ = sym (switch-fromtoˡ FX≅GX (⇒.commute g))
           }
         where
           open 𝒟.Equiv using (sym)
 
-      from : Cospans 𝒟 [ Cospans 𝒟 [ L.₁ (⇒.η Y) ∘ B₁ (F.₁ f) (F.₁ g) ] ≈ Cospans 𝒟 [ B₁ (G.₁ f) (G.₁ g) ∘ L.₁ (⇒.η X) ] ]
+      from : Cospans 𝒟 [ Cospans 𝒟 [ L.₁ (⇒.η Y) ∘ cospan (F.₁ f) (F.₁ g) ] ≈ Cospans 𝒟 [ cospan (G.₁ f) (G.₁ g) ∘ L.₁ (⇒.η X) ] ]
       from = sym (switch-tofromˡ FX≅GX′ (refl⟩∘⟨ B∘L ○ ≅-L-R FX≅GX ⟩∘⟨refl ○ R∘B ○ squares⇒cospan))
         where
           open Cospans.Equiv using (sym)
 
-      to : Cospans 𝒟 [ Cospans 𝒟 [ L.₁ (⇐.η Y) ∘ B₁ (G.₁ f) (G.₁ g) ] ≈ Cospans 𝒟 [ B₁ (F.₁ f) (F.₁ g) ∘ L.₁ (⇐.η X) ] ]
+      to : Cospans 𝒟 [ Cospans 𝒟 [ L.₁ (⇐.η Y) ∘ cospan (G.₁ f) (G.₁ g) ] ≈ Cospans 𝒟 [ cospan (F.₁ f) (F.₁ g) ∘ L.₁ (⇐.η X) ] ]
       to = switch-fromtoʳ FX≅GX′ (pullʳ B∘L ○ ≅-L-R FX≅GX ⟩∘⟨refl ○ R∘B ○ squares⇒cospan)
         where
           open ⇒-Reasoning (Cospans 𝒟) using (pullʳ)

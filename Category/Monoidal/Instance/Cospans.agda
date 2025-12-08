@@ -18,8 +18,9 @@ open import Categories.Category.Monoidal.Core using (Monoidal)
 open import Categories.Functor using (Functor)
 open import Categories.Functor.Properties using ([_]-resp-≅)
 open import Categories.NaturalTransformation.NaturalIsomorphism using (niHelper)
-open import Category.Instance.Cospans 𝒞 using (Cospans; Cospan)
-open import Category.Instance.Properties.FinitelyCocompletes {o} {ℓ} {e} using (FinitelyCocompletes-CC)
+open import Category.Instance.Cospans 𝒞 using (Cospans)
+open import Category.Diagram.Cospan using (Cospan; cospan)
+open import Category.Cartesian.Instance.FinitelyCocompletes {o} {ℓ} {e} using (FinitelyCocompletes-CC)
 open import Category.Monoidal.Instance.Cospans.Lift {o} {ℓ} {e} using (module Square)
 open import Data.Product.Base using (_,_)
 open import Functor.Instance.Cospan.Stack 𝒞 using (⊗)
@@ -61,7 +62,6 @@ CospansMonoidal = record
     ; pentagon = pentagon
     }
   where
-    module ⊗ = Functor ⊗
     module Cospans = Category Cospans
     module Unitorˡ = Square ⊥+--id
     module Unitorʳ = Square -+⊥-id
@@ -83,16 +83,15 @@ CospansMonoidal = record
 CospansBraided : Braided CospansMonoidal
 CospansBraided = record
     { braiding = niHelper record
-        { η = λ { (X , Y) → Braiding.FX≅GX′.from {X , Y} }
-        ; η⁻¹ = λ { (Y , X) → Braiding.FX≅GX′.to {Y , X} }
-        ; commute = λ { {X , Y} {X′ , Y′} (f , g) → Braiding.from (record { f₁ = f₁ f , f₁ g ; f₂ = f₂ f , f₂ g }) }
-        ; iso = λ { (X , Y) → Braiding.FX≅GX′.iso {X , Y} }
+        { η = λ (X , Y) → Braiding.FX≅GX′.from {X , Y}
+        ; η⁻¹ = λ (Y , X) → Braiding.FX≅GX′.to {Y , X}
+        ; commute = λ (cospan f₁ f₂ , cospan g₁ g₂) → Braiding.from (cospan (f₁ , g₁) (f₂ , g₂))
+        ; iso = λ (X , Y) → Braiding.FX≅GX′.iso {X , Y}
         }
     ; hexagon₁ = sym L-resp-⊗ ⟩∘⟨ refl ⟩∘⟨ sym L-resp-⊗ ○ refl⟩∘⟨ sym homomorphism ○ sym homomorphism ○ L-resp-≈ hex₁ ○ homomorphism ○ refl⟩∘⟨ homomorphism
     ; hexagon₂ = sym L-resp-⊗ ⟩∘⟨refl ⟩∘⟨ sym L-resp-⊗ ○ sym homomorphism ⟩∘⟨refl ○ sym homomorphism ○ L-resp-≈ hex₂ ○ homomorphism ○ homomorphism ⟩∘⟨refl
     }
   where
-    open Cospan
     module Cospans = Category Cospans
     open Cospans.Equiv
     open Cospans.HomReasoning
