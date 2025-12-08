@@ -19,6 +19,7 @@ import Categories.Diagram.Pushout as DiagramPushout
 import Categories.Morphism as Morphism
 import Categories.Morphism.Reasoning as ⇒-Reasoning
 import Categories.Category.Monoidal.Reasoning as ⊗-Reasoning
+
 import Functor.Instance.Cospan.Stack 𝒞 as Stack
 
 open import Categories.Category using (Category; _[_,_]; _[_≈_]; _[_∘_])
@@ -26,13 +27,16 @@ open import Categories.Category.BinaryProducts using (BinaryProducts)
 open import Categories.Category.Monoidal.Utilities using (module Shorthands)
 open import Categories.Category.Monoidal.Properties using (coherence-inv₃)
 open import Categories.Category.Monoidal.Braided.Properties using (braiding-coherence-inv)
+open import Categories.Functor using (Functor)
 open import Categories.Functor.Bifunctor using (Bifunctor)
 open import Categories.Functor.Properties using ([_]-resp-≅)
 open import Categories.Category.Cocartesian using (module CocartesianMonoidal; module CocartesianSymmetricMonoidal)
 open import Categories.Object.Initial using (Initial)
 open import Categories.Object.Duality using (Coproduct⇒coProduct)
-open import Category.Instance.DecoratedCospans 𝒞 F using () renaming (DecoratedCospans to Cospans; Same to Same′)
-open import Category.Instance.Cospans 𝒞 using (Same; compose)
+open import Category.Instance.DecoratedCospans 𝒞 F using () renaming (DecoratedCospans to Cospans; _≈_ to _≈_′)
+
+import Category.Diagram.Cospan 𝒞 as Cospan
+
 open import Cospan.Decorated 𝒞 F using (DecoratedCospan)
 open import Data.Product.Base using (_,_)
 
@@ -52,10 +56,9 @@ private
   variable
     A A′ B B′ C C′ : Obj
 
-
 together : Cospans [ A , B ] → Cospans [ A′ , B′ ] → Cospans [ A + A′ , B + B′ ]
 together A⇒B A⇒B′ = record
-    { cospan = Stack.together A⇒B.cospan A⇒B′.cospan
+    { cospan = A⇒B.cospan Cospan.⊗ A⇒B′.cospan
     ; decoration = ⊗-homo.η (A⇒B.N , A⇒B′.N) ∘ A⇒B.decoration ⊗₁ A⇒B′.decoration ∘ unitorʳ.to
     }
   where
@@ -108,9 +111,9 @@ homomorphism {A} {B} {C} {A′} {B′} {C′} f g f′ g′ = record
 
     module _ where
       open DecoratedCospan using (cospan)
-      cospans-≈ : Same (Stack.together _ _) (compose (Stack.together _ _) (Stack.together _ _))
+      cospans-≈ : _ Cospan.⊗ _ Cospan.≈ Cospan.compose (_ Cospan.⊗ _) (_ Cospan.⊗ _)
       cospans-≈ = Stack.homomorphism (f .cospan) (g .cospan) (f′ .cospan) (g′ .cospan)
-      open Same cospans-≈ using () renaming (≅N to Q+Q′≅Q″) public
+      open Cospan._≈_ cospans-≈ using () renaming (≅N to Q+Q′≅Q″) public
 
     module DecorationNames where
       open DecoratedCospan f using (N) renaming (decoration to s) public
@@ -185,7 +188,7 @@ homomorphism {A} {B} {C} {A′} {B′} {C′} f g f′ g′ = record
         ≅∘[]+[]≈μ∘μ+μ = begin
             ≅ ∘ [ i₁ , i₂ ]′ +₁ [ i₁′ , i₂′ ]′                                                  ≈⟨ refl⟩∘⟨ μ∘+ ⟩⊗⟨ μ∘+ ⟩
             ≅ ∘ (μ ∘ i₁ +₁ i₂) +₁ (μ ∘ i₁′ +₁ i₂′)                                              ≈⟨ refl⟩∘⟨ introˡ +-η ⟩
-            ≅ ∘ [ ι₁ , ι₂ ]′ ∘ (μ ∘ i₁ +₁ i₂) +₁ (μ ∘ i₁′ +₁ i₂′)                               ≈⟨ push-center (sym μ∘+) ⟩
+            ≅ ∘ [ ι₁ , ι₂ ]′ ∘ (μ ∘ i₁ +₁ i₂) +₁ (μ ∘ i₁′ +₁ i₂′)                               ≈⟨ push-center μ∘+ ⟩
             ≅ ∘ μ ∘ (ι₁ +₁ ι₂) ∘ (μ ∘ i₁ +₁ i₂) +₁ (μ ∘ i₁′ +₁ i₂′)                             ≈⟨ refl⟩∘⟨ refl⟩∘⟨ sym ⊗-distrib-over-∘ ⟩
             ≅ ∘ μ ∘ (ι₁ ∘ μ ∘ i₁ +₁ i₂) +₁ (ι₂ ∘ μ ∘ i₁′ +₁ i₂′)                                ≈⟨ refl⟩∘⟨ refl⟩∘⟨ (extendʳ μ-natural) ⟩⊗⟨ (extendʳ μ-natural) ⟩
             ≅ ∘ μ ∘ (μ ∘ ι₁ +₁ ι₁ ∘ i₁ +₁ i₂) +₁ (μ ∘ ι₂ +₁ ι₂ ∘ i₁′ +₁ i₂′)                    ≈⟨ refl⟩∘⟨ refl⟩∘⟨ (refl⟩∘⟨ sym ⊗-distrib-over-∘) ⟩⊗⟨ (refl⟩∘⟨ sym ⊗-distrib-over-∘) ⟩
@@ -221,7 +224,7 @@ homomorphism {A} {B} {C} {A′} {B′} {C′} f g f′ g′ = record
            α⇐ ∘ w +₁ (x +₁ _ ∘ α⇒ ∘ _) ∘ α⇒                                 ≈⟨ refl⟩∘⟨ refl⟩⊗⟨ extendʳ assoc-commute-from ⟩∘⟨refl ⟨
            α⇐ ∘ w +₁ (α⇒ ∘ (x +₁ y) +₁ z ∘ +-swap +₁ id ∘ α⇐) ∘ α⇒          ≈⟨ refl⟩∘⟨ refl⟩⊗⟨ (refl⟩∘⟨ pushˡ split₁ʳ) ⟩∘⟨refl ⟨
            α⇐ ∘ w +₁ (α⇒ ∘ (x +₁ y ∘ +-swap) +₁ z ∘ α⇐) ∘ α⇒                ≈⟨ refl⟩∘⟨ refl⟩⊗⟨ (refl⟩∘⟨ σ.⇒.sym-commute _ ⟩⊗⟨refl ⟩∘⟨refl) ⟩∘⟨refl ⟩
-           α⇐ ∘ w +₁ (α⇒ ∘ (+-swap ∘ y +₁ x) +₁ z ∘ α⇐) ∘ α⇒                ≈⟨ refl⟩∘⟨ refl⟩⊗⟨ push-center (sym split₁ˡ) ⟩∘⟨refl ⟩
+           α⇐ ∘ w +₁ (α⇒ ∘ (+-swap ∘ y +₁ x) +₁ z ∘ α⇐) ∘ α⇒                ≈⟨ refl⟩∘⟨ refl⟩⊗⟨ push-center split₁ˡ ⟩∘⟨refl ⟩
            α⇐ ∘ w +₁ (α⇒ ∘ +-swap +₁ id ∘ (y +₁ x) +₁ z ∘ α⇐) ∘ α⇒          ≈⟨ refl⟩∘⟨ refl⟩⊗⟨ (refl⟩∘⟨ refl⟩∘⟨ assoc-commute-to) ⟩∘⟨refl ⟨
            α⇐ ∘ w +₁ (α⇒ ∘ +-swap +₁ id ∘ α⇐ ∘ y +₁ (x +₁ z))   ∘ α⇒        ≈⟨ refl⟩∘⟨ refl⟩⊗⟨ assoc²εβ ⟩∘⟨refl ⟩
            α⇐ ∘ w +₁ ((α⇒ ∘ +-swap +₁ id ∘ α⇐) ∘ y +₁ (x +₁ z)) ∘ α⇒        ≈⟨ refl⟩∘⟨ pushˡ split₂ˡ ⟩
@@ -231,7 +234,7 @@ homomorphism {A} {B} {C} {A′} {B′} {C′} f g f′ g′ = record
 
         μ∘μ+μ∘swap-inner : {X : Obj} → μ {X} ∘ μ +₁ μ ∘ swap-inner ≈ μ ∘ μ +₁ μ {X}
         μ∘μ+μ∘swap-inner = begin
-          μ ∘ μ +₁ μ ∘ α⇐ ∘ id +₁ (α⇒ ∘ +-swap +₁ id ∘ α⇐) ∘ α⇒                           ≈⟨ push-center (sym serialize₁₂) ⟩
+          μ ∘ μ +₁ μ ∘ α⇐ ∘ id +₁ (α⇒ ∘ +-swap +₁ id ∘ α⇐) ∘ α⇒                           ≈⟨ push-center serialize₁₂ ⟩
           μ ∘ μ +₁ id ∘ id +₁ μ ∘ α⇐ ∘ id +₁ (α⇒ ∘ +-swap +₁ id ∘ α⇐) ∘ α⇒                ≈⟨ refl⟩∘⟨ refl⟩∘⟨ ⊗.identity ⟩⊗⟨refl ⟩∘⟨refl ⟨
           μ ∘ μ +₁ id ∘ (id +₁ id) +₁ μ ∘ α⇐ ∘ id +₁ (α⇒ ∘ +-swap +₁ id ∘ α⇐) ∘ α⇒        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ extendʳ assoc-commute-to ⟨
           μ ∘ μ +₁ id ∘ α⇐ ∘ id +₁ (id +₁ μ) ∘ id +₁ (α⇒ ∘ +-swap +₁ id ∘ α⇐) ∘ α⇒        ≈⟨ pullˡ μ-assoc ⟩
@@ -243,7 +246,7 @@ homomorphism {A} {B} {C} {A′} {B′} {C′} f g f′ g′ = record
           μ ∘ id +₁ (μ ∘ μ +₁ id ∘ +-swap +₁ id ∘ α⇐) ∘ α⇒                                ≈⟨ refl⟩∘⟨ refl⟩⊗⟨ pull-center (sym split₁ˡ) ⟩∘⟨refl ⟩
           μ ∘ id +₁ (μ ∘ (μ ∘ +-swap) +₁ id ∘ α⇐) ∘ α⇒                                    ≈⟨ refl⟩∘⟨ refl⟩⊗⟨ (refl⟩∘⟨ μ∘σ ⟩⊗⟨refl ⟩∘⟨refl) ⟩∘⟨refl ⟩
           μ ∘ id +₁ (μ ∘ μ +₁ id ∘ α⇐) ∘ α⇒                                               ≈⟨ refl⟩∘⟨ refl⟩⊗⟨ (sym-assoc ○ flip-iso associator (μ-assoc ○ sym-assoc))  ⟩∘⟨refl ⟩
-          μ ∘ id +₁ (μ ∘ id +₁ μ) ∘ α⇒                                                    ≈⟨ push-center (sym split₂ʳ) ⟩
+          μ ∘ id +₁ (μ ∘ id +₁ μ) ∘ α⇒                                                    ≈⟨ push-center split₂ʳ ⟩
           μ ∘ id +₁ μ ∘ id +₁ (id +₁ μ) ∘ α⇒                                              ≈⟨ refl⟩∘⟨ refl⟩∘⟨ assoc-commute-from ⟨
           μ ∘ id +₁ μ ∘ α⇒ ∘ (id +₁ id) +₁ μ                                              ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ ⊗.identity ⟩⊗⟨refl  ⟩
           μ ∘ id +₁ μ ∘ α⇒ ∘ id +₁ μ                                                      ≈⟨ refl⟩∘⟨ sym-assoc ⟩
@@ -370,13 +373,13 @@ homomorphism {A} {B} {C} {A′} {B′} {C′} f g f′ g′ = record
     }
   where
 
-    open Same′ using (cospans-≈)
+    open _≈_′ using (cospans-≈)
 
     module SameNames where
-      open Same′ ≈f using () renaming (same-deco to ≅∘s≈t) public
-      open Same′ ≈g using () renaming (same-deco to ≅∘s≈t′) public
-      open Same (≈f .cospans-≈) using (module ≅N) public
-      open Same (≈g .cospans-≈) using () renaming (module ≅N to ≅N′) public
+      open _≈_′ ≈f using () renaming (same-deco to ≅∘s≈t) public
+      open _≈_′ ≈g using () renaming (same-deco to ≅∘s≈t′) public
+      open Cospan._≈_ (≈f .cospans-≈) using (module ≅N) public
+      open Cospan._≈_ (≈g .cospans-≈) using () renaming (module ≅N to ≅N′) public
 
     open SameNames
 
@@ -417,9 +420,11 @@ homomorphism {A} {B} {C} {A′} {B′} {C′} f g f′ g′ = record
 
 ⊗ : Bifunctor Cospans Cospans Cospans
 ⊗ = record
-    { F₀ = λ { (A , A′) → A + A′ }
-    ; F₁ = λ { (f , g) → together f g }
+    { F₀ = λ (A , A′) → A + A′
+    ; F₁ = λ (f , g) → together f g
     ; identity = λ { {x , y} → id⊗id≈id {x} {y} }
     ; homomorphism = λ { {_} {_} {_} {A⇒B , A⇒B′} {B⇒C , B⇒C′} → homomorphism A⇒B B⇒C A⇒B′ B⇒C′ }
-    ; F-resp-≈ = λ { (≈f , ≈g) → ⊗-resp-≈ ≈f ≈g }
+    ; F-resp-≈ = λ (≈f , ≈g) → ⊗-resp-≈ ≈f ≈g
     }
+
+module ⊗ = Functor ⊗

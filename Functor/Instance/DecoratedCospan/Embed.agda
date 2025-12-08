@@ -19,6 +19,7 @@ import Categories.Category.Monoidal.Reasoning as ⊗-Reasoning
 import Categories.Diagram.Pushout.Properties as PushoutProperties
 import Categories.Morphism.Reasoning as ⇒-Reasoning
 import Category.Diagram.Pushout as Pushout′
+import Category.Diagram.Cospan as Cospan
 import Functor.Instance.Cospan.Embed 𝒞 as Embed
 
 open import Categories.Category using (Category; _[_,_]; _[_≈_]; _[_∘_])
@@ -34,9 +35,9 @@ import Categories.Morphism as Morphism
 open import Categories.Category.Cocartesian using (module CocartesianMonoidal)
 open import Categories.Category.Monoidal.Utilities using (module Shorthands)
 open import Categories.Functor using (Functor; _∘F_)
-open import Data.Product.Base using (_,_)
-open import Function.Base using () renaming (id to idf)
-open import Functor.Instance.DecoratedCospan.Stack using (⊗)
+open import Data.Product using (_,_)
+open import Function using () renaming (id to idf)
+open import Functor.Instance.DecoratedCospan.Stack 𝒞 F using (⊗)
 
 module 𝒞 = FinitelyCocompleteCategory 𝒞
 module 𝒟 = SymmetricMonoidalCategory 𝒟
@@ -62,7 +63,7 @@ R = Decorate ∘F Embed.R
 
 B₁ : 𝒞.U [ A , C ] → 𝒞.U [ B , C ] → 𝒟.U [ 𝒟.unit , F.F₀ C ] → DecoratedCospans [ A , B ]
 B₁ f g s = record
-    { cospan = Embed.B₁ f g
+    { cospan = Cospan.cospan f g
     ; decoration = s
     }
 
@@ -265,7 +266,6 @@ module _ where
     where
       module Decorate = Functor Decorate
 
-  module ⊗ = Functor (⊗ 𝒞 F)
   open 𝒞 using (_+₁_)
 
   L-resp-⊗ : DecoratedCospans [ L.₁ (f +₁ g) ≈ ⊗.₁ (L.₁ f , L.₁ g) ]

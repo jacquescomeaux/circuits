@@ -17,7 +17,7 @@ module Cospan.Decorated
 module C = FinitelyCocompleteCategory C
 module D = SymmetricMonoidalCategory D
 
-open import Category.Instance.Cospans C using (Cospan)
+open import Category.Diagram.Cospan C using (Cospan)
 open import Level using (_⊔_)
 
 

@@ -20,6 +20,7 @@ module 𝒟 = SymmetricMonoidalCategory 𝒟
 
 import Categories.Category.Monoidal.Utilities as ⊗-Util
 import Category.Instance.Cospans 𝒞 as Cospans
+import Category.Diagram.Cospan 𝒞 as Cospan
 
 open import Categories.Category using (Category; _[_∘_])
 open import Categories.Category.Cocartesian using (module CocartesianMonoidal)
@@ -52,7 +53,7 @@ private
 
 compose : DecoratedCospan A B → DecoratedCospan B C → DecoratedCospan A C
 compose c₁ c₂ = record
-    { cospan = Cospans.compose C₁.cospan C₂.cospan
+    { cospan = Cospan.compose C₁.cospan C₂.cospan
     ; decoration = F₁ [ i₁ , i₂ ] ∘ φ ∘ s⊗t
     }
   where
@@ -69,7 +70,7 @@ compose c₁ c₂ = record
 
 identity : DecoratedCospan A A
 identity = record
-    { cospan = Cospans.identity
+    { cospan = Cospan.identity
     ; decoration = 𝒟.U [ F₁ 𝒞.initial.! ∘ ε ]
     }
 
@@ -80,9 +81,9 @@ record _≈_ (C₁ C₂ : DecoratedCospan A B) : Set (ℓ ⊔ e ⊔ e′) where
     module C₂ = DecoratedCospan C₂
 
   field
-    cospans-≈ : C₁.cospan Cospans.≈ C₂.cospan
+    cospans-≈ : C₁.cospan Cospan.≈ C₂.cospan
 
-  open Cospans._≈_ cospans-≈ public
+  open Cospan._≈_ cospans-≈ public
   open Morphism 𝒟.U using (_≅_)
 
   field
@@ -107,13 +108,13 @@ module _ where
 
     ≈-refl : f ≈ f
     ≈-refl = record
-        { cospans-≈ = Cospans.≈-refl
+        { cospans-≈ = Cospan.≈-refl
         ; same-deco = F-identity ⟩∘⟨refl ○ identityˡ
         }
 
     ≈-sym : f ≈ g → g ≈ f
     ≈-sym f≈g = record
-        { cospans-≈ = Cospans.≈-sym cospans-≈
+        { cospans-≈ = Cospan.≈-sym cospans-≈
         ; same-deco = sym (switch-fromtoˡ 𝒟.U ≅F[N] same-deco)
         }
       where
@@ -121,7 +122,7 @@ module _ where
 
     ≈-trans : f ≈ g → g ≈ h → f ≈ h
     ≈-trans f≈g g≈h = record
-        { cospans-≈ = Cospans.≈-trans f≈g.cospans-≈ g≈h.cospans-≈
+        { cospans-≈ = Cospan.≈-trans f≈g.cospans-≈ g≈h.cospans-≈
         ; same-deco =
               homomorphism ⟩∘⟨refl ○
               glueTrianglesˡ 𝒟.U g≈h.same-deco f≈g.same-deco
@@ -613,7 +614,7 @@ compose-equiv {_} {_} {_} {c₂} {c₂′} {c₁} {c₁′} ≅C₂ ≅C₁ = re
     module C₂ = DecoratedCospan c₂
     module C₂′ = DecoratedCospan c₂′
     ≅C₂∘C₁ = Cospans.compose-equiv ≅C₂.cospans-≈ ≅C₁.cospans-≈
-    module ≅C₂∘C₁ = Cospans._≈_ ≅C₂∘C₁
+    module ≅C₂∘C₁ = Cospan._≈_ ≅C₂∘C₁
     P = 𝒞.pushout C₁.f₂ C₂.f₁
     P′ = 𝒞.pushout C₁′.f₂ C₂′.f₁
     module P = Pushout P

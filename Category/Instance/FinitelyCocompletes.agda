@@ -1,29 +1,31 @@
 {-# OPTIONS --without-K --safe #-}
-open import Level using (Level)
+
+open import Level using (Level; suc; _⊔_)
+
 module Category.Instance.FinitelyCocompletes {o ℓ e : Level} where
+
+import Category.Instance.One.Properties as OneProps
 
 open import Categories.Category using (_[_,_])
 open import Categories.Category.BinaryProducts using (BinaryProducts)
 open import Categories.Category.Cartesian using (Cartesian)
-open import Categories.Category.Helper using (categoryHelper)
-open import Categories.Category.Monoidal.Instance.Cats using () renaming (module Product to Products)
 open import Categories.Category.Core using (Category)
+open import Categories.Category.Helper using (categoryHelper)
 open import Categories.Category.Instance.Cats using (Cats)
 open import Categories.Category.Instance.One using (One; One-⊤)
+open import Categories.Category.Monoidal.Instance.Cats using () renaming (module Product to Products)
 open import Categories.Category.Product using (πˡ; πʳ; _※_; _⁂_) renaming (Product to ProductCat)
 open import Categories.Diagram.Coequalizer using (IsCoequalizer)
 open import Categories.Functor using (Functor) renaming (id to idF)
+open import Categories.NaturalTransformation.NaturalIsomorphism using (_≃_; associator; unitorˡ; unitorʳ; module ≃; _ⓘₕ_)
 open import Categories.Object.Coproduct using (IsCoproduct)
 open import Categories.Object.Initial using (IsInitial)
 open import Categories.Object.Product.Core using (Product)
-open import Categories.NaturalTransformation.NaturalIsomorphism using (_≃_; associator; unitorˡ; unitorʳ; module ≃; _ⓘₕ_)
 open import Category.Cocomplete.Finitely.Bundle using (FinitelyCocompleteCategory)
 open import Category.Cocomplete.Finitely.Product using (FinitelyCocomplete-×)
-open import Category.Instance.One.Properties using (One-FinitelyCocomplete)
 open import Data.Product.Base using (_,_; proj₁; proj₂; map; dmap; zip′)
-open import Functor.Exact using (∘-RightExactFunctor; RightExactFunctor; idREF; IsRightExact; rightexact)
 open import Function.Base using (id; flip)
-open import Level using (Level; suc; _⊔_)
+open import Functor.Exact using (∘-RightExactFunctor; RightExactFunctor; idREF; IsRightExact; rightexact)
 
 FinitelyCocompletes : Category (suc (o ⊔ ℓ ⊔ e)) (o ⊔ ℓ ⊔ e) (o ⊔ ℓ ⊔ e)
 FinitelyCocompletes = categoryHelper record
@@ -48,7 +50,7 @@ FinitelyCocompletes = categoryHelper record
 One-FCC : FinitelyCocompleteCategory o ℓ e
 One-FCC = record
     { U = One
-    ; finCo = One-FinitelyCocomplete
+    ; finCo = OneProps.finitelyCocomplete
     }
 
 _×_
@@ -62,7 +64,6 @@ _×_ 𝒞 𝒟 = record
   where
     module 𝒞 = FinitelyCocompleteCategory 𝒞
     module 𝒟 = FinitelyCocompleteCategory 𝒟
-{-# INJECTIVE_FOR_INFERENCE _×_ #-}
 
 module _ (𝒞 𝒟 : FinitelyCocompleteCategory o ℓ e) where
 

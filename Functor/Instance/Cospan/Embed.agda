@@ -1,4 +1,5 @@
 {-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --hidden-argument-puns #-}
 
 open import Category.Cocomplete.Finitely.Bundle using (FinitelyCocompleteCategory)
 
@@ -14,9 +15,10 @@ open import Categories.Category using (_[_,_]; _[_∘_]; _[_≈_])
 open import Categories.Category.Core using (Category)
 open import Categories.Functor.Core using (Functor)
 open import Category.Instance.Cospans 𝒞 using (Cospans)
+open import Category.Diagram.Cospan 𝒞 using (cospan)
 open import Data.Product.Base using (_,_)
 open import Function.Base using (id)
-open import Functor.Instance.Cospan.Stack using (⊗)
+open import Functor.Instance.Cospan.Stack 𝒞 using (⊗)
 
 module 𝒞 = FinitelyCocompleteCategory 𝒞
 module Cospans = Category Cospans
@@ -28,24 +30,26 @@ open Morphism U using (module ≅; _≅_)
 open PushoutProperties U using (up-to-iso)
 open Pushout′ U using (pushout-id-g; pushout-f-id)
 
-L₁ : {A B : 𝒞.Obj} → U [ A , B ] → Cospans [ A , B ]
-L₁ f = record
-    { f₁ = f
-    ; f₂ = 𝒞.id
-    }
+private
+  variable
+    A B C : 𝒞.Obj
+    W X Y Z : 𝒞.Obj
 
-L-identity : {A : 𝒞.Obj} → L₁ 𝒞.id ≈ Cospans.id {A}
+L₁ : U [ A , B ] → Cospans [ A , B ]
+L₁ f = cospan f 𝒞.id
+
+L-identity : L₁ 𝒞.id ≈ Cospans.id {A}
 L-identity = record
     { ≅N = ≅.refl
-    ; from∘f₁≈f₁′ = 𝒞.identity²
-    ; from∘f₂≈f₂′ = 𝒞.identity²
+    ; from∘f₁≈f₁ = 𝒞.identity²
+    ; from∘f₂≈f₂ = 𝒞.identity²
     }
 
-L-homomorphism : {X Y Z : 𝒞.Obj} {f : U [ X , Y ]} {g : U [ Y , Z ]} → L₁ (U [ g ∘ f ]) ≈ Cospans [ L₁ g ∘ L₁ f ]
+L-homomorphism : {f : U [ X , Y ]} {g : U [ Y , Z ]} → L₁ (U [ g ∘ f ]) ≈ Cospans [ L₁ g ∘ L₁ f ]
 L-homomorphism {X} {Y} {Z} {f} {g} = record
     { ≅N = up-to-iso P′ P
-    ; from∘f₁≈f₁′ = pullˡ (P′.universal∘i₁≈h₁ {eq = P.commute})
-    ; from∘f₂≈f₂′ = P′.universal∘i₂≈h₂ {eq = P.commute} ○ sym 𝒞.identityʳ
+    ; from∘f₁≈f₁ = pullˡ (P′.universal∘i₁≈h₁ {eq = P.commute})
+    ; from∘f₂≈f₂ = P′.universal∘i₂≈h₂ {eq = P.commute} ○ sym 𝒞.identityʳ
     }
   where
     open ⇒-Reasoning U
@@ -57,11 +61,11 @@ L-homomorphism {X} {Y} {Z} {f} {g} = record
     module P = Pushout P
     module P′ = Pushout P′
 
-L-resp-≈ : {A B : 𝒞.Obj} {f g : U [ A , B ]} → U [ f ≈ g ] → Cospans [ L₁ f ≈ L₁ g ]
+L-resp-≈ : {f g : U [ A , B ]} → U [ f ≈ g ] → Cospans [ L₁ f ≈ L₁ g ]
 L-resp-≈ {A} {B} {f} {g} f≈g = record
     { ≅N = ≅.refl
-    ; from∘f₁≈f₁′ = 𝒞.identityˡ ○ f≈g
-    ; from∘f₂≈f₂′ = 𝒞.identity²
+    ; from∘f₁≈f₁ = 𝒞.identityˡ ○ f≈g
+    ; from∘f₂≈f₂ = 𝒞.identity²
     }
   where
     open 𝒞.HomReasoning
@@ -75,24 +79,21 @@ L = record
     ; F-resp-≈ = L-resp-≈
     }
 
-R₁ : {A B : 𝒞.Obj} → U [ B , A ] → Cospans [ A , B ]
-R₁ g = record
-    { f₁ = 𝒞.id
-    ; f₂ = g
-    }
+R₁ : U [ B , A ] → Cospans [ A , B ]
+R₁ g = cospan 𝒞.id g
 
-R-identity : {A : 𝒞.Obj} → R₁ 𝒞.id ≈ Cospans.id {A}
+R-identity : R₁ 𝒞.id ≈ Cospans.id {A}
 R-identity = record
     { ≅N = ≅.refl
-    ; from∘f₁≈f₁′ = 𝒞.identity²
-    ; from∘f₂≈f₂′ = 𝒞.identity²
+    ; from∘f₁≈f₁ = 𝒞.identity²
+    ; from∘f₂≈f₂ = 𝒞.identity²
     }
 
-R-homomorphism : {X Y Z : 𝒞.Obj} {f : U [ Y , X ]} {g : U [ Z , Y ]} → R₁ (U [ f ∘ g ]) ≈ Cospans [ R₁ g ∘ R₁ f ]
-R-homomorphism {X} {Y} {Z} {f} {g} = record
+R-homomorphism : {f : U [ Y , X ]} {g : U [ Z , Y ]} → R₁ (U [ f ∘ g ]) ≈ Cospans [ R₁ g ∘ R₁ f ]
+R-homomorphism {f} {g} = record
     { ≅N = up-to-iso P′ P
-    ; from∘f₁≈f₁′ = P′.universal∘i₁≈h₁ {eq = P.commute} ○ sym 𝒞.identityʳ
-    ; from∘f₂≈f₂′ = pullˡ (P′.universal∘i₂≈h₂ {eq = P.commute})
+    ; from∘f₁≈f₁ = P′.universal∘i₁≈h₁ {eq = P.commute} ○ sym 𝒞.identityʳ
+    ; from∘f₂≈f₂ = pullˡ (P′.universal∘i₂≈h₂ {eq = P.commute})
     }
   where
     open ⇒-Reasoning U
@@ -104,11 +105,11 @@ R-homomorphism {X} {Y} {Z} {f} {g} = record
     module P = Pushout P
     module P′ = Pushout P′
 
-R-resp-≈ : {A B : 𝒞.Obj} {f g : U [ A , B ]} → U [ f ≈ g ] → Cospans [ R₁ f ≈ R₁ g ]
-R-resp-≈ {A} {B} {f} {g} f≈g = record
+R-resp-≈ : {f g : U [ A , B ]} → U [ f ≈ g ] → Cospans [ R₁ f ≈ R₁ g ]
+R-resp-≈ {f} {g} f≈g = record
     { ≅N = ≅.refl
-    ; from∘f₁≈f₁′ = 𝒞.identity²
-    ; from∘f₂≈f₂′ = 𝒞.identityˡ ○ f≈g
+    ; from∘f₁≈f₁ = 𝒞.identity²
+    ; from∘f₂≈f₂ = 𝒞.identityˡ ○ f≈g
     }
   where
     open 𝒞.HomReasoning
@@ -122,17 +123,11 @@ R = record
     ; F-resp-≈ = R-resp-≈
     }
 
-B₁ : {A B C : 𝒞.Obj} → U [ A , C ] → U [ B , C ] → Cospans [ A , B ]
-B₁ f g = record
-    { f₁ = f
-    ; f₂ = g
-    }
-
-B∘L : {W X Y Z : 𝒞.Obj} {f : U [ W , X ]} {g : U [ X , Y ]} {h : U [ Z , Y ]} → Cospans [ B₁ g h ∘ L₁ f ] ≈ B₁ (U [ g ∘ f ]) h
-B∘L {W} {X} {Y} {Z} {f} {g} {h} = record
+B∘L : {f : U [ W , X ]} {g : U [ X , Y ]} {h : U [ Z , Y ]} → Cospans [ cospan g h ∘ L₁ f ] ≈ cospan (U [ g ∘ f ]) h
+B∘L {f} {g} {h} = record
     { ≅N = up-to-iso P P′
-    ; from∘f₁≈f₁′ = pullˡ (P.universal∘i₁≈h₁ {eq = P′.commute})
-    ; from∘f₂≈f₂′ = pullˡ (P.universal∘i₂≈h₂ {eq = P′.commute}) ○ 𝒞.identityˡ
+    ; from∘f₁≈f₁ = pullˡ (P.universal∘i₁≈h₁ {eq = P′.commute})
+    ; from∘f₂≈f₂ = pullˡ (P.universal∘i₂≈h₂ {eq = P′.commute}) ○ 𝒞.identityˡ
     }
   where
     open ⇒-Reasoning U
@@ -144,11 +139,11 @@ B∘L {W} {X} {Y} {Z} {f} {g} {h} = record
     module P = Pushout P
     module P′ = Pushout P′
 
-R∘B : {W X Y Z : 𝒞.Obj} {f : U [ W , X ]} {g : U [ Y , X ]} {h : U [ Z , Y ]} → Cospans [ R₁ h ∘ B₁ f g ] ≈ B₁ f (U [ g ∘ h ])
-R∘B {W} {X} {Y} {Z} {f} {g} {h} = record
+R∘B : {f : U [ W , X ]} {g : U [ Y , X ]} {h : U [ Z , Y ]} → Cospans [ R₁ h ∘ cospan f g ] ≈ cospan f (U [ g ∘ h ])
+R∘B {f} {g} {h} = record
     { ≅N = up-to-iso P P′
-    ; from∘f₁≈f₁′ = pullˡ (P.universal∘i₁≈h₁ {eq = P′.commute}) ○ 𝒞.identityˡ
-    ; from∘f₂≈f₂′ = pullˡ (P.universal∘i₂≈h₂ {eq = P′.commute})
+    ; from∘f₁≈f₁ = pullˡ (P.universal∘i₁≈h₁ {eq = P′.commute}) ○ 𝒞.identityˡ
+    ; from∘f₂≈f₂ = pullˡ (P.universal∘i₂≈h₂ {eq = P′.commute})
     }
   where
     open ⇒-Reasoning U
@@ -164,20 +159,18 @@ module _ where
 
   open _≅_
 
-  ≅-L-R : ∀ {X Y : 𝒞.Obj} (X≅Y : X ≅ Y) → L₁ (to X≅Y) ≈ R₁ (from X≅Y)
-  ≅-L-R {X} {Y} X≅Y = record
+  ≅-L-R : (X≅Y : X ≅ Y) → L₁ (to X≅Y) ≈ R₁ (from X≅Y)
+  ≅-L-R X≅Y = record
       { ≅N = X≅Y
-      ; from∘f₁≈f₁′ = isoʳ X≅Y
-      ; from∘f₂≈f₂′ = 𝒞.identityʳ
+      ; from∘f₁≈f₁ = isoʳ X≅Y
+      ; from∘f₂≈f₂ = 𝒞.identityʳ
       }
 
-module ⊗ = Functor (⊗ 𝒞)
-
-L-resp-⊗ : {X Y X′ Y′ : 𝒞.Obj} {a : U [ X , X′ ]} {b : U [ Y , Y′ ]} → L₁ (a +₁ b) ≈ ⊗.₁ (L₁ a , L₁ b)
-L-resp-⊗ {X} {Y} {X′} {Y′} {a} {b} = record
+L-resp-⊗ : {a : U [ W , X ]} {b : U [ Y , Z ]} → L₁ (a +₁ b) ≈ ⊗.₁ (L₁ a , L₁ b)
+L-resp-⊗ {a} {b} = record
     { ≅N = ≅.refl
-    ; from∘f₁≈f₁′ = 𝒞.identityˡ
-    ; from∘f₂≈f₂′ = 𝒞.identityˡ ○ sym +-η ○ sym ([]-cong₂ identityʳ identityʳ)
+    ; from∘f₁≈f₁ = 𝒞.identityˡ
+    ; from∘f₂≈f₂ = 𝒞.identityˡ ○ sym +-η ○ sym ([]-cong₂ identityʳ identityʳ)
     }
   where
     open 𝒞.HomReasoning
