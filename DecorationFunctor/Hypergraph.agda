@@ -3,65 +3,51 @@
 module DecorationFunctor.Hypergraph where
 
 import Categories.Morphism as Morphism
+open import Level using (0ℓ)
 
 open import Categories.Category.BinaryProducts using (module BinaryProducts)
 open import Categories.Category.Cartesian using (Cartesian)
-open import Categories.Category.Cocartesian using (Cocartesian; module BinaryCoproducts)
 open import Categories.Category.Core using (Category)
-open import Categories.Category.Instance.Nat using (Nat-Cocartesian)
 open import Categories.Category.Instance.Nat using (Nat)
 open import Categories.Category.Instance.Setoids using (Setoids)
-open import Categories.Category.Instance.SingletonSet using (SingletonSetoid)
 open import Categories.Category.Monoidal.Instance.Setoids using (Setoids-Cartesian)
 open import Categories.Category.Product using (_⁂_)
 open import Categories.Functor using () renaming (_∘F_ to _∘′_)
 open import Categories.Functor.Core using (Functor)
 open import Categories.Functor.Monoidal.Symmetric using (module Lax)
 open import Categories.NaturalTransformation using (NaturalTransformation; ntHelper)
-
 open import Category.Cocomplete.Finitely.Bundle using (FinitelyCocompleteCategory)
-open import Category.Instance.Setoids.SymmetricMonoidal using (Setoids-×)
 open import Category.Instance.Nat.FinitelyCocomplete using (Nat-FinitelyCocomplete)
-
+open import Category.Instance.Setoids.SymmetricMonoidal {0ℓ} {0ℓ} using (Setoids-×; ×-symmetric′)
 open import Data.Empty using (⊥-elim)
-open import Data.Fin using (#_)
-open import Data.Fin.Base using (Fin; splitAt; join; zero; suc; _↑ˡ_; _↑ʳ_; Fin′; toℕ; cast)
+open import Data.Fin using (#_; Fin; splitAt; join; zero; suc; _↑ˡ_; _↑ʳ_; toℕ; cast)
 open import Data.Fin.Patterns using (0F; 1F; 2F)
-open import Data.Fin.Permutation using (lift₀)
 open import Data.Fin.Properties using (splitAt-join; join-splitAt; cast-is-id; cast-trans; toℕ-cast; subst-is-cast; splitAt-↑ˡ; splitAt-↑ʳ; splitAt⁻¹-↑ˡ; ↑ˡ-injective)
 open import Data.Nat using (ℕ; _+_)
 open import Data.Product.Base using (_,_; Σ)
-open import Data.Product.Relation.Binary.Pointwise.NonDependent using (×-setoid)
-open import Data.Sum.Base using (_⊎_; map; inj₁; inj₂; swap; map₂) renaming ([_,_]′ to [_,_])
+open import Data.Setoid using (∣_∣)
+open import Data.Setoid.Unit {0ℓ} {0ℓ} using (⊤ₛ)
+open import Data.Sum using (_⊎_; map; inj₁; inj₂; swap; map₂) renaming ([_,_]′ to [_,_])
 open import Data.Sum.Properties using (map-map; [,]-map; [,]-∘; [-,]-cong; [,-]-cong; [,]-cong; map-cong; swap-involutive)
 open import Data.Unit using (tt)
-open import Data.Unit.Properties using () renaming (≡-setoid to ⊤-setoid)
-
-open import Function.Base using (_∘_; id; const; case_of_; case_returning_of_)
-open import Function.Bundles using (Func; Inverse; _↔_; mk↔)
+open import Function using (_∘_; id; const; Func; Inverse; _↔_; mk↔; _⟨$⟩_)
 open import Function.Construct.Composition using (_↔-∘_)
-open import Function.Construct.Identity using (↔-id)
+open import Function.Construct.Constant using () renaming (function to Const)
+open import Function.Construct.Identity using (↔-id) renaming (function to Id)
 open import Function.Construct.Symmetry using (↔-sym)
-
-open import Level using (0ℓ; lift)
-
-open import Relation.Binary.Bundles using (Setoid)
-open import Relation.Binary.PropositionalEquality using (_≗_)
-open import Relation.Binary.PropositionalEquality.Core using (_≡_; erefl; refl; sym; trans; cong; cong₂; subst; cong-app)
+open import Relation.Binary using (Setoid)
+open import Relation.Binary.PropositionalEquality.Core using (_≗_; _≡_; erefl; refl; sym; trans; cong; cong₂; subst; cong-app)
 open import Relation.Binary.PropositionalEquality.Properties using (isEquivalence; module ≡-Reasoning; dcong₂; subst-∘)
 open import Relation.Nullary.Negation.Core using (¬_)
 
 open Cartesian (Setoids-Cartesian {0ℓ} {0ℓ}) using (products)
-open Cocartesian Nat-Cocartesian using (coproducts)
 open FinitelyCocompleteCategory Nat-FinitelyCocomplete
-    using ()
-    renaming (symmetricMonoidalCategory to Nat-smc)
+    using (-+-; _+₁_)
+    renaming (symmetricMonoidalCategory to Nat-smc; +-assoc to Nat-+-assoc)
 open Morphism (Setoids 0ℓ 0ℓ) using (_≅_)
 open Lax using (SymmetricMonoidalFunctor)
 
 open BinaryProducts products using (-×-)
-open BinaryCoproducts coproducts using (-+-) renaming (+-assoc to Nat-+-assoc)
-
 
 record Hypergraph (v : ℕ) : Set where
 
@@ -79,7 +65,6 @@ record Hypergraph-same {n : ℕ} (H H′ : Hypergraph n) : Set where
 
   open Hypergraph H public
   open Hypergraph H′ renaming (h to h′; a to a′; arity to arity′; j to j′) public
-
 
   field
     ↔h : Fin h ↔ Fin h′
@@ -165,8 +150,8 @@ Hypergraph-same-trans ≡H₁ ≡H₂ = record
             ≡⟨ cong (j′ ≡H₂ (to (↔h ≡H₂) (to (↔h ≡H₁) e))) (cast-trans (≗arity ≡H₁ e) (≗arity ≡H₂ (to (↔h ≡H₁) e)) i) ⟩
         j′ ≡H₂ (to (↔h ≡H₂) (to (↔h ≡H₁) e)) (cast (trans (≗arity ≡H₁ e) (≗arity ≡H₂ (to (↔h ≡H₁) e))) i) ∎
 
-Hypergraph-setoid : ℕ → Setoid 0ℓ 0ℓ
-Hypergraph-setoid p = record
+Hypergraphₛ : ℕ → Setoid 0ℓ 0ℓ
+Hypergraphₛ p = record
     { Carrier = Hypergraph p
     ; _≈_ = Hypergraph-same
     ; isEquivalence = record
@@ -192,12 +177,12 @@ Hypergraph-same-cong
 Hypergraph-same-cong f ≡H = record
     { ↔h = ↔h
     ; ≗a = ≗a
-    ; ≗j = λ { e i → cong f (≗j e i) }
+    ; ≗j = λ e i → cong f (≗j e i)
     }
   where
     open Hypergraph-same ≡H
 
-Hypergraph-Func : (Fin n → Fin m) → Func (Hypergraph-setoid n) (Hypergraph-setoid m)
+Hypergraph-Func : (Fin n → Fin m) → Func (Hypergraphₛ n) (Hypergraphₛ m)
 Hypergraph-Func f = record
     { to = map-nodes f
     ; cong = Hypergraph-same-cong f
@@ -229,7 +214,7 @@ homomorphism {n} {m} {o} {H} f g = record
 
 F : Functor Nat (Setoids 0ℓ 0ℓ)
 F = record
-    { F₀ = Hypergraph-setoid
+    { F₀ = Hypergraphₛ
     ; F₁ = Hypergraph-Func
     ; identity = λ { {n} {H} → Hypergraph-same-refl {H = H} }
     ; homomorphism = λ { {f = f} {g = g} → homomorphism f g }
@@ -238,18 +223,18 @@ F = record
 
 -- monoidal structure
 
-empty-hypergraph : Hypergraph 0
-empty-hypergraph = record
+discrete : {n : ℕ} → Hypergraph n
+discrete {n} = record
     { h = 0
     ; a = λ ()
     ; j = λ ()
     }
 
-ε : Func (SingletonSetoid {0ℓ} {0ℓ}) (Hypergraph-setoid 0)
-ε = record
-    { to = const empty-hypergraph
-    ; cong = const Hypergraph-same-refl
-    }
+opaque
+  unfolding ×-symmetric′
+
+  ε : Func Setoids-×.unit (Hypergraphₛ 0)
+  ε = Const ⊤ₛ (Hypergraphₛ 0) discrete
 
 module _ (H₁ : Hypergraph n) (H₂ : Hypergraph m) where
   private
@@ -364,7 +349,7 @@ commute
     → (g : Fin m → Fin m′)
     → Hypergraph-same
         (together (map-nodes f H₁) (map-nodes g H₂))
-        (map-nodes  ([ (_↑ˡ m′) ∘ f , (n′ ↑ʳ_) ∘ g ] ∘ splitAt n) (together H₁ H₂))
+        (map-nodes (f +₁ g) (together H₁ H₂))
 commute {n} {n′} {m} {m′} {H₁} {H₂} f g = record
     { ↔h = ≡H₁+H₂.↔h
     ; ≗a = ≡H₁+H₂.≗a
@@ -380,23 +365,36 @@ commute {n} {n′} {m} {m′} {H₁} {H₂} f g = record
     ≗j  : (e : Fin (H₁.h + H₂.h))
           (i : Fin ((ℕ.suc ∘ [ H₁.a , H₂.a ] ∘ splitAt H₁.h) e))
         → j (together (map-nodes f H₁) (map-nodes g H₂)) e i
-        ≡ j (map-nodes ([ (_↑ˡ m′) ∘ f , (n′ ↑ʳ_) ∘ g ] ∘ splitAt n) (together H₁ H₂)) (≡H₁+H₂.to e) (cast refl i)
+        ≡ j (map-nodes (f +₁ g) (together H₁ H₂)) (≡H₁+H₂.to e) (cast refl i)
     ≗j e i with splitAt H₁.h e
     ... | inj₁ e₁ rewrite splitAt-↑ˡ n (H₁.j e₁ (cast refl i)) m = cong ((_↑ˡ m′) ∘ f ∘ H₁.j e₁) (sym (cast-is-id refl i))
     ... | inj₂ e₂ rewrite splitAt-↑ʳ n m (H₂.j e₂ (cast refl i)) = cong ((n′ ↑ʳ_) ∘ g ∘ H₂.j e₂) (sym (cast-is-id refl i))
 
-⊗-homomorphism : NaturalTransformation (-×- ∘′ (F ⁂ F)) (F ∘′ -+-)
-⊗-homomorphism = record
-    { η = λ { (m , n) → η }
-    ; commute = λ { (f , g) {H₁ , H₂} → commute {H₁ = H₁} {H₂ = H₂} f g }
-    ; sym-commute = λ { (f , g) {H₁ , H₂} → Hypergraph-same-sym (commute {H₁ = H₁} {H₂ = H₂} f g) }
+open Setoids-× using (_⊗₀_; _⊗₁_)
+opaque
+  unfolding ×-symmetric′
+  η : Func (Hypergraphₛ n ⊗₀ Hypergraphₛ m) (Hypergraphₛ (n + m))
+  η = record
+      { to = λ (H₁ , H₂) → together H₁ H₂
+      ; cong = λ (≡H₁ , ≡H₂) → together-resp-same ≡H₁ ≡H₂
+      }
+
+opaque
+  unfolding η
+  commute′
+      : (f : Fin n → Fin n′)
+      → (g : Fin m → Fin m′)
+      → {x : ∣ Hypergraphₛ n ⊗₀ Hypergraphₛ m ∣}
+      → Hypergraph-same
+          (η ⟨$⟩ (Hypergraph-Func f ⊗₁ Hypergraph-Func g ⟨$⟩ x))
+          (map-nodes (f +₁ g) (η ⟨$⟩ x))
+  commute′ f g {H₁ , H₂} = commute {H₁ = H₁} {H₂} f g
+
+⊗-homomorphism : NaturalTransformation (Setoids-×.⊗ ∘′ (F ⁂ F)) (F ∘′ -+-)
+⊗-homomorphism = ntHelper record
+    { η = λ (n , m) → η {n} {m}
+    ; commute = λ (f , g) → commute′ f g
     }
-  where
-    η : Func (×-setoid (Hypergraph-setoid n) (Hypergraph-setoid m)) (Hypergraph-setoid (n + m))
-    η = record
-        { to = λ { (H₁ , H₂) → together H₁ H₂ }
-        ; cong = λ { (≡H₁ , ≡H₂) → together-resp-same ≡H₁ ≡H₂ }
-        }
 
 +-assoc-↔ : ∀ (x y z : ℕ) → Fin (x + y + z) ↔ Fin (x + (y + z))
 +-assoc-↔ x y z = record
@@ -412,13 +410,13 @@ commute {n} {n′} {m} {m′} {H₁} {H₂} f g = record
 
 associativity
     : {X Y Z : ℕ}
-    → {H₁ : Hypergraph X}
-    → {H₂ : Hypergraph Y}
-    → {H₃ : Hypergraph Z}
+    → (H₁ : Hypergraph X)
+    → (H₂ : Hypergraph Y)
+    → (H₃ : Hypergraph Z)
     → Hypergraph-same
         (map-nodes (Inverse.to (+-assoc-↔ X Y Z)) (together (together H₁ H₂) H₃))
         (together H₁ (together H₂ H₃))
-associativity {X} {Y} {Z} {H₁} {H₂} {H₃} = record
+associativity {X} {Y} {Z} H₁ H₂ H₃ = record
     { ↔h = ↔h
     ; ≗a = ≗a
     ; ≗j = ≗j
@@ -472,7 +470,6 @@ associativity {X} {Y} {Z} {H₁} {H₂} {H₃} = record
         rewrite splitAt-↑ˡ (X + Y) (H₁.j e₁ i ↑ˡ Y) Z
         rewrite splitAt-↑ˡ X (H₁.j e₁ i) Y = cong ((_↑ˡ Y + Z) ∘ H₁.j e₁) (sym (cast-is-id refl i))
     ≗j e i | inj₁ e₁₂ | inj₂ e₂
-        rewrite splitAt-↑ʳ H₁.h H₂.h e₂
         rewrite splitAt-↑ʳ H₁.h (H₂.h + H₃.h) (e₂ ↑ˡ H₃.h)
         rewrite splitAt-↑ˡ H₂.h e₂ H₃.h
         rewrite splitAt-↑ˡ (X + Y) (X ↑ʳ H₂.j e₂ i) Z
@@ -500,7 +497,7 @@ n+0↔n n = record
     to∘from : (x : Fin n) → to (from x) ≡ x
     to∘from x rewrite splitAt-↑ˡ n x 0 = refl
 
-unitaryʳ : Hypergraph-same (map-nodes ([ (λ x → x) , (λ ()) ] ∘ splitAt n) (together H empty-hypergraph)) H
+unitaryʳ : Hypergraph-same (map-nodes ([ id , (λ ()) ] ∘ splitAt n) (together H discrete)) H
 unitaryʳ {n} {H} = record
     { ↔h = h+0↔h
     ; ≗a = ≗a
@@ -508,22 +505,22 @@ unitaryʳ {n} {H} = record
     }
   where
     module H = Hypergraph H
-    module H+0 = Hypergraph (together H empty-hypergraph)
+    module H+0 = Hypergraph (together {n} {0} H discrete)
     h+0↔h : Fin H+0.h ↔ Fin H.h
     h+0↔h = n+0↔n H.h
     ≗a : (e : Fin (H.h + 0)) → [ H.a , (λ ()) ] (splitAt H.h e) ≡ H.a (Inverse.to h+0↔h e)
     ≗a e with inj₁ e₁ ← splitAt H.h e in eq = refl
     ≗j  : (e : Fin (H.h + 0))
           (i : Fin (ℕ.suc ([ H.a , (λ ()) ] (splitAt H.h e))))
-        → [ (λ x → x) , (λ ()) ] (splitAt n (j+j H empty-hypergraph e i))
+        → [ (λ x → x) , (λ ()) ] (splitAt n (j+j H discrete e i))
         ≡ H.j (Inverse.to h+0↔h e) (cast (cong ℕ.suc (≗a e)) i)
-    ≗j e i = ≗j-aux (splitAt H.h e) refl (j+j H empty-hypergraph e) refl (≗a e) i
+    ≗j e i = ≗j-aux (splitAt H.h e) refl (j+j H discrete e) refl (≗a e) i
       where
         ≗j-aux
             : (w : Fin H.h ⊎ Fin 0)
             → (eq₁ : splitAt H.h e ≡ w)
             → (w₁ : Fin (ℕ.suc ([ H.a , (λ ()) ] w)) → Fin (n + 0))
-            → j+j H empty-hypergraph e ≡ subst (λ hole → Fin (ℕ.suc ([ H.a , (λ ()) ] hole)) → Fin (n + 0)) (sym eq₁) w₁
+            → j+j H discrete e ≡ subst (λ hole → Fin (ℕ.suc ([ H.a , (λ ()) ] hole)) → Fin (n + 0)) (sym eq₁) w₁
             → (w₂ : [ H.a , (λ ()) ] w ≡ H.a (Inverse.to h+0↔h e))
               (i : Fin (ℕ.suc ([ H.a , (λ ()) ] w)))
             → [ (λ x → x) , (λ ()) ] (splitAt n (w₁ i))
@@ -594,43 +591,60 @@ braiding {n} {m} {H₁} {H₂} = record
         rewrite splitAt-↑ʳ n m (H₂.j e₂ i)
         rewrite splitAt-↑ˡ H₂.h e₂ H₁.h = cong ((_↑ˡ n) ∘ H₂.j e₂) (sym (cast-is-id refl i))
 
-hypergraph : SymmetricMonoidalFunctor Nat-smc (Setoids-× {0ℓ})
+opaque
+  unfolding η ε
+
+  associativity′
+      : {n m o : ℕ}
+      → {x : ∣ (Hypergraphₛ n ⊗₀ Hypergraphₛ m) ⊗₀ Hypergraphₛ o ∣}
+      → Hypergraph-same
+          (map-nodes (Inverse.to (+-assoc-↔ n m o)) (η {n + m} {o} ⟨$⟩ ((η {n} {m} ⊗₁ (Id _)) ⟨$⟩ x)))
+          (η {n} {m + o} ⟨$⟩ ((Id _ ⊗₁ η {m} {o}) ⟨$⟩ (Setoids-×.associator.from ⟨$⟩ x)))
+  associativity′ {n} {m} {o} {(x , y) , z} = associativity x y z
+
+  unitaryˡ′
+      : {X : ∣ Setoids-×.unit ⊗₀ Hypergraphₛ n ∣}
+      → Hypergraph-same (η {0} {n} ⟨$⟩ ((ε ⊗₁ Id _) ⟨$⟩ X)) (Setoids-×.unitorˡ.from ⟨$⟩ X)
+  unitaryˡ′ = Hypergraph-same-refl
+
+  unitaryʳ′
+      : {X : ∣ Hypergraphₛ n ⊗₀ Setoids-×.unit ∣}
+      → Hypergraph-same (map-nodes ([ id , (λ ()) ] ∘ splitAt n) (η {n} {0} ⟨$⟩ ((Id _ ⊗₁ ε) ⟨$⟩ X))) (Setoids-×.unitorʳ.from ⟨$⟩ X)
+  unitaryʳ′ = unitaryʳ
+
+  braiding-compat
+      : {n m : ℕ}
+      → {X : ∣ Hypergraphₛ n ⊗₀ Hypergraphₛ m ∣}
+      → Hypergraph-same
+          (map-nodes ([ m ↑ʳ_ , _↑ˡ n ] ∘ splitAt n) (η {n} {m} ⟨$⟩ X))
+          (η {m} {n} ⟨$⟩ (Setoids-×.braiding.⇒.η (Hypergraphₛ n , Hypergraphₛ m) ⟨$⟩ X))
+  braiding-compat {n} {m} {H₁ , H₂} = braiding {n} {m} {H₁} {H₂}
+
+hypergraph : SymmetricMonoidalFunctor Nat-smc Setoids-×
 hypergraph = record
     { F = F
     ; isBraidedMonoidal = record
         { isMonoidal = record
             { ε = ε
-            ; ⊗-homo = ntHelper record
-                { η = λ { (m , n) → η }
-                ; commute = λ { (f , g) {H₁ , H₂} → commute {H₁ = H₁} {H₂ = H₂} f g }
-                }
-            ; associativity = λ { {X} {Y} {Z} {(H₁ , H₂) , H₃} → associativity {X} {Y} {Z} {H₁} {H₂} {H₃} }
-            ; unitaryˡ = Hypergraph-same-refl
-            ; unitaryʳ = unitaryʳ
+            ; ⊗-homo = ⊗-homomorphism
+            ; associativity = associativity′
+            ; unitaryˡ = unitaryˡ′
+            ; unitaryʳ = unitaryʳ′
             }
-        ; braiding-compat = λ { {X} {Y} {H₁ , H₂} → braiding {X} {Y} {H₁} {H₂} }
+        ; braiding-compat = braiding-compat
         }
     }
-  where
-    η : Func (×-setoid (Hypergraph-setoid n) (Hypergraph-setoid m)) (Hypergraph-setoid (n + m))
-    η = record
-        { to = λ { (H₁ , H₂) → together H₁ H₂ }
-        ; cong = λ { (≡H₁ , ≡H₂) → together-resp-same ≡H₁ ≡H₂ }
-        }
 
 module F = SymmetricMonoidalFunctor hypergraph
 
-and-gate : Func (SingletonSetoid {0ℓ} {0ℓ}) (F.₀ 3)
-and-gate = record
-    { to = λ { (lift tt) → and-graph }
-    ; cong = λ { (lift tt) → Hypergraph-same-refl }
-    }
+and-gate : Func ⊤ₛ (F.₀ 3)
+and-gate = Const ⊤ₛ (Hypergraphₛ 3) and-graph
   where
     and-graph : Hypergraph 3
     and-graph = record
         { h = 1
         ; a = λ { 0F → 2 }
-        ; j = λ { 0F → edge-0-nodes }
+        ; j = λ { 0F → id }
         }
       where
         edge-0-nodes : Fin 3 → Fin 3

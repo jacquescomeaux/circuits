@@ -42,3 +42,6 @@ Setoids-+ = record
     ; monoidal = +-monoidal
     ; symmetric = +-symmetric
     }
+
+module Setoids-× = SymmetricMonoidalCategory Setoids-×
+module Setoids-+ = SymmetricMonoidalCategory Setoids-+

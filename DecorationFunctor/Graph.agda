@@ -4,62 +4,48 @@ module DecorationFunctor.Graph where
 
 import Categories.Morphism as Morphism
 
+open import Level using (0ℓ)
+
 open import Categories.Category.BinaryProducts using (module BinaryProducts)
 open import Categories.Category.Cartesian using (Cartesian)
-open import Categories.Category.Cocartesian using (Cocartesian; module BinaryCoproducts)
-open import Categories.Category.Core using (Category)
-open import Categories.Category.Instance.Nat using (Nat-Cocartesian)
 open import Categories.Category.Instance.Nat using (Nat)
 open import Categories.Category.Instance.Setoids using (Setoids)
-open import Categories.Category.Instance.SingletonSet using (SingletonSetoid)
 open import Categories.Category.Monoidal.Instance.Setoids using (Setoids-Cartesian)
 open import Categories.Category.Product using (_⁂_)
 open import Categories.Functor using () renaming (_∘F_ to _∘′_)
 open import Categories.Functor.Core using (Functor)
 open import Categories.Functor.Monoidal.Symmetric using (module Lax)
 open import Categories.NaturalTransformation using (NaturalTransformation; ntHelper)
-
 open import Category.Cocomplete.Finitely.Bundle using (FinitelyCocompleteCategory)
-open import Category.Instance.Setoids.SymmetricMonoidal using (Setoids-×)
 open import Category.Instance.Nat.FinitelyCocomplete using (Nat-FinitelyCocomplete)
-
+open import Category.Instance.Setoids.SymmetricMonoidal {0ℓ} {0ℓ} using (Setoids-×; ×-symmetric′)
 open import Data.Empty using (⊥-elim)
-open import Data.Fin using (#_)
-open import Data.Fin.Base using (Fin; splitAt; join; zero; suc; _↑ˡ_; _↑ʳ_)
+open import Data.Fin using (#_; Fin; splitAt; join; zero; suc; _↑ˡ_; _↑ʳ_)
 open import Data.Fin.Patterns using (0F; 1F)
 open import Data.Fin.Properties using (splitAt-join; join-splitAt; splitAt-↑ˡ; splitAt⁻¹-↑ˡ)
 open import Data.Nat using (ℕ; _+_)
 open import Data.Product.Base using (_,_)
 open import Data.Product.Relation.Binary.Pointwise.NonDependent using (×-setoid)
+open import Data.Setoid.Unit {0ℓ} {0ℓ} using (⊤ₛ)
 open import Data.Sum.Base using (_⊎_; map; inj₁; inj₂; swap) renaming ([_,_]′ to [_,_])
 open import Data.Sum.Properties using (map-map; [,]-map; [,]-∘; [-,]-cong; [,-]-cong; map-cong; swap-involutive)
 open import Data.Unit using (tt)
-open import Data.Unit.Properties using () renaming (≡-setoid to ⊤-setoid)
-
-open import Function.Base using (_∘_; id; const; case_of_)
-open import Function.Bundles using (Func; Inverse; _↔_; mk↔)
+open import Function using (_∘_; id; const; Func; Inverse; _↔_; mk↔)
 open import Function.Construct.Composition using (_↔-∘_)
+open import Function.Construct.Constant using () renaming (function to Const)
 open import Function.Construct.Identity using (↔-id)
 open import Function.Construct.Symmetry using (↔-sym)
-
-open import Level using (0ℓ; lift)
-
-open import Relation.Binary.Bundles using (Setoid)
-open import Relation.Binary.PropositionalEquality using (_≗_)
-open import Relation.Binary.PropositionalEquality.Core using (_≡_; erefl; refl; sym; trans; cong)
+open import Relation.Binary using (Setoid)
+open import Relation.Binary.PropositionalEquality using (_≗_; _≡_; erefl; refl; sym; trans; cong)
 open import Relation.Binary.PropositionalEquality.Properties using (isEquivalence; module ≡-Reasoning)
 open import Relation.Nullary.Negation.Core using (¬_)
 
 open Cartesian (Setoids-Cartesian {0ℓ} {0ℓ}) using (products)
-open Cocartesian Nat-Cocartesian using (coproducts)
 open FinitelyCocompleteCategory Nat-FinitelyCocomplete
-    using ()
-    renaming (symmetricMonoidalCategory to Nat-smc)
-open Morphism (Setoids 0ℓ 0ℓ) using (_≅_)
+    using (-+-)
+    renaming (symmetricMonoidalCategory to Nat-smc; +-assoc to Nat-+-assoc)
 open Lax using (SymmetricMonoidalFunctor)
-
 open BinaryProducts products using (-×-)
-open BinaryCoproducts coproducts using (-+-) renaming (+-assoc to Nat-+-assoc)
 
 record Graph (v : ℕ) : Set where
 
@@ -182,18 +168,15 @@ F = record
     ; F-resp-≈ = λ f≗g → F-resp-≈ f≗g
     }
 
-empty-graph : Graph 0
-empty-graph = record
+discrete : {n : ℕ} → Graph n
+discrete = record
     { e = 0
     ; s = λ ()
     ; t = λ ()
     }
 
-ε : Func (SingletonSetoid {0ℓ} {0ℓ}) (Graph-setoid 0)
-ε = record
-    { to = const empty-graph
-    ; cong = const Graph-same-refl
-    }
+ε : Func ⊤ₛ (Graph-setoid 0)
+ε = Const ⊤ₛ (Graph-setoid 0) discrete
 
 together : Graph n → Graph m → Graph (n + m)
 together {n} {m} G₁ G₂ = record
@@ -521,7 +504,7 @@ associativity {X} {Y} {Z} G₁ G₂ G₃ = record
         (G₁+[G₂+G₃].t ∘ [ [ _↑ˡ G₂.e + G₃.e , (G₁.e ↑ʳ_) ∘ (_↑ˡ G₃.e) ] ∘ splitAt G₁.e , (G₁.e ↑ʳ_) ∘ (G₂.e ↑ʳ_) ] ∘ splitAt _) x ≡⟨⟩
         (G₁+[G₂+G₃].t ∘ to (+-assoc-↔ G₁.e G₂.e G₃.e)) x  ∎
 
-unitaryˡ : Graph-same (together empty-graph G) G
+unitaryˡ : Graph-same (together (discrete {0}) G) G
 unitaryˡ = Graph-same-refl
 
 n+0↔n : ∀ n → Fin (n + 0) ↔ Fin n
@@ -544,7 +527,7 @@ n+0↔n n = record
 
 unitaryʳ
     : {G : Graph n}
-    → Graph-same (map-nodes ([ (λ x → x) , (λ ()) ] ∘ splitAt n) (together G empty-graph)) G
+    → Graph-same (map-nodes ([ (λ x → x) , (λ ()) ] ∘ splitAt n) (together G discrete)) G
 unitaryʳ {n} {G} = record
     { ↔e = e+0↔e
     ; ≗s = ≗s+0
@@ -637,28 +620,27 @@ braiding {n} {m} {G₁} {G₂} = record
             ≡⟨ (cong (join m n ∘ map G₂.t G₁.t) ∘ splitAt-join G₂.e G₁.e ∘ swap ∘ splitAt G₁.e) x ⟨
         (join m n ∘ map G₂.t G₁.t ∘ splitAt G₂.e ∘ join G₂.e G₁.e ∘ swap ∘ splitAt G₁.e) x ∎
 
-graph : SymmetricMonoidalFunctor Nat-smc (Setoids-× {0ℓ})
-graph = record
-    { F = F
-    ; isBraidedMonoidal = record
-        { isMonoidal = record
-            { ε = ε
-            ; ⊗-homo = ⊗-homomorphism
-            ; associativity = λ { {x} {y} {z} {(G₁ , G₂) , G₃} → associativity G₁ G₂ G₃ }
-            ; unitaryˡ = unitaryˡ
-            ; unitaryʳ = unitaryʳ
-            }
-        ; braiding-compat = λ { {x} {y} {G₁ , G₂} → braiding {G₁ = G₁} {G₂ = G₂} }
-        }
-    }
+opaque
+  unfolding ×-symmetric′
+  graph : SymmetricMonoidalFunctor Nat-smc Setoids-×
+  graph = record
+      { F = F
+      ; isBraidedMonoidal = record
+          { isMonoidal = record
+              { ε = ε
+              ; ⊗-homo = ⊗-homomorphism
+              ; associativity = λ { {x} {y} {z} {(G₁ , G₂) , G₃} → associativity G₁ G₂ G₃ }
+              ; unitaryˡ = unitaryˡ
+              ; unitaryʳ = unitaryʳ
+              }
+          ; braiding-compat = λ { {x} {y} {G₁ , G₂} → braiding {G₁ = G₁} {G₂ = G₂} }
+          }
+      }
 
 module F = SymmetricMonoidalFunctor graph
 
-and-gate : Func (SingletonSetoid {0ℓ} {0ℓ}) (F.₀ 3)
-and-gate = record
-    { to = λ { (lift tt) → and-graph }
-    ; cong = λ { (lift tt) → Graph-same-refl }
-    }
+and-gate : Func ⊤ₛ (Graph-setoid 3)
+and-gate = Const ⊤ₛ (Graph-setoid 3) and-graph
   where
     and-graph : Graph 3
     and-graph = record

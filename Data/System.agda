@@ -8,10 +8,10 @@ import Relation.Binary.Properties.Preorder as PreorderProperties
 import Relation.Binary.Reasoning.Setoid as ≈-Reasoning
 
 open import Categories.Category using (Category)
-open import Categories.Category.Instance.SingletonSet using () renaming (SingletonSetoid to ⊤ₛ)
 open import Data.Circuit.Value using (Monoid)
 open import Data.Nat using (ℕ)
 open import Data.Setoid using (_⇒ₛ_; ∣_∣)
+open import Data.Setoid.Unit using (⊤ₛ)
 open import Data.System.Values Monoid using (Values; _≋_; module ≋; <ε>)
 open import Function using (Func; _⟨$⟩_; flip)
 open import Function.Construct.Constant using () renaming (function to Const)

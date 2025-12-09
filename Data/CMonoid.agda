@@ -9,7 +9,6 @@ open import Object.Monoid.Commutative using (CommutativeMonoid; CommutativeMonoi
 open import Categories.Object.Monoid using (Monoid)
 
 open import Data.Monoid {c} {ℓ} using (toMonoid; fromMonoid; toMonoid⇒)
-module Setoids-× = SymmetricMonoidalCategory Setoids-×
 
 import Algebra.Bundles as Alg
 
@@ -39,7 +38,7 @@ toCMonoid M = record
       comm x y = commutative {x , y}
 
 open import Function.Construct.Constant using () renaming (function to Const)
-open import Categories.Category.Instance.SingletonSet using () renaming (SingletonSetoid to ⊤ₛ)
+open import Data.Setoid.Unit using (⊤ₛ)
 
 fromCMonoid : Alg.CommutativeMonoid c ℓ → CommutativeMonoid Setoids-×.symmetric
 fromCMonoid M = record

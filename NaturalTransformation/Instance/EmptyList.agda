@@ -4,12 +4,12 @@ open import Level using (Level; _⊔_)
 
 module NaturalTransformation.Instance.EmptyList {c ℓ : Level} where
 
-open import Categories.Category.Instance.SingletonSet using () renaming (SingletonSetoid to ⊤ₛ)
 open import Categories.Functor using (Functor)
 open import Categories.Functor.Construction.Constant using (const)
 open import Categories.NaturalTransformation using (NaturalTransformation; ntHelper)
 open import Data.Opaque.List using (Listₛ; []ₛ; mapₛ)
 open import Data.Setoid using (_⇒ₛ_)
+open import Data.Setoid.Unit using (⊤ₛ)
 open import Function using (_⟶ₛ_)
 open import Function.Construct.Constant using () renaming (function to Const)
 open import Function.Construct.Setoid using (_∙_)

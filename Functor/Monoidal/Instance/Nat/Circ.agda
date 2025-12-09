@@ -14,7 +14,7 @@ open import Category.Monoidal.Instance.Nat using (Nat,+,0)
 open import Categories.Category.Construction.Monoids using (Monoids)
 open import Categories.Category.Instance.Nat using (Nat; Nat-Cocartesian)
 open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
-open import Categories.Category.Instance.SingletonSet using (SingletonSetoid)
+open import Data.Setoid.Unit using (⊤ₛ)
 open import Categories.Category.Monoidal.Instance.Setoids using (Setoids-Cartesian)
 open import Categories.Category.Cartesian using (Cartesian)
 open Cartesian (Setoids-Cartesian {suc 0ℓ} {suc 0ℓ}) using (products)
@@ -54,7 +54,7 @@ module MultisetOf,++,[] = SymmetricMonoidalFunctor MultisetOf,++,[]
 
 open SymmetricMonoidalFunctor
 
-ε⇒ : SingletonSetoid ⟶ₛ Circuitₛ 0
+ε⇒ : ⊤ₛ ⟶ₛ Circuitₛ 0
 ε⇒ = mkCircuitₛ ∙ MultisetOf,++,[].ε
 
 open Cocartesian Nat-Cocartesian using (-+-)

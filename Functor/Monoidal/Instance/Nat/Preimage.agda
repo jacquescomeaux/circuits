@@ -4,7 +4,7 @@ module Functor.Monoidal.Instance.Nat.Preimage where
 
 open import Category.Monoidal.Instance.Nat using (Natop,+,0; Natop-Cartesian)
 open import Categories.Category.Instance.Nat using (Nat-Cocartesian)
-open import Categories.Category.Instance.SingletonSet using (SingletonSetoid)
+open import Data.Setoid.Unit using (⊤ₛ)
 open import Categories.NaturalTransformation using (NaturalTransformation; ntHelper)
 open import Categories.Category.Monoidal.Instance.Setoids using (Setoids-Cartesian)
 open import Categories.Category.BinaryProducts using (module BinaryProducts)
@@ -38,7 +38,7 @@ open import Relation.Binary.PropositionalEquality as ≡ using (_≡_; _≗_; mo
 open import Data.Bool.Base using (Bool)
 
 open Func
-Preimage-ε : SingletonSetoid {0ℓ} {0ℓ} ⟶ₛ Subsetₛ 0
+Preimage-ε : ⊤ₛ {0ℓ} {0ℓ} ⟶ₛ Subsetₛ 0
 to Preimage-ε x = []
 cong Preimage-ε x ()
 

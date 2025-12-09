@@ -14,7 +14,7 @@ open import Categories.Category.Cartesian using (Cartesian)
 open import Categories.Category.Cocartesian using (Cocartesian; BinaryCoproducts)
 open import Categories.Category.Instance.Nat using (Nat)
 open import Categories.Category.Instance.Nat using (Nat-Cocartesian)
-open import Categories.Category.Instance.SingletonSet using () renaming (SingletonSetoid to ⊤ₛ)
+open import Data.Setoid.Unit using (⊤ₛ)
 open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
 open import Categories.Category.Monoidal.Instance.Setoids using (Setoids-Cartesian)
 open import Categories.Category.Product using (_⁂_)
@@ -42,8 +42,6 @@ open import Function.Construct.Constant using () renaming (function to Const)
 open import Functor.Instance.Nat.Pull using (Pull; Pull-defs)
 open import Relation.Binary using (Setoid)
 open import Relation.Binary.PropositionalEquality as ≡ using (_≡_; _≗_; module ≡-Reasoning)
-
-module Setoids-× = SymmetricMonoidalCategory Setoids-×
 
 open Cartesian (Setoids-Cartesian {0ℓ} {0ℓ}) using (products)
 

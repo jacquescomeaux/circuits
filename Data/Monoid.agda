@@ -7,8 +7,6 @@ open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory
 open import Category.Instance.Setoids.SymmetricMonoidal {c} {ℓ} using (Setoids-×; ×-monoidal′)
 open import Categories.Object.Monoid using (Monoid; Monoid⇒)
 
-module Setoids-× = SymmetricMonoidalCategory Setoids-×
-
 import Algebra.Bundles as Alg
 
 open import Data.Setoid using (∣_∣)
@@ -20,7 +18,7 @@ open Func
 -- A monoid object in the (monoidal) category of setoids is just a monoid
 
 open import Function.Construct.Constant using () renaming (function to Const)
-open import Categories.Category.Instance.SingletonSet using () renaming (SingletonSetoid to ⊤ₛ)
+open import Data.Setoid.Unit using (⊤ₛ)
 
 opaque
   unfolding ×-monoidal′
