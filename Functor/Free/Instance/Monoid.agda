@@ -24,8 +24,6 @@ open import NaturalTransformation.Instance.ListAppend {c} {ℓ} using (++)
 open import Relation.Binary using (Setoid)
 open import Relation.Binary.PropositionalEquality as ≡ using (_≡_)
 
-module Setoids-× = SymmetricMonoidalCategory Setoids-×
-
 module ++ = NaturalTransformation ++
 module ⊤⇒[] = NaturalTransformation ⊤⇒[]
 
