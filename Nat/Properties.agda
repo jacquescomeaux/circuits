@@ -19,16 +19,15 @@ open import Categories.Object.Coproduct Nat using (Coproduct; IsCoproduct; IsCop
 open import Coeq Nat using (coequalizer-on-coproduct)
 open import FinMerge using (glue-iter; glue-unglue-once)
 open import FinMerge.Properties using (lemma₂; merge-unmerge; unmerge-merge)
-open import Util using (compare; less; equal; greater; _<_<_)
+open import FinMerge.Util using (compare; less; equal; greater)
 
 open Category Nat
-
 
 makeZeroCoequalizer : {B : ℕ} {f g : 0 ⇒ B} → Coequalizer f g
 makeZeroCoequalizer = record
     { arr = id
     ; isCoequalizer = record
-        { equality = λ()
+        { equality = λ ()
         ; coequalize = λ {_} {h} _ → h
         ; universal = λ _ → refl
         ; unique = λ h≈i∘id → Equiv.sym h≈i∘id
