@@ -1,6 +1,6 @@
 {-# OPTIONS --without-K --safe #-}
 
-open import Level using (Level; _⊔_; suc; 0ℓ)
+open import Level using (Level; _⊔_; suc)
 
 module Adjoint.Instance.List {ℓ : Level} where
 
