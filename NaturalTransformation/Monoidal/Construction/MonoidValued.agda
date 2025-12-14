@@ -14,26 +14,26 @@ open import Level using (Level)
 -- can be turned into a monoidal natural transformation
 -- between monoidal functors F′ G′ from 𝒞 to S
 
-module NaturalTransformation.Monoidal.Construction.FamilyOfMonoids
+module NaturalTransformation.Monoidal.Construction.MonoidValued
     {o o′ ℓ ℓ′ e e′ : Level}
     {𝒞 : Category o ℓ e}
-    {𝒞-+ : Cocartesian 𝒞}
+    (𝒞-+ : Cocartesian 𝒞)
     {S : MonoidalCategory o′ ℓ′ e′}
     (let module S = MonoidalCategory S)
-    (M N : Functor 𝒞 (Monoids S.monoidal))
+    {M N : Functor 𝒞 (Monoids S.monoidal)}
     (α : NaturalTransformation M N)
   where
 
 import Categories.Category.Monoidal.Reasoning as ⊗-Reasoning
 import Categories.Morphism.Reasoning as ⇒-Reasoning
 import Categories.Object.Monoid as MonoidObject
-import Functor.Monoidal.Construction.FamilyOfMonoids 𝒞-+ {S = S} as FamilyOfMonoids
+import Functor.Monoidal.Construction.MonoidValued 𝒞-+ {S = S} as FamilyOfMonoids
 
 open import Categories.Category using (module Definitions)
 open import Categories.Functor.Properties using ([_]-resp-square)
 open import Categories.NaturalTransformation.Monoidal using (module Lax)
 open import Data.Product using (_,_)
-open import Functor.Forgetful.Instance.Monoid S using (Forget)
+open import Functor.Forgetful.Instance.Monoid S.monoidal using (Forget)
 
 private
 

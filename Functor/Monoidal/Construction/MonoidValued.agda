@@ -11,7 +11,7 @@ open import Level using (Level; _⊔_)
 -- A functor from a cocartesian category 𝒞 to Monoids[S]
 -- can be turned into a monoidal functor from 𝒞 to S
 
-module Functor.Monoidal.Construction.FamilyOfMonoids
+module Functor.Monoidal.Construction.MonoidValued
     {o o′ ℓ ℓ′ e e′ : Level}
     {𝒞 : Category o ℓ e}
     (𝒞-+ : Cocartesian 𝒞)
@@ -33,7 +33,7 @@ open import Categories.Functor.Properties using ([_]-resp-square; [_]-resp-∘)
 open import Categories.Morphism using (_≅_)
 open import Categories.NaturalTransformation using (NaturalTransformation; ntHelper)
 open import Data.Product using (_,_)
-open import Functor.Forgetful.Instance.Monoid S using (Forget)
+open import Functor.Forgetful.Instance.Monoid S.monoidal using (Forget)
 
 private
 
