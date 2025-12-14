@@ -19,7 +19,7 @@ open Func
 
 open Hypergraph using (Multiset∘Edgeₛ)
 open Hypergraph
-  using (_≈_ ; mk≈ ; module Edge)
+  using (_≈_ ; mk≈ ; module Edge; edgesₛ)
   renaming
     ( Hypergraph to Circuit
     ; Hypergraphₛ to Circuitₛ

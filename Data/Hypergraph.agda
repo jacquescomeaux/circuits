@@ -79,4 +79,8 @@ Multiset∘Edgeₛ = ↭-setoid ∘ Edgeₛ
 
 mkHypergraphₛ : {n : ℕ} → Multiset∘Edgeₛ n ⟶ₛ Hypergraphₛ n
 mkHypergraphₛ .to = mkHypergraph
-mkHypergraphₛ {n} .cong = mk≈
+mkHypergraphₛ .cong = mk≈
+
+edgesₛ : {n : ℕ} → Hypergraphₛ n ⟶ₛ Multiset∘Edgeₛ n
+edgesₛ .to = Hypergraph.edges
+edgesₛ .cong = _≈_.↭-edges
