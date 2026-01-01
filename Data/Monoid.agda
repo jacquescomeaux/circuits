@@ -1,24 +1,25 @@
 {-# OPTIONS --without-K --safe #-}
 
 open import Level using (Level)
-module Data.Monoid {c ℓ : Level} where
 
-open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
-open import Category.Instance.Setoids.SymmetricMonoidal {c} {ℓ} using (Setoids-×; ×-monoidal′)
-open import Categories.Object.Monoid using (Monoid; Monoid⇒)
+module Data.Monoid {c ℓ : Level} where
 
 import Algebra.Bundles as Alg
 
+open import Algebra.Morphism using (IsMonoidHomomorphism)
+open import Categories.Object.Monoid using (Monoid; Monoid⇒)
+open import Category.Instance.Setoids.SymmetricMonoidal {c} {ℓ} using (Setoids-×; ×-monoidal′)
+open import Data.Product using (curry′; uncurry′; _,_; Σ)
 open import Data.Setoid using (∣_∣)
+open import Data.Setoid.Unit using (⊤ₛ)
+open import Function using (Func; _⟶ₛ_; _⟨$⟩_)
+open import Function.Construct.Constant using () renaming (function to Const)
+open import Function.Construct.Identity using () renaming (function to Id)
 open import Relation.Binary using (Setoid)
-open import Function using (Func)
-open import Data.Product using (curry′; uncurry′; _,_)
+
 open Func
 
 -- A monoid object in the (monoidal) category of setoids is just a monoid
-
-open import Function.Construct.Constant using () renaming (function to Const)
-open import Data.Setoid.Unit using (⊤ₛ)
 
 opaque
   unfolding ×-monoidal′
@@ -43,19 +44,57 @@ opaque
       open Monoid M renaming (Carrier to A)
       open Setoid A
 
-  fromMonoid : Alg.Monoid c ℓ → Monoid Setoids-×.monoidal
-  fromMonoid M = record
+module FromMonoid (M : Alg.Monoid c ℓ) where
+
+  open Alg.Monoid M
+  open Setoids-× using (_⊗₁_; _⊗₀_; _∘_; unit; module unitorˡ; module unitorʳ; module associator)
+
+  opaque
+
+    unfolding ×-monoidal′
+
+    μ : setoid ⊗₀ setoid ⟶ₛ setoid
+    μ .to = uncurry′ _∙_
+    μ .cong = uncurry′ ∙-cong
+
+    η : unit ⟶ₛ setoid
+    η = Const ⊤ₛ setoid ε
+
+  opaque
+
+    unfolding μ
+
+    μ-assoc
+        : {x : ∣ (setoid ⊗₀ setoid) ⊗₀ setoid ∣}
+        → μ ∘ μ ⊗₁ Id setoid ⟨$⟩ x
+        ≈ μ ∘ Id setoid ⊗₁ μ ∘ associator.from ⟨$⟩ x
+    μ-assoc {(x , y) , z} = assoc x y z
+
+    μ-identityˡ
+        : {x : ∣ unit ⊗₀ setoid ∣}
+        → unitorˡ.from ⟨$⟩ x
+        ≈ μ ∘ η ⊗₁ Id setoid ⟨$⟩ x
+    μ-identityˡ {_ , x} = sym (identityˡ x)
+
+    μ-identityʳ
+        : {x : ∣ setoid ⊗₀ unit ∣}
+        → unitorʳ.from ⟨$⟩ x
+        ≈ μ ∘ Id setoid ⊗₁ η ⟨$⟩ x
+    μ-identityʳ {x , _} = sym (identityʳ x)
+
+  fromMonoid : Monoid Setoids-×.monoidal
+  fromMonoid = record
       { Carrier = setoid
       ; isMonoid = record
-          { μ = record { to = uncurry′ _∙_ ; cong = uncurry′ ∙-cong }
-          ; η = Const ⊤ₛ setoid ε
-          ; assoc = λ { {(x , y) , z} → assoc x y z }
-          ; identityˡ = λ { {_ , x} → sym (identityˡ x) }
-          ; identityʳ = λ { {x , _} → sym (identityʳ x) }
+          { μ = μ
+          ; η = η
+          ; assoc = μ-assoc
+          ; identityˡ = μ-identityˡ
+          ; identityʳ = μ-identityʳ
           }
       }
-    where
-      open Alg.Monoid M
+
+open FromMonoid using (fromMonoid) public
 
 -- A morphism of monoids in the (monoidal) category of setoids is a monoid homomorphism
 
@@ -64,9 +103,6 @@ module  _ (M N : Monoid Setoids-×.monoidal) where
   module M = Alg.Monoid (toMonoid M)
   module N = Alg.Monoid (toMonoid N)
 
-  open import Data.Product using (Σ; _,_)
-  open import Function using (_⟶ₛ_)
-  open import Algebra.Morphism using (IsMonoidHomomorphism)
   open Monoid⇒
 
   opaque

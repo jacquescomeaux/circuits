@@ -3,19 +3,16 @@
 open import Level using (Level)
 module Data.CMonoid {c ℓ : Level} where
 
-open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
-open import Category.Instance.Setoids.SymmetricMonoidal {c} {ℓ} using (Setoids-×; ×-symmetric′)
-open import Object.Monoid.Commutative using (CommutativeMonoid; CommutativeMonoid⇒)
-open import Categories.Object.Monoid using (Monoid)
-
-open import Data.Monoid {c} {ℓ} using (toMonoid; fromMonoid; toMonoid⇒)
-
 import Algebra.Bundles as Alg
 
-open import Data.Setoid using (∣_∣)
-open import Relation.Binary using (Setoid)
-open import Function using (Func; _⟨$⟩_)
-open import Data.Product using (curry′; uncurry′; _,_)
+open import Algebra.Morphism using (IsMonoidHomomorphism)
+open import Categories.Object.Monoid using (Monoid)
+open import Category.Instance.Setoids.SymmetricMonoidal {c} {ℓ} using (Setoids-×; ×-symmetric′)
+open import Data.Monoid {c} {ℓ} using (toMonoid; fromMonoid; toMonoid⇒; module FromMonoid)
+open import Data.Product using (_,_; Σ)
+open import Function using (Func; _⟨$⟩_; _⟶ₛ_)
+open import Object.Monoid.Commutative using (CommutativeMonoid; CommutativeMonoid⇒)
+
 open Func
 
 -- A commutative monoid object in the (symmetric monoidal) category of setoids
@@ -37,9 +34,6 @@ toCMonoid M = record
       comm : (x y : M.Carrier) → x M.∙ y M.≈ y M.∙ x
       comm x y = commutative {x , y}
 
-open import Function.Construct.Constant using () renaming (function to Const)
-open import Data.Setoid.Unit using (⊤ₛ)
-
 fromCMonoid : Alg.CommutativeMonoid c ℓ → CommutativeMonoid Setoids-×.symmetric
 fromCMonoid M = record
     { M
@@ -53,7 +47,7 @@ fromCMonoid M = record
     module M = Monoid (fromMonoid monoid)
     open Setoids-× using (_≈_; _∘_; module braiding)
     opaque
-      unfolding toMonoid
+      unfolding FromMonoid.μ
       commutative : M.μ ≈ M.μ ∘ braiding.⇒.η _
       commutative {x , y} = comm x y
 
@@ -64,9 +58,6 @@ module  _ (M N : CommutativeMonoid Setoids-×.symmetric) where
   module M = Alg.CommutativeMonoid (toCMonoid M)
   module N = Alg.CommutativeMonoid (toCMonoid N)
 
-  open import Data.Product using (Σ; _,_)
-  open import Function using (_⟶ₛ_)
-  open import Algebra.Morphism using (IsMonoidHomomorphism)
   open CommutativeMonoid
   open CommutativeMonoid⇒
 

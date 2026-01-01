@@ -66,53 +66,51 @@ module _ {n : ℕ} where
 
 open System
 
-private
+module _ {n : ℕ} where
 
-  module _ {n : ℕ} where
+  open _≤_
 
-    open _≤_
+  ≤-refl : Reflexive (_≤_ {n})
+  ⇒S ≤-refl = Id _
+  ≗-fₛ (≤-refl {x}) _ _ = S.refl x
+  ≗-fₒ ≤-refl _ = ≋.refl
 
-    ≤-refl : Reflexive (_≤_ {n})
-    ⇒S ≤-refl = Id _
-    ≗-fₛ (≤-refl {x}) _ _ = S.refl x
-    ≗-fₒ ≤-refl _ = ≋.refl
+  ≡⇒≤ : _≡_ Rel.⇒ _≤_
+  ≡⇒≤ ≡.refl = ≤-refl
 
-    ≡⇒≤ : _≡_ Rel.⇒ _≤_
-    ≡⇒≤ ≡.refl = ≤-refl
+  ≤-trans : Transitive _≤_
+  ⇒S (≤-trans a b) = ⇒S b ∙ ⇒S a
+  ≗-fₛ (≤-trans {x} {y} {z} a b) i s = let open ≈-Reasoning (S z) in begin
+      ⇒S b ⟨$⟩ (⇒S a ⟨$⟩ (fₛ′ x i s)) ≈⟨ cong (⇒S b) (≗-fₛ a i s) ⟩
+      ⇒S b ⟨$⟩ (fₛ′ y i (⇒S a ⟨$⟩ s)) ≈⟨ ≗-fₛ b i (⇒S a ⟨$⟩ s) ⟩
+      fₛ′ z i (⇒S b ⟨$⟩ (⇒S a ⟨$⟩ s)) ∎
+  ≗-fₒ (≤-trans {x} {y} {z} a b) s = let open ≈-Reasoning (Values n) in begin
+      fₒ′ x s                       ≈⟨ ≗-fₒ a s ⟩
+      fₒ′ y (⇒S a ⟨$⟩ s)            ≈⟨ ≗-fₒ b (⇒S a ⟨$⟩ s) ⟩
+      fₒ′ z (⇒S b ⟨$⟩ (⇒S a ⟨$⟩ s)) ∎
 
-    ≤-trans : Transitive _≤_
-    ⇒S (≤-trans a b) = ⇒S b ∙ ⇒S a
-    ≗-fₛ (≤-trans {x} {y} {z} a b) i s = let open ≈-Reasoning (S z) in begin
-        ⇒S b ⟨$⟩ (⇒S a ⟨$⟩ (fₛ′ x i s)) ≈⟨ cong (⇒S b) (≗-fₛ a i s) ⟩
-        ⇒S b ⟨$⟩ (fₛ′ y i (⇒S a ⟨$⟩ s)) ≈⟨ ≗-fₛ b i (⇒S a ⟨$⟩ s) ⟩
-        fₛ′ z i (⇒S b ⟨$⟩ (⇒S a ⟨$⟩ s)) ∎
-    ≗-fₒ (≤-trans {x} {y} {z} a b) s = let open ≈-Reasoning (Values n) in begin
-        fₒ′ x s                       ≈⟨ ≗-fₒ a s ⟩
-        fₒ′ y (⇒S a ⟨$⟩ s)            ≈⟨ ≗-fₒ b (⇒S a ⟨$⟩ s) ⟩
-        fₒ′ z (⇒S b ⟨$⟩ (⇒S a ⟨$⟩ s)) ∎
+  variable
+    A B C : System n
 
-    variable
-      A B C : System n
+  _≈_ : Rel (A ≤ B) 0ℓ
+  _≈_ {A} {B} ≤₁ ≤₂ = ⇒S ≤₁ A⇒B.≈ ⇒S ≤₂
+    where
+      module A⇒B = Setoid (S A ⇒ₛ S B)
 
-    _≈_ : Rel (A ≤ B) 0ℓ
-    _≈_ {A} {B} ≤₁ ≤₂ = ⇒S ≤₁ A⇒B.≈ ⇒S ≤₂
-      where
-        module A⇒B = Setoid (S A ⇒ₛ S B)
+  open Rel.IsEquivalence
 
-    open Rel.IsEquivalence
+  ≈-isEquiv : Rel.IsEquivalence (_≈_ {A} {B})
+  ≈-isEquiv {B = B} .refl = S.refl B
+  ≈-isEquiv {B = B} .sym a = S.sym B a
+  ≈-isEquiv {B = B} .trans a b = S.trans B a b
 
-    ≈-isEquiv : Rel.IsEquivalence (_≈_ {A} {B})
-    ≈-isEquiv {B = B} .refl = S.refl B
-    ≈-isEquiv {B = B} .sym a = S.sym B a
-    ≈-isEquiv {B = B} .trans a b = S.trans B a b
-
-    ≤-resp-≈ : {f h : B ≤ C} {g i : A ≤ B} → f ≈ h → g ≈ i → ≤-trans g f ≈ ≤-trans i h
-    ≤-resp-≈ {_} {C} {_} {f} {h} {g} {i} f≈h g≈i {x} = begin
-        ⇒S f ⟨$⟩ (⇒S g ⟨$⟩ x) ≈⟨ f≈h ⟩
-        ⇒S h ⟨$⟩ (⇒S g ⟨$⟩ x) ≈⟨ cong (⇒S h) g≈i ⟩
-        ⇒S h ⟨$⟩ (⇒S i ⟨$⟩ x) ∎
-      where
-        open ≈-Reasoning (System.S C)
+  ≤-resp-≈ : {f h : B ≤ C} {g i : A ≤ B} → f ≈ h → g ≈ i → ≤-trans g f ≈ ≤-trans i h
+  ≤-resp-≈ {_} {C} {_} {f} {h} {g} {i} f≈h g≈i {x} = begin
+      ⇒S f ⟨$⟩ (⇒S g ⟨$⟩ x) ≈⟨ f≈h ⟩
+      ⇒S h ⟨$⟩ (⇒S g ⟨$⟩ x) ≈⟨ cong (⇒S h) g≈i ⟩
+      ⇒S h ⟨$⟩ (⇒S i ⟨$⟩ x) ∎
+    where
+      open ≈-Reasoning (System.S C)
 
 System-≤ : ℕ → Preorder (suc 0ℓ) (suc 0ℓ) ℓ
 System-≤ n = record

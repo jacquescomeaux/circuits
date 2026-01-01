@@ -1,110 +1,260 @@
 {-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --hidden-argument-puns #-}
 
 module Functor.Instance.Nat.System where
-
 
 open import Level using (suc; 0ℓ)
 
 open import Categories.Category.Instance.Nat using (Nat)
-open import Categories.Category.Instance.Setoids using (Setoids)
-open import Categories.Functor.Core using (Functor)
+open import Categories.Category using (Category)
+open import Categories.Category.Instance.Cats using (Cats)
+open import Categories.NaturalTransformation.NaturalIsomorphism using (_≃_; niHelper)
+open import Categories.Functor using (Functor; _∘F_) renaming (id to idF)
 open import Data.Circuit.Value using (Monoid)
-open import Data.Fin.Base using (Fin)
-open import Data.Nat.Base using (ℕ)
+open import Data.Fin using (Fin)
+open import Data.Nat using (ℕ)
 open import Data.Product.Base using (_,_; _×_)
-open import Data.System {suc 0ℓ} using (System; _≤_; Systemₛ)
-open import Data.System.Values Monoid using (module ≋)
-open import Data.Unit using (⊤; tt)
-open import Function.Base using (id; _∘_)
-open import Function.Bundles using (Func; _⟶ₛ_; _⟨$⟩_)
+open import Data.Setoid using (∣_∣)
+open import Data.System {suc 0ℓ} using (System; _≤_; Systemₛ; Systems; ≤-refl; ≤-trans; _≈_)
+open import Data.System.Values Monoid using (module ≋; module Object; Values; ≋-isEquiv)
+open import Relation.Binary using (Setoid)
+open import Function using (Func; _⟶ₛ_; _⟨$⟩_; _∘_; id)
 open import Function.Construct.Identity using () renaming (function to Id)
 open import Function.Construct.Setoid using (_∙_)
 open import Functor.Instance.Nat.Pull using (Pull)
 open import Functor.Instance.Nat.Push using (Push)
 open import Relation.Binary.PropositionalEquality as ≡ using (_≗_)
 
+open import Category.Instance.Setoids.SymmetricMonoidal {0ℓ} {0ℓ} using (Setoids-×)
+open import Category.Construction.CMonoids Setoids-×.symmetric using (CMonoids)
+open import Object.Monoid.Commutative Setoids-×.symmetric using (CommutativeMonoid; CommutativeMonoid⇒)
+
+open CommutativeMonoid⇒ using (arr)
+open Object using (Valuesₘ)
 open Func
 open Functor
 open _≤_
 
 private
-
   variable A B C : ℕ
 
-  opaque
-
-    map : (Fin A → Fin B) → System A → System B
-    map f X = let open System X in record
-        { S = S
-        ; fₛ = fₛ ∙ Pull.₁ f
-        ; fₒ = Push.₁ f ∙ fₒ
-        }
-
-    ≤-cong : (f : Fin A → Fin B) {X Y : System A} → Y ≤ X → map f Y ≤ map f X
-    ⇒S (≤-cong f x≤y) = ⇒S x≤y
-    ≗-fₛ (≤-cong f x≤y) = ≗-fₛ x≤y ∘ to (Pull.₁ f)
-    ≗-fₒ (≤-cong f x≤y) = cong (Push.₁ f) ∘ ≗-fₒ x≤y
-
-    System₁ : (Fin A → Fin B) → Systemₛ A ⟶ₛ Systemₛ B
-    to (System₁ f) = map f
-    cong (System₁ f) (x≤y , y≤x) = ≤-cong f x≤y , ≤-cong f y≤x
-
-  opaque
-
-    unfolding System₁
-
-    id-x≤x : {X : System A} → System₁ id ⟨$⟩ X ≤ X
-    ⇒S (id-x≤x) = Id _
-    ≗-fₛ (id-x≤x {_} {x}) i s = cong (System.fₛ x) Pull.identity
-    ≗-fₒ (id-x≤x {A} {x}) s = Push.identity
-
-    x≤id-x : {x : System A} → x ≤ System₁ id ⟨$⟩ x
-    ⇒S x≤id-x = Id _
-    ≗-fₛ (x≤id-x {A} {x}) i s = cong (System.fₛ x) (≋.sym Pull.identity)
-    ≗-fₒ (x≤id-x {A} {x}) s = ≋.sym Push.identity
-
-    System-homomorphism
-        : {f : Fin A → Fin B}
-          {g : Fin B → Fin C} 
-          {X : System A}
-        → System₁ (g ∘ f) ⟨$⟩ X ≤ System₁ g ⟨$⟩ (System₁ f ⟨$⟩ X)
-        × System₁ g ⟨$⟩ (System₁ f ⟨$⟩ X) ≤ System₁ (g ∘ f) ⟨$⟩ X
-    System-homomorphism {f = f} {g} {X} = left , right
-      where
-        open System X
-        left : map (g ∘ f) X ≤ map g (map f X)
-        left .⇒S = Id S
-        left .≗-fₛ i s = cong fₛ Pull.homomorphism
-        left .≗-fₒ s = Push.homomorphism
-        right : map g (map f X) ≤ map (g ∘ f) X
-        right .⇒S = Id S
-        right .≗-fₛ i s = cong fₛ (≋.sym Pull.homomorphism)
-        right .≗-fₒ s = ≋.sym Push.homomorphism
-
-    System-resp-≈
-        : {f g : Fin A → Fin B}
-        → f ≗ g
-        → {X : System A}
-        → System₁ f ⟨$⟩ X ≤ System₁ g ⟨$⟩ X
-        × System₁ g ⟨$⟩ X ≤ System₁ f ⟨$⟩ X
-    System-resp-≈ {A} {B} {f = f} {g} f≗g {X} = both f≗g , both (≡.sym ∘ f≗g)
-      where
-        open System X
-        both : {f g : Fin A → Fin B} → f ≗ g → map f X ≤ map g X
-        both f≗g .⇒S = Id S
-        both f≗g .≗-fₛ i s = cong fₛ (Pull.F-resp-≈ f≗g {i})
-        both {f} {g} f≗g .≗-fₒ s = Push.F-resp-≈ f≗g
+opaque
+  unfolding Valuesₘ ≋-isEquiv
+  map : (Fin A → Fin B) → System A → System B
+  map {A} {B} f X = let open System X in record
+      { S = S
+      ; fₛ = fₛ ∙ arr (Pull.₁ f)
+      ; fₒ = arr (Push.₁ f) ∙ fₒ
+      }
 
 opaque
-  unfolding System₁
-  Sys-defs : ⊤
-  Sys-defs = tt
+  unfolding map
+  open System
+  map-≤ : (f : Fin A → Fin B) {X Y : System A} → X ≤ Y → map f X ≤ map f Y
+  ⇒S (map-≤ f x≤y) = ⇒S x≤y
+  ≗-fₛ (map-≤ f x≤y) = ≗-fₛ x≤y ∘ to (arr (Pull.₁ f))
+  ≗-fₒ (map-≤ f x≤y) = cong (arr (Push.₁ f)) ∘ ≗-fₒ x≤y
 
-Sys : Functor Nat (Setoids (suc 0ℓ) (suc 0ℓ))
-Sys .F₀ = Systemₛ
-Sys .F₁ = System₁
-Sys .identity = id-x≤x , x≤id-x
-Sys .homomorphism {x = X} = System-homomorphism {X = X}
-Sys .F-resp-≈ = System-resp-≈
+opaque
+  unfolding map-≤
+  map-≤-refl
+      : (f : Fin A → Fin B)
+      → {X : System A}
+      → map-≤ f (≤-refl {A} {X}) ≈ ≤-refl
+  map-≤-refl f {X} = Setoid.refl (S (map f X))
+
+opaque
+  unfolding map-≤
+  map-≤-trans
+      : (f : Fin A → Fin B)
+      → {X Y Z : System A}
+      → {h : X ≤ Y}
+      → {g : Y ≤ Z}
+      → map-≤ f (≤-trans h g) ≈ ≤-trans (map-≤ f h) (map-≤ f g)
+  map-≤-trans f {Z = Z} = Setoid.refl (S (map f Z))
+
+opaque
+  unfolding map-≤
+  map-≈
+      : (f : Fin A → Fin B)
+      → {X Y : System A}
+      → {g h : X ≤ Y}
+      → h ≈ g
+      → map-≤ f h ≈ map-≤ f g
+  map-≈ f h≈g = h≈g
+
+Sys₁ : (Fin A → Fin B) → Functor (Systems A) (Systems B)
+Sys₁ {A} {B} f = record
+    { F₀ = map f
+    ; F₁ = λ C≤D → map-≤ f C≤D
+    ; identity = map-≤-refl f
+    ; homomorphism = map-≤-trans f
+    ; F-resp-≈ = map-≈ f
+    }
+
+opaque
+  unfolding map
+  map-id-≤ : (X : System A) → map id X ≤ X
+  map-id-≤ X .⇒S = Id (S X)
+  map-id-≤ X .≗-fₛ i s = cong (fₛ X) Pull.identity
+  map-id-≤ X .≗-fₒ s = Push.identity
+
+opaque
+  unfolding map
+  map-id-≥ : (X : System A) → X ≤ map id X
+  map-id-≥ X .⇒S = Id (S X)
+  map-id-≥ X .≗-fₛ i s = cong (fₛ X) (≋.sym Pull.identity)
+  map-id-≥ X .≗-fₒ s = ≋.sym Push.identity
+
+opaque
+  unfolding map-≤ map-id-≤
+  map-id-comm
+      : {X Y : System A}
+        (f : X ≤ Y)
+      → ≤-trans (map-≤ id f) (map-id-≤ Y) ≈ ≤-trans (map-id-≤ X) f
+  map-id-comm {Y} f = Setoid.refl (S Y)
+
+opaque
+
+  unfolding map-id-≤ map-id-≥
+
+  map-id-isoˡ
+      : (X : System A)
+      → ≤-trans (map-id-≤ X) (map-id-≥ X) ≈ ≤-refl
+  map-id-isoˡ X = Setoid.refl (S X)
+
+  map-id-isoʳ
+      : (X : System A)
+      → ≤-trans (map-id-≥ X) (map-id-≤ X) ≈ ≤-refl
+  map-id-isoʳ X = Setoid.refl (S X)
+
+Sys-identity : Sys₁ {A} id ≃ idF
+Sys-identity = niHelper record
+    { η = map-id-≤
+    ; η⁻¹ = map-id-≥
+    ; commute = map-id-comm
+    ; iso = λ X → record
+        { isoˡ = map-id-isoˡ X
+        ; isoʳ = map-id-isoʳ X
+        }
+    }
+
+opaque
+  unfolding map
+  map-∘-≤
+      : (f : Fin A → Fin B)
+        (g : Fin B → Fin C)
+        (X : System A)
+      → map (g ∘ f) X ≤ map g (map f X)
+  map-∘-≤ f g X .⇒S = Id (S X)
+  map-∘-≤ f g X .≗-fₛ i s = cong (fₛ X) Pull.homomorphism
+  map-∘-≤ f g X .≗-fₒ s = Push.homomorphism
+
+opaque
+  unfolding map
+  map-∘-≥
+      : (f : Fin A → Fin B)
+        (g : Fin B → Fin C)
+        (X : System A)
+      → map g (map f X) ≤ map (g ∘ f) X
+  map-∘-≥ f g X .⇒S = Id (S X)
+  map-∘-≥ f g X .≗-fₛ i s = cong (fₛ X) (≋.sym Pull.homomorphism)
+  map-∘-≥ f g X .≗-fₒ s = ≋.sym Push.homomorphism
+
+Sys-homo
+    : (f : Fin A → Fin B)
+      (g : Fin B → Fin C)
+    → Sys₁ (g ∘ f) ≃ Sys₁ g ∘F Sys₁ f
+Sys-homo {A} f g = niHelper record
+    { η = map-∘-≤ f g
+    ; η⁻¹ = map-∘-≥ f g
+    ; commute = map-∘-comm f g
+    ; iso = λ X → record
+        { isoˡ = isoˡ X
+        ; isoʳ = isoʳ X
+        }
+    }
+  where
+    opaque
+      unfolding map-∘-≤ map-≤
+      map-∘-comm
+          : (f : Fin A → Fin B)
+            (g : Fin B → Fin C)
+          → {X Y : System A}
+            (X≤Y : X ≤ Y)
+          → ≤-trans (map-≤ (g ∘ f) X≤Y) (map-∘-≤ f g Y)
+          ≈ ≤-trans (map-∘-≤ f g X) (map-≤ g (map-≤ f X≤Y))
+      map-∘-comm f g {Y} X≤Y = Setoid.refl (S Y)
+    module _ (X : System A) where
+      opaque
+        unfolding map-∘-≤ map-∘-≥
+        isoˡ : ≤-trans (map-∘-≤ f g X) (map-∘-≥ f g X) ≈ ≤-refl
+        isoˡ = Setoid.refl (S X)
+        isoʳ : ≤-trans (map-∘-≥ f g X) (map-∘-≤ f g X) ≈ ≤-refl
+        isoʳ = Setoid.refl (S X)
+
+
+module _ {f g : Fin A → Fin B} (f≗g : f ≗ g) (X : System A) where
+
+  opaque
+
+    unfolding map
+
+    map-cong-≤ : map f X ≤ map g X
+    map-cong-≤ .⇒S = Id (S X)
+    map-cong-≤ .≗-fₛ i s = cong (fₛ X) (Pull.F-resp-≈ f≗g)
+    map-cong-≤ .≗-fₒ s = Push.F-resp-≈ f≗g
+
+    map-cong-≥ : map g X ≤ map f X
+    map-cong-≥ .⇒S = Id (S X)
+    map-cong-≥ .≗-fₛ i s = cong (fₛ X) (Pull.F-resp-≈ (≡.sym ∘ f≗g))
+    map-cong-≥ .≗-fₒ s = Push.F-resp-≈ (≡.sym ∘ f≗g)
+
+opaque
+  unfolding map-≤ map-cong-≤
+  map-cong-comm
+      : {f g : Fin A → Fin B}
+        (f≗g : f ≗ g)
+        {X Y : System A}
+        (h : X ≤ Y)
+      → ≤-trans (map-≤ f h) (map-cong-≤ f≗g Y)
+      ≈ ≤-trans (map-cong-≤ f≗g X) (map-≤ g h)
+  map-cong-comm f≗g {Y} h = Setoid.refl (S Y)
+
+opaque
+
+  unfolding map-cong-≤
+
+  map-cong-isoˡ
+      : {f g : Fin A → Fin B}
+        (f≗g : f ≗ g)
+        (X : System A)
+      → ≤-trans (map-cong-≤ f≗g X) (map-cong-≥ f≗g X) ≈ ≤-refl
+  map-cong-isoˡ f≗g X = Setoid.refl (S X)
+
+  map-cong-isoʳ
+      : {f g : Fin A → Fin B}
+        (f≗g : f ≗ g)
+        (X : System A)
+      → ≤-trans (map-cong-≥ f≗g X) (map-cong-≤ f≗g X) ≈ ≤-refl
+  map-cong-isoʳ f≗g X = Setoid.refl (S X)
+
+Sys-resp-≈ : {f g : Fin A → Fin B} → f ≗ g → Sys₁ f ≃ Sys₁ g
+Sys-resp-≈ f≗g = niHelper record
+    { η = map-cong-≤ f≗g
+    ; η⁻¹ = map-cong-≥ f≗g
+    ; commute = map-cong-comm f≗g
+    ; iso = λ X → record
+        { isoˡ = map-cong-isoˡ f≗g X
+        ; isoʳ = map-cong-isoʳ f≗g X
+        }
+    }
+
+Sys : Functor Nat (Cats (suc 0ℓ) (suc 0ℓ) 0ℓ)
+Sys .F₀ = Systems
+Sys .F₁ = Sys₁
+Sys .identity = Sys-identity
+Sys .homomorphism = Sys-homo _ _
+Sys .F-resp-≈ = Sys-resp-≈
 
 module Sys = Functor Sys
