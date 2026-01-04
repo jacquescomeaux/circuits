@@ -24,35 +24,67 @@ record Monoidal {c ℓ e : Level} (P : Preorder c ℓ e) : Set (c ⊔ ℓ ⊔ e)
   open Preorder P
 
   field
-    ⊗ : PreorderHomomorphism (P ×ₚ P) P
     unit : Carrier
+    tensor : PreorderHomomorphism (P ×ₚ P) P
 
-  open PreorderHomomorphism ⊗
+  open PreorderHomomorphism tensor using (⟦_⟧)
+
+  _⊗_ : Carrier → Carrier → Carrier
+  _⊗_ x y = ⟦ x , y ⟧
+
+  infixr 10 _⊗_
 
   field
-    unitaryˡ-≲ : (x : Carrier) → ⟦ unit , x ⟧ ≲ x
-    unitaryˡ-≳ : (x : Carrier) → x ≲ ⟦ unit , x ⟧
-    unitaryʳ-≲ : (x : Carrier) → ⟦ x , unit ⟧ ≲ x
-    unitaryʳ-≳ : (x : Carrier) → x ≲ ⟦ x , unit ⟧
-    associative-≲ : (x y z : Carrier) → ⟦ ⟦ x , y ⟧ , z ⟧ ≲ ⟦ x , ⟦ y , z ⟧ ⟧
-    associative-≳ : (x y z : Carrier) → ⟦ x , ⟦ y , z ⟧ ⟧ ≲ ⟦ ⟦ x , y ⟧ , z ⟧
+    unitaryˡ-≲ : (x : Carrier) → unit ⊗ x ≲ x
+    unitaryˡ-≳ : (x : Carrier) → x ≲ unit ⊗ x
+    unitaryʳ-≲ : (x : Carrier) → x ⊗ unit ≲ x
+    unitaryʳ-≳ : (x : Carrier) → x ≲ x ⊗ unit
+    associative-≲ : (x y z : Carrier) → (x ⊗ y) ⊗ z ≲ x ⊗ (y ⊗ z)
+    associative-≳ : (x y z : Carrier) → x ⊗ (y ⊗ z) ≲ (x ⊗ y) ⊗ z
 
 record Symmetric {c ℓ e : Level} {P : Preorder c ℓ e} (M : Monoidal P) : Set (c ⊔ e) where
 
   open Monoidal M
   open Preorder P
-  open PreorderHomomorphism ⊗
+  open PreorderHomomorphism tensor
 
   field
     symmetric : (x y : Carrier) → ⟦ x , y ⟧ ≲ ⟦ y , x ⟧
 
 record MonoidalPreorder (c ℓ e : Level) : Set (suc (c ⊔ ℓ ⊔ e)) where
+
   field
     U : Preorder c ℓ e
     monoidal : Monoidal U
 
+  open Preorder U public
+  open Monoidal monoidal public
+
 record SymmetricMonoidalPreorder (c ℓ e : Level) : Set (suc (c ⊔ ℓ ⊔ e)) where
+
   field
     U : Preorder c ℓ e
     monoidal : Monoidal U
     symmetric : Symmetric monoidal
+
+  open Preorder U public
+  open Monoidal monoidal public
+  open Symmetric symmetric public
+
+record MonoidalMonotone
+    {c₁ c₂ ℓ₁ ℓ₂ e₁ e₂ : Level}
+    (P : MonoidalPreorder c₁ ℓ₁ e₁)
+    (Q : MonoidalPreorder c₂ ℓ₂ e₂)
+  : Set (c₁ ⊔ c₂ ⊔ ℓ₁ ⊔ ℓ₂ ⊔ e₁ ⊔ e₂) where
+
+  module P = MonoidalPreorder P
+  module Q = MonoidalPreorder Q
+
+  field
+    F : PreorderHomomorphism P.U Q.U
+
+  open PreorderHomomorphism F
+
+  field
+    ε : Q.unit Q.≲ ⟦ P.unit ⟧
+    ⊗-homo : (p₁ p₂ : P.Carrier) → ⟦ p₁ ⟧ Q.⊗ ⟦ p₂ ⟧ Q.≲ ⟦ p₁ P.⊗ p₂ ⟧
