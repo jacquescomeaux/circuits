@@ -18,7 +18,6 @@ open import Categories.Category.Instance.One using (One)
 open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
 open import Categories.Category.Cartesian SymMonCat using (Cartesian)
 open import Categories.Category.Cartesian.Bundle using (CartesianCategory)
-open import Categories.Functor.Monoidal.Properties using (idF-SymmetricMonoidal; ∘-SymmetricMonoidal)
 open import Categories.Category.BinaryProducts SymMonCat using (BinaryProducts)
 open import Categories.Functor.Monoidal.Construction.Product
   using ()

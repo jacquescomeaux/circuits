@@ -16,7 +16,7 @@ open import Relation.Binary.Core using (Rel)
 open import Categories.Category using (Category; _[_,_]; _[_∘_])
 open import Categories.Category.Helper using (categoryHelper)
 open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
-open import Categories.Functor.Monoidal.Properties using (idF-SymmetricMonoidal; ∘-SymmetricMonoidal)
+open import Categories.Functor.Monoidal.Symmetric.Properties using (idF-SymmetricMonoidal; ∘-SymmetricMonoidal)
 
 open SMF.Lax using (SymmetricMonoidalFunctor)
 open SMNI.Lax using (SymmetricMonoidalNaturalIsomorphism; id; isEquivalence)

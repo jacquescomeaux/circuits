@@ -16,8 +16,8 @@ open import Categories.NaturalTransformation.NaturalIsomorphism using (_≃_; ni
 open import Categories.NaturalTransformation.NaturalIsomorphism.Properties using (pointwise-iso)
 open import Categories.Object.Coproduct using (IsCoproduct; IsCoproduct⇒Coproduct; Coproduct)
 open import Categories.Object.Initial using (IsInitial)
-open import Data.Product.Base using (_,_) renaming (_×_ to _×′_)
-
+open import Data.Product using (_,_; swap) renaming (_×_ to _×′_)
+open import Function using () renaming (_∘_ to _∘′_)
 open import Category.Cocomplete.Finitely.Bundle using (FinitelyCocompleteCategory)
 open import Category.Instance.FinitelyCocompletes {o} {ℓ} {e} using (FinitelyCocompletes; FinitelyCocompletes-Cartesian; _×₁_)
 open import Functor.Exact using (IsRightExact; RightExactFunctor)
@@ -44,13 +44,48 @@ module _ (𝒞 : FinitelyCocompleteCategory o ℓ e) where
   private
     module -+- = Functor -+-
 
+  flip-IsInitial
+      : {(A , B) : 𝒞×𝒞.Obj}
+      → IsInitial 𝒞×𝒞.U (A , B)
+      → IsInitial 𝒞×𝒞.U (B , A)
+  flip-IsInitial isInitial = let open IsInitial isInitial in record
+      { ! = swap !
+      ; !-unique = swap ∘′ !-unique ∘′ swap
+      }
+
+  flip-IsCoproduct
+      : {(A₁ , A₂) (B₁ , B₂) (C₁ , C₂) : 𝒞×𝒞.Obj}
+        {(i₁-₁ , i₁-₂) : (A₁ ⇒ C₁) ×′ (A₂ ⇒ C₂)}
+        {(i₂-₁ , i₂-₂) : (B₁ ⇒ C₁) ×′ (B₂ ⇒ C₂)}
+      → IsCoproduct 𝒞×𝒞.U (i₁-₁ , i₁-₂) (i₂-₁ , i₂-₂)
+      → IsCoproduct 𝒞×𝒞.U (i₁-₂ , i₁-₁) (i₂-₂ , i₂-₁)
+  flip-IsCoproduct isCoproduct = let module + = IsCoproduct isCoproduct in record
+      { [_,_] = λ x y → swap (+.[ swap x , swap y ])
+      ; inject₁ = swap +.inject₁
+      ; inject₂ = swap +.inject₂
+      ; unique = λ x y → swap (+.unique (swap x) (swap y))
+      }
+
+  flip-IsCoequalizer
+      : {(A₁ , A₂) (B₁ , B₂) (C₁ , C₂) : 𝒞×𝒞.Obj}
+        {(f₁ , f₂) (g₁ , g₂) : (A₁ ⇒ B₁) ×′ (A₂ ⇒ B₂)}
+        {(h₁ , h₂) : (B₁ ⇒ C₁) ×′ (B₂ ⇒ C₂)}
+      → IsCoequalizer 𝒞×𝒞.U (f₁ , f₂) (g₁ , g₂) (h₁ , h₂)
+      → IsCoequalizer 𝒞×𝒞.U (f₂ , f₁) (g₂ , g₁) (h₂ , h₁)
+  flip-IsCoequalizer isCoeq = let open IsCoequalizer isCoeq in record
+      { equality = swap equality
+      ; coequalize = swap ∘′ coequalize ∘′ swap
+      ; universal = swap universal
+      ; unique = swap ∘′ unique ∘′ swap
+      }
+
   +-resp-⊥
       : {(A , B) : 𝒞×𝒞.Obj}
       → IsInitial 𝒞×𝒞.U (A , B)
       → IsInitial 𝒞.U (A + B)
   +-resp-⊥ {A , B} A,B-isInitial = record
       { ! = [ A-isInitial.! , B-isInitial.! ]
-      ; !-unique = λ { f → +-unique (sym (A-isInitial.!-unique (f ∘ i₁))) (sym (B-isInitial.!-unique (f ∘ i₂))) }
+      ; !-unique = λ f → +-unique (sym (A-isInitial.!-unique (f ∘ i₁))) (sym (B-isInitial.!-unique (f ∘ i₂)))
       }
     where
       open IsRightExact
@@ -209,7 +244,14 @@ module _ {𝒞 : FinitelyCocompleteCategory o ℓ e} where
   module x+y = RightExactFunctor -+-
 
   ↔-+- : 𝒞 × 𝒞 ⇒ 𝒞
-  ↔-+- = -+- ∘ Swap 𝒞 𝒞
+  ↔-+- = record
+      { F = flip-bifunctor 𝒞.-+-
+      ; isRightExact = record
+          { F-resp-⊥ = λ x → +-resp-⊥ 𝒞 (flip-IsInitial 𝒞 x)
+          ; F-resp-+ = λ x → +-resp-+ 𝒞 (flip-IsCoproduct 𝒞 x)
+          ; F-resp-coeq = λ x → (+-resp-coeq 𝒞 (flip-IsCoequalizer 𝒞 x))
+          }
+      }
   module y+x = RightExactFunctor ↔-+-
 
   [x+y]+z : (𝒞 × 𝒞) × 𝒞 ⇒ 𝒞
@@ -227,7 +269,6 @@ module _ {𝒞 : FinitelyCocompleteCategory o ℓ e} where
       module 𝒞×𝒞×𝒞 = FinitelyCocompleteCategory ((𝒞 × 𝒞) × 𝒞)
       open Morphism U using (_≅_; module ≅)
       module +-assoc {X} {Y} {Z} = _≅_ (≅.sym (+-assoc {X} {Y} {Z}))
-      open import Categories.Category.BinaryProducts using (BinaryProducts)
       open import Categories.Object.Duality 𝒞.U using (Coproduct⇒coProduct)
       op-binaryProducts : BinaryProducts op
       op-binaryProducts = record { product = Coproduct⇒coProduct coproduct }

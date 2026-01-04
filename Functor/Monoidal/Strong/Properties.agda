@@ -75,9 +75,6 @@ module Shorthands where
 open Shorthands
 open HomReasoning
 
-associativityᵢ : Fα {X} {Y} {Z} ∘ᵢ φ ∘ᵢ φ ⊗ᵢ idᵢ ≈ᵢ φ ∘ᵢ idᵢ ⊗ᵢ φ ∘ᵢ α
-associativityᵢ = ⌞ associativity ⌟
-
 associativity-inv : φ⇐ ⊗₁ id ∘ φ⇐ ∘ F₁ (C.α⇐ {X} {Y} {Z}) ≈ α⇐ ∘ id ⊗₁ φ⇐ ∘ φ⇐
 associativity-inv = begin
     φ⇐ ⊗₁ id ∘ φ⇐ ∘ F₁ C.α⇐   ≈⟨ sym-assoc ⟩
@@ -85,17 +82,11 @@ associativity-inv = begin
     (α⇐ ∘ id ⊗₁ φ⇐) ∘ φ⇐      ≈⟨ assoc ⟩
     α⇐ ∘ id ⊗₁ φ⇐ ∘ φ⇐        ∎
 
-unitaryˡᵢ : Fλ {X} ∘ᵢ φ ∘ᵢ ε ⊗ᵢ idᵢ ≈ᵢ λ-
-unitaryˡᵢ = ⌞ unitaryˡ ⌟
-
 unitaryˡ-inv : ε⇐ ⊗₁ id ∘ φ⇐ ∘ F₁ (C.λ⇐ {X}) ≈ λ⇐
 unitaryˡ-inv = begin
     ε⇐ ⊗₁ id ∘ φ⇐ ∘ F₁ C.λ⇐   ≈⟨ sym-assoc ⟩
     (ε⇐ ⊗₁ id ∘ φ⇐) ∘ F₁ C.λ⇐ ≈⟨ to-≈ unitaryˡᵢ ⟩
     λ⇐                        ∎
-
-unitaryʳᵢ : Fρ {X} ∘ᵢ φ ∘ᵢ idᵢ ⊗ᵢ ε ≈ᵢ ρ
-unitaryʳᵢ = ⌞ unitaryʳ ⌟
 
 unitaryʳ-inv : id ⊗₁ ε⇐ ∘ φ⇐ ∘ F₁ (C.ρ⇐ {X}) ≈ ρ⇐
 unitaryʳ-inv = begin
