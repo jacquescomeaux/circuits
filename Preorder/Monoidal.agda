@@ -83,7 +83,7 @@ record MonoidalMonotone
   field
     F : PreorderHomomorphism P.U Q.U
 
-  open PreorderHomomorphism F
+  open PreorderHomomorphism F public
 
   field
     ε : Q.unit Q.≲ ⟦ P.unit ⟧

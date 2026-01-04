@@ -24,27 +24,27 @@ module _ {c₁ c₂ ℓ₁ ℓ₂ e₁ e₂ : Level} {A : Preorder c₁ ℓ₁ e
 
   ≗-isEquivalence : IsEquivalence _≗_
   ≗-isEquivalence = record
-    { refl    = Eq.refl B
-    ; sym     = λ f≈g → Eq.sym B f≈g
-    ; trans   = λ f≈g g≈h → Eq.trans B f≈g g≈h
-    }
+      { refl = Eq.refl B
+      ; sym = λ f≈g → Eq.sym B f≈g
+      ; trans = λ f≈g g≈h → Eq.trans B f≈g g≈h
+      }
 
   module ≗ = IsEquivalence ≗-isEquivalence
 
 -- The category of preorders and monotone maps
 
-Preorders : ∀ c ℓ e → Category (suc (c ⊔ ℓ ⊔ e)) (c ⊔ ℓ ⊔ e) (c ⊔ ℓ)
+Preorders : (c ℓ e : Level) → Category (suc (c ⊔ ℓ ⊔ e)) (c ⊔ ℓ ⊔ e) (c ⊔ ℓ)
 Preorders c ℓ e = record
-  { Obj       = Preorder c ℓ e
-  ; _⇒_       = PreorderHomomorphism
-  ; _≈_       = _≗_
-  ; id        = λ {A} → Id.preorderHomomorphism A
-  ; _∘_       = λ f g → Comp.preorderHomomorphism g f
-  ; assoc     = λ {_ _ _ D} → Eq.refl D
-  ; sym-assoc = λ {_ _ _ D} → Eq.refl D
-  ; identityˡ = λ {_ B} → Eq.refl B
-  ; identityʳ = λ {_ B} → Eq.refl B
-  ; identity² = λ {A} → Eq.refl A
-  ; equiv     = ≗-isEquivalence
-  ; ∘-resp-≈  = λ {_ _ C _ h} f≈h g≈i → Eq.trans C f≈h (cong h g≈i)
-  }
+    { Obj = Preorder c ℓ e
+    ; _⇒_ = PreorderHomomorphism
+    ; _≈_ = _≗_
+    ; id  = λ {A} → Id.preorderHomomorphism A
+    ; _∘_ = λ f g → Comp.preorderHomomorphism g f
+    ; assoc = λ {_ _ _ D} → Eq.refl D
+    ; sym-assoc = λ {_ _ _ D} → Eq.refl D
+    ; identityˡ = λ {_ B} → Eq.refl B
+    ; identityʳ = λ {_ B} → Eq.refl B
+    ; identity² = λ {A} → Eq.refl A
+    ; equiv = ≗-isEquivalence
+    ; ∘-resp-≈ = λ {_ _ C _ h} f≈h g≈i → Eq.trans C f≈h (cong h g≈i)
+    }
