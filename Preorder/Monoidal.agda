@@ -67,6 +67,9 @@ record SymmetricMonoidalPreorder (c ℓ e : Level) : Set (suc (c ⊔ ℓ ⊔ e))
     monoidal : Monoidal U
     symmetric : Symmetric monoidal
 
+  monoidalPreorder : MonoidalPreorder c ℓ e
+  monoidalPreorder = record { monoidal = monoidal }
+
   open Preorder U public
   open Monoidal monoidal public
   open Symmetric symmetric public
@@ -77,8 +80,9 @@ record MonoidalMonotone
     (Q : MonoidalPreorder c₂ ℓ₂ e₂)
   : Set (c₁ ⊔ c₂ ⊔ ℓ₁ ⊔ ℓ₂ ⊔ e₁ ⊔ e₂) where
 
-  module P = MonoidalPreorder P
-  module Q = MonoidalPreorder Q
+  private
+    module P = MonoidalPreorder P
+    module Q = MonoidalPreorder Q
 
   field
     F : PreorderHomomorphism P.U Q.U
@@ -88,3 +92,18 @@ record MonoidalMonotone
   field
     ε : Q.unit Q.≲ ⟦ P.unit ⟧
     ⊗-homo : (p₁ p₂ : P.Carrier) → ⟦ p₁ ⟧ Q.⊗ ⟦ p₂ ⟧ Q.≲ ⟦ p₁ P.⊗ p₂ ⟧
+
+record SymmetricMonoidalMonotone
+    {c₁ c₂ ℓ₁ ℓ₂ e₁ e₂ : Level}
+    (P : SymmetricMonoidalPreorder c₁ ℓ₁ e₁)
+    (Q : SymmetricMonoidalPreorder c₂ ℓ₂ e₂)
+  : Set (c₁ ⊔ c₂ ⊔ ℓ₁ ⊔ ℓ₂ ⊔ e₁ ⊔ e₂) where
+
+  private
+    module P = SymmetricMonoidalPreorder P
+    module Q = SymmetricMonoidalPreorder Q
+
+  field
+    monoidalMonotone : MonoidalMonotone P.monoidalPreorder Q.monoidalPreorder
+
+  open MonoidalMonotone monoidalMonotone public

@@ -71,5 +71,5 @@ MonoidalPreorders c ℓ e = categoryHelper record
     ; ∘-resp-≈ = λ {_ _ C _ h} f≈h g≈i → Eq.trans C f≈h (cong h g≈i)
     }
   where
-    open MonoidalMonotone using (F; cong)
-    open MonoidalPreorder using (U; refl; module Eq)
+    open MonoidalMonotone using (cong)
+    open MonoidalPreorder using (refl; module Eq)
