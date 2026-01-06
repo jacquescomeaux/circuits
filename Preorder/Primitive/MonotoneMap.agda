@@ -18,14 +18,22 @@ record MonotoneMap {c₁ c₂ ℓ₁ ℓ₂ : Level} (P : Preorder c₁ ℓ₁) 
     map : P.Carrier → Q.Carrier
     mono : {x y : P.Carrier} → x P.≲ y → map x Q.≲ map y
 
+  private
+    module P′ = Isomorphism P
+    module Q′ = Isomorphism Q
+
+  map-resp-≅ : {x y : P.Carrier} → x P′.≅ y → map x Q′.≅ map y
+  map-resp-≅ x≅y = let open P′._≅_ x≅y in record
+      { from = mono from
+      ; to = mono to
+      }
+
 -- Pointwise isomorphism of monotone maps
 
 module _ {c₁ c₂ ℓ₁ ℓ₂ : Level} {P : Preorder c₁ ℓ₁} {Q : Preorder c₂ ℓ₂} where
 
   private
-    module P where
-      open Preorder P public
-      open Isomorphism P public
+    module P = Preorder P
     module Q = Isomorphism Q
 
   open MonotoneMap using (map)
@@ -54,12 +62,3 @@ module _ {c₁ c₂ ℓ₁ ℓ₂ : Level} {P : Preorder c₁ ℓ₁} {Q : Preor
       }
 
   module ≃ = IsEquivalence ≃-isEquivalence
-
-  map-resp-≅ : (f : MonotoneMap P Q) {x y : P.Carrier} → x P.≅ y → map f x Q.≅ map f y
-  map-resp-≅ f x≅y = record
-      { from = mono from
-      ; to = mono to
-      }
-    where
-      open P._≅_ x≅y
-      open MonotoneMap f

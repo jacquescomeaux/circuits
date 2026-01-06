@@ -7,7 +7,7 @@ open import Categories.Category.Helper using (categoryHelper)
 open import Function using (id; _∘_)
 open import Level using (Level; _⊔_; suc)
 open import Preorder.Primitive using (Preorder; module Isomorphism)
-open import Preorder.Primitive.MonotoneMap using (MonotoneMap; _≃_; ≃-isEquivalence; module ≃; map-resp-≅)
+open import Preorder.Primitive.MonotoneMap using (MonotoneMap; _≃_; ≃-isEquivalence; module ≃)
 
 -- The category of primitive preorders and monotone maps
 
@@ -39,7 +39,7 @@ private
         → compose f g ≃ compose h i
     compose-resp-≃ {C = C} {h = h} {g} f≃h g≃i x = ≅.trans (f≃h (map g x)) (map-resp-≅ h (g≃i x))
       where
-        open MonotoneMap using (map; mono)
+        open MonotoneMap using (map; mono; map-resp-≅)
         open Preorder C
         open Isomorphism C
 
