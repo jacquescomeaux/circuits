@@ -1,8 +1,8 @@
 {-# OPTIONS --without-K --safe #-}
 
-module Functor.Free.Instance.SymmetricMonoidalPreorder where
+module Functor.Free.Instance.SymmetricMonoidalPreorder.Lax where
 
-import Functor.Free.Instance.MonoidalPreorder as MP
+import Functor.Free.Instance.MonoidalPreorder.Lax as MP
 
 open import Categories.Category using (Category)
 open import Category.Instance.SymMonCat using (SymMonCat)
@@ -11,10 +11,11 @@ open import Categories.Functor using (Functor)
 open import Categories.Functor.Monoidal.Symmetric using () renaming (module Lax to Lax₁)
 open import Categories.Functor.Monoidal.Symmetric.Properties using (∘-SymmetricMonoidal)
 open import Categories.NaturalTransformation.NaturalIsomorphism.Monoidal.Symmetric using () renaming (module Lax to Lax₂)
-open import Category.Instance.SymMonPre.Primitive using (SymMonPre; _≃_; module ≃)
+open import Category.Instance.Preorder.Primitive.Monoidals.Symmetric.Lax using (SymMonPre; _≃_; module ≃)
 open import Data.Product using (_,_)
 open import Level using (Level)
-open import Preorder.Primitive.Monoidal using (MonoidalPreorder; SymmetricMonoidalPreorder; SymmetricMonoidalMonotone)
+open import Preorder.Primitive.Monoidal using (MonoidalPreorder; SymmetricMonoidalPreorder)
+open import Preorder.Primitive.MonotoneMap.Monoidal.Lax using (SymmetricMonoidalMonotone)
 
 open Lax₁ using (SymmetricMonoidalFunctor)
 open Lax₂ using (SymmetricMonoidalNaturalIsomorphism)

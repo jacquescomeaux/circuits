@@ -6,7 +6,7 @@ module Functor.Free.Instance.InducedSetoid where
 
 open import Categories.Category.Instance.Setoids using (Setoids)
 open import Categories.Functor using (Functor)
-open import Category.Instance.Preorders.Primitive using (Preorders)
+open import Category.Instance.Preorder.Primitive.Preorders using (Preorders)
 open import Function using (Func)
 open import Level using (Level)
 open import Preorder.Primitive using (Preorder; module Isomorphism)

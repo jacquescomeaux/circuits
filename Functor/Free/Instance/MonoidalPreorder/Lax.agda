@@ -1,6 +1,6 @@
 {-# OPTIONS --without-K --safe #-}
 
-module Functor.Free.Instance.MonoidalPreorder where
+module Functor.Free.Instance.MonoidalPreorder.Lax where
 
 import Categories.Category.Monoidal.Utilities as ⊗-Util
 
@@ -11,10 +11,11 @@ open import Categories.Functor using (Functor)
 open import Categories.Functor.Monoidal using (MonoidalFunctor)
 open import Categories.Functor.Monoidal.Properties using (∘-Monoidal)
 open import Categories.NaturalTransformation.NaturalIsomorphism.Monoidal using (module Lax)
-open import Category.Instance.MonoidalPreorders.Primitive using (MonoidalPreorders; _≃_; module ≃)
+open import Category.Instance.Preorder.Primitive.Monoidals.Lax using (_≃_; module ≃) renaming (Monoidals to Monoidalsₚ)
 open import Data.Product using (_,_)
 open import Level using (Level)
-open import Preorder.Primitive.Monoidal using (MonoidalPreorder; MonoidalMonotone)
+open import Preorder.Primitive.Monoidal using (MonoidalPreorder)
+open import Preorder.Primitive.MonotoneMap.Monoidal.Lax using (MonoidalMonotone)
 
 open Lax using (MonoidalNaturalIsomorphism)
  
@@ -61,7 +62,7 @@ module _ {o ℓ e : Level} where
         → monoidalMonotone F ≃ monoidalMonotone G
     pointwiseIsomorphism F≃G = Preorder.Free.F-resp-≈ (U F≃G)
 
-Free : {o ℓ e : Level} → Functor (Monoidals o ℓ e) (MonoidalPreorders o ℓ)
+Free : {o ℓ e : Level} → Functor (Monoidals o ℓ e) (Monoidalsₚ o ℓ)
 Free = record
     { F₀ = monoidalPreorder
     ; F₁ = monoidalMonotone
@@ -70,6 +71,6 @@ Free = record
     ; F-resp-≈ = pointwiseIsomorphism
     }
   where
-    open Category (MonoidalPreorders _ _) using (id)
+    open Category (Monoidalsₚ _ _) using (id)
 
 module Free {o ℓ e} = Functor (Free {o} {ℓ} {e})

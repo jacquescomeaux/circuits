@@ -31,7 +31,7 @@ module _ {c₁ c₂ ℓ₁ ℓ₂ e₁ e₂ : Level} {A : Preorder c₁ ℓ₁ e
 
   module ≗ = IsEquivalence ≗-isEquivalence
 
--- The category of preorders and monotone maps
+-- The category of preorders and preorder homomorphisms
 
 Preorders : (c ℓ e : Level) → Category (suc (c ⊔ ℓ ⊔ e)) (c ⊔ ℓ ⊔ e) (c ⊔ ℓ)
 Preorders c ℓ e = record

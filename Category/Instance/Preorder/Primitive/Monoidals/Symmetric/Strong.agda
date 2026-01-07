@@ -1,14 +1,15 @@
 {-# OPTIONS --without-K --safe #-}
 
-module Category.Instance.SymMonPre.Primitive where
+module Category.Instance.Preorder.Primitive.Monoidals.Symmetric.Strong where
 
-import Category.Instance.MonoidalPreorders.Primitive as MP using (_≃_; module ≃)
+import Category.Instance.Preorder.Primitive.Monoidals.Strong as MP using (_≃_; module ≃)
 
 open import Categories.Category using (Category)
 open import Categories.Category.Helper using (categoryHelper)
-open import Category.Instance.MonoidalPreorders.Primitive using (MonoidalPreorders)
+open import Category.Instance.Preorder.Primitive.Monoidals.Strong using (Monoidals)
 open import Level using (Level; suc; _⊔_)
-open import Preorder.Primitive.Monoidal using (SymmetricMonoidalPreorder; SymmetricMonoidalMonotone)
+open import Preorder.Primitive.Monoidal using (SymmetricMonoidalPreorder)
+open import Preorder.Primitive.MonotoneMap.Monoidal.Strong using (SymmetricMonoidalMonotone)
 open import Relation.Binary using (IsEquivalence)
 
 module _ {c₁ c₂ ℓ₁ ℓ₂ : Level} {A : SymmetricMonoidalPreorder c₁ ℓ₁} {B : SymmetricMonoidalPreorder c₂ ℓ₂} where
@@ -38,7 +39,7 @@ private
       }
     where
       open SymmetricMonoidalPreorder A using (monoidalPreorder)
-      open Category (MonoidalPreorders c ℓ) using (id)
+      open Category (Monoidals c ℓ) using (id)
 
   compose
       : {c ℓ : Level}
@@ -52,7 +53,7 @@ private
     where
       module G = SymmetricMonoidalMonotone G
       module F = SymmetricMonoidalMonotone F
-      open Category (MonoidalPreorders c ℓ) using (_∘_)
+      open Category (Monoidals c ℓ) using (_∘_)
 
   compose-resp-≃
       : {c ℓ : Level}
@@ -64,10 +65,10 @@ private
       → compose f g ≃ compose h i
   compose-resp-≃ {C = C} {f = f} {g} {h} {i} = ∘-resp-≈ {f = mM f} {mM g} {mM h} {mM i}
     where
-      open Category (MonoidalPreorders _ _)
+      open Category (Monoidals _ _)
       open SymmetricMonoidalMonotone using () renaming (monoidalMonotone to mM)
 
--- The category of symmetric monoidal preorders
+-- The category of symmetric monoidal preorders and strong symmetric monoidal monotone
 SymMonPre : (c ℓ : Level) → Category (suc (c ⊔ ℓ)) (c ⊔ ℓ) (c ⊔ ℓ)
 SymMonPre c ℓ = categoryHelper record
     { Obj = SymmetricMonoidalPreorder c ℓ

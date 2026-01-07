@@ -1,6 +1,6 @@
 {-# OPTIONS --without-K --safe #-}
 
-module Category.Instance.Preorders.Primitive where
+module Category.Instance.Preorder.Primitive.Preorders where
 
 open import Categories.Category using (Category)
 open import Categories.Category.Helper using (categoryHelper)
