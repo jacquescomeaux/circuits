@@ -1,24 +1,24 @@
 {-# OPTIONS --without-K --safe #-}
 
-module Functor.Free.Instance.SymmetricMonoidalPreorder.Lax where
+module Functor.Free.Instance.SymmetricMonoidalPreorder.Strong where
 
-import Functor.Free.Instance.MonoidalPreorder.Lax as MP
+import Functor.Free.Instance.MonoidalPreorder.Strong as MP
 
 open import Categories.Category using (Category)
-open import Category.Instance.SymMonCat using (module Lax)
+open import Category.Instance.SymMonCat using (module Strong)
 open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory)
 open import Categories.Functor using (Functor)
-open import Categories.Functor.Monoidal.Symmetric using () renaming (module Lax to Lax₁)
-open import Categories.Functor.Monoidal.Symmetric.Properties using (∘-SymmetricMonoidal)
-open import Categories.NaturalTransformation.NaturalIsomorphism.Monoidal.Symmetric using () renaming (module Lax to Lax₂)
-open import Category.Instance.Preorder.Primitive.Monoidals.Symmetric.Lax using (SymMonPre; _≃_; module ≃)
+open import Categories.Functor.Monoidal.Symmetric using () renaming (module Strong to Strong₁)
+open import Categories.Functor.Monoidal.Symmetric.Properties using (∘-StrongSymmetricMonoidal)
+open import Categories.NaturalTransformation.NaturalIsomorphism.Monoidal.Symmetric using () renaming (module Strong to Strong₂)
+open import Category.Instance.Preorder.Primitive.Monoidals.Symmetric.Strong using (SymMonPre; _≃_; module ≃)
 open import Data.Product using (_,_)
 open import Level using (Level)
 open import Preorder.Primitive.Monoidal using (MonoidalPreorder; SymmetricMonoidalPreorder)
-open import Preorder.Primitive.MonotoneMap.Monoidal.Lax using (SymmetricMonoidalMonotone)
+open import Preorder.Primitive.MonotoneMap.Monoidal.Strong using (SymmetricMonoidalMonotone)
 
-open Lax₁ using (SymmetricMonoidalFunctor)
-open Lax₂ using (SymmetricMonoidalNaturalIsomorphism)
+open Strong₁ using (SymmetricMonoidalFunctor)
+open Strong₂ using (SymmetricMonoidalNaturalIsomorphism)
  
 -- The free symmetric monoidal preorder of a symmetric monoidal category
 
@@ -54,12 +54,12 @@ module _ {o ℓ e : Level} where
         → symmetricMonoidalMonotone F ≃ symmetricMonoidalMonotone G
     pointwiseIsomorphism F≃G = MP.Free.F-resp-≈ ⌊ F≃G ⌋
 
-Free : {o ℓ e : Level} → Functor (Lax.SymMonCat {o} {ℓ} {e}) (SymMonPre o ℓ)
+Free : {o ℓ e : Level} → Functor (Strong.SymMonCat {o} {ℓ} {e}) (SymMonPre o ℓ)
 Free = record
     { F₀ = symmetricMonoidalPreorder
     ; F₁ = symmetricMonoidalMonotone
     ; identity = λ {A} → ≃.refl {A = symmetricMonoidalPreorder A} {x = id}
-    ; homomorphism = λ {f = f} {h} → ≃.refl {x = symmetricMonoidalMonotone (∘-SymmetricMonoidal h f)}
+    ; homomorphism = λ {f = f} {h} → ≃.refl {x = symmetricMonoidalMonotone (∘-StrongSymmetricMonoidal h f)}
     ; F-resp-≈ = pointwiseIsomorphism
     }
   where
