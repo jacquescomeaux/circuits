@@ -52,7 +52,7 @@ record Symmetric {c ℓ : Level} {P : Preorder c ℓ} (M : Monoidal P) : Set (c 
   open Preorder P
 
   field
-    symmetric : (x y : Carrier) → x ⊗ y ≲ y ⊗ x
+    symmetry : (x y : Carrier) → x ⊗ y ≲ y ⊗ x
 
 record MonoidalPreorder (c ℓ : Level) : Set (suc (c ⊔ ℓ)) where
 

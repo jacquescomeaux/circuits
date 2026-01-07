@@ -28,7 +28,7 @@ module _ {o ℓ e : Level} where
   symmetricMonoidalPreorder C = record
       { M
       ; symmetric = record
-          { symmetric = λ x y → braiding.⇒.η (x , y)
+          { symmetry = λ x y → braiding.⇒.η (x , y)
           }
       }
     where
