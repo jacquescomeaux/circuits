@@ -15,7 +15,7 @@ open import Data.Fin.Preimage using (preimage; preimage-cong₁)
 open import Data.Nat using (ℕ)
 open import Data.Setoid using (∣_∣; _⇒ₛ_)
 open import Data.Subset.Functional using (⁅_⁆)
-open import Data.System.Values Monoid using (Values; module Object; _⊕_; <ε>; _≋_; ≋-isEquiv; merge; push; merge-⊕; merge-<ε>; merge-cong; merge-⁅⁆; merge-push; merge-cong₂)
+open import Data.System.Values Monoid using (Values; module Object; _⊕_; <ε>; _≋_; ≋-isEquiv; merge; push; merge-⊕; merge-<ε>; merge-cong; merge-⁅⁆; merge-push; merge-cong₂; lookup)
 open import Function using (Func; _⟶ₛ_; _⟨$⟩_; _∘_; id)
 open import Function.Construct.Identity using () renaming (function to Id)
 open import Function.Construct.Setoid using (_∙_)
@@ -31,79 +31,79 @@ private
 
   variable A B C : ℕ
 
-  -- Push sends a natural number n to Values n
-  Push₀ : ℕ → CommutativeMonoid
-  Push₀ n = Valuesₘ n
+-- Push sends a natural number n to Values n
+Push₀ : ℕ → CommutativeMonoid
+Push₀ n = Valuesₘ n
 
-  -- action of Push on morphisms (covariant)
+-- action of Push on morphisms (covariant)
 
-  opaque
+opaque
 
-    unfolding Values
+  unfolding Values
 
-    open CommutativeMonoid using (Carrier)
-    open CommutativeMonoid⇒ using (arr)
+  open CommutativeMonoid using (Carrier)
+  open CommutativeMonoid⇒ using (arr)
 
-    -- setoid morphism
-    Pushₛ : (Fin A → Fin B) → Values A ⟶ₛ Values B
-    Pushₛ f .to v = merge v ∘ preimage f ∘ ⁅_⁆
-    Pushₛ f .cong x≗y i = merge-cong (preimage f ⁅ i ⁆) x≗y
+  -- setoid morphism
+  Pushₛ : (Fin A → Fin B) → Values A ⟶ₛ Values B
+  Pushₛ f .to v = merge v ∘ preimage f ∘ ⁅_⁆
+  Pushₛ f .cong x≗y i = merge-cong (preimage f ⁅ i ⁆) x≗y
 
-  opaque
+private opaque
 
-    unfolding Pushₛ _⊕_
+  unfolding Pushₛ _⊕_
 
-    Push-⊕
-        : (f : Fin A → Fin B)
-        → (xs ys : ∣ Values A ∣)
-        → Pushₛ f ⟨$⟩ (xs ⊕ ys)
-        ≋ (Pushₛ f ⟨$⟩ xs) ⊕ (Pushₛ f ⟨$⟩ ys)
-    Push-⊕ f xs ys i = merge-⊕ xs ys (preimage f ⁅ i ⁆)
+  Push-⊕
+      : (f : Fin A → Fin B)
+      → (xs ys : ∣ Values A ∣)
+      → Pushₛ f ⟨$⟩ (xs ⊕ ys)
+      ≋ (Pushₛ f ⟨$⟩ xs) ⊕ (Pushₛ f ⟨$⟩ ys)
+  Push-⊕ f xs ys i = merge-⊕ xs ys (preimage f ⁅ i ⁆)
 
-    Push-<ε>
-        : (f : Fin A → Fin B)
-        → Pushₛ f ⟨$⟩ <ε> ≋ <ε>
-    Push-<ε> f i = merge-<ε> (preimage f ⁅ i ⁆)
+  Push-<ε>
+      : (f : Fin A → Fin B)
+      → Pushₛ f ⟨$⟩ <ε> ≋ <ε>
+  Push-<ε> f i = merge-<ε> (preimage f ⁅ i ⁆)
 
-  opaque
+opaque
 
-    unfolding Push-⊕ ≋-isEquiv Valuesₘ
+  unfolding Valuesₘ ≋-isEquiv
 
-    -- monoid morphism
-    Pushₘ : (Fin A → Fin B) → CommutativeMonoid⇒ (Valuesₘ A) (Valuesₘ B)
-    Pushₘ f = record
-        { monoid⇒ = record
-            { arr = Pushₛ f
-            ; preserves-μ = Push-⊕ f _ _
-            ; preserves-η = Push-<ε> f
-            }
-        }
+  -- monoid morphism
+  Pushₘ : (Fin A → Fin B) → CommutativeMonoid⇒ (Valuesₘ A) (Valuesₘ B)
+  Pushₘ f = record
+      { monoid⇒ = record
+          { arr = Pushₛ f
+          ; preserves-μ = Push-⊕ f _ _
+          ; preserves-η = Push-<ε> f
+          }
+      }
 
-    -- Push respects identity
-    Push-identity
-      : (open Setoid (Carrier (Push₀ A) ⇒ₛ Carrier (Push₀ A)))
-      → arr (Pushₘ id) ≈ Id (Carrier (Push₀ A))
-    Push-identity {_} {v} i = merge-⁅⁆ v i
+private opaque
 
-  opaque
+  unfolding Pushₘ Pushₛ push lookup
 
-    unfolding Pushₘ push
+  -- Push respects identity
+  Push-identity
+    : (open Setoid (Carrier (Push₀ A) ⇒ₛ Carrier (Push₀ A)))
+    → arr (Pushₘ id) ≈ Id (Carrier (Push₀ A))
+  Push-identity {_} {v} i = merge-⁅⁆ v i
 
-    -- Push respects composition
-    Push-homomorphism
-        : {f : Fin A → Fin B}
-          {g : Fin B → Fin C}
-        → (open Setoid (Carrier (Push₀ A) ⇒ₛ Carrier (Push₀ C)))
-        → arr (Pushₘ (g ∘ f)) ≈ arr (Pushₘ g) ∙ arr (Pushₘ f)
-    Push-homomorphism {f = f} {g} {v} = merge-push f g v
+  -- Push respects composition
+  Push-homomorphism
+      : {f : Fin A → Fin B}
+        {g : Fin B → Fin C}
+      → (open Setoid (Carrier (Push₀ A) ⇒ₛ Carrier (Push₀ C)))
+      → arr (Pushₘ (g ∘ f)) ≈ arr (Pushₘ g) ∙ arr (Pushₘ f)
+  Push-homomorphism {f = f} {g} {v} = merge-push f g v
 
-    -- Push respects equality
-    Push-resp-≈
-        : {f g : Fin A → Fin B}
-        → f ≗ g
-        → (open Setoid (Carrier (Push₀ A) ⇒ₛ Carrier (Push₀ B)))
-        → arr (Pushₘ f) ≈ arr (Pushₘ g)
-    Push-resp-≈ f≗g {v} = merge-cong₂ v ∘ preimage-cong₁ f≗g ∘ ⁅_⁆
+  -- Push respects equality
+  Push-resp-≈
+      : {f g : Fin A → Fin B}
+      → f ≗ g
+      → (open Setoid (Carrier (Push₀ A) ⇒ₛ Carrier (Push₀ B)))
+      → arr (Pushₘ f) ≈ arr (Pushₘ g)
+  Push-resp-≈ f≗g {v} = merge-cong₂ v ∘ preimage-cong₁ f≗g ∘ ⁅_⁆
 
 -- the Push functor
 Push : Functor Nat CMonoids

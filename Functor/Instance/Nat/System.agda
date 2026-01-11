@@ -1,38 +1,61 @@
 {-# OPTIONS --without-K --safe #-}
 {-# OPTIONS --hidden-argument-puns #-}
+{-# OPTIONS --lossy-unification #-}
 
 module Functor.Instance.Nat.System where
 
 open import Level using (suc; 0ℓ)
 
-open import Categories.Category.Instance.Nat using (Nat)
+import Data.System.Monoidal {suc 0ℓ} as System-⊗
+import Categories.Morphism as Morphism
+import Functor.Free.Instance.SymmetricMonoidalPreorder.Strong as SymmetricMonoidalPreorder
+
+open import Category.Instance.Setoids.SymmetricMonoidal using (Setoids-×)
+
 open import Categories.Category using (Category)
 open import Categories.Category.Instance.Cats using (Cats)
-open import Categories.NaturalTransformation.NaturalIsomorphism using (_≃_; niHelper)
+open import Categories.Category.Instance.Monoidals using (StrongMonoidals)
+open import Categories.Category.Instance.Nat using (Nat)
+open import Categories.Category.Monoidal.Bundle using (MonoidalCategory; SymmetricMonoidalCategory)
+open import Categories.Category.Product using (_⁂_)
 open import Categories.Functor using (Functor; _∘F_) renaming (id to idF)
+open import Categories.Functor.Monoidal using (StrongMonoidalFunctor)
+open import Categories.Functor.Monoidal.Properties using (idF-StrongMonoidal; ∘-StrongMonoidal)
+open import Categories.Functor.Monoidal.Symmetric using () renaming (module Strong to Strong₃)
+open import Categories.Functor.Monoidal.Symmetric.Properties using (idF-StrongSymmetricMonoidal; ∘-StrongSymmetricMonoidal)
+open import Categories.NaturalTransformation.NaturalIsomorphism using (_≃_; niHelper; NaturalIsomorphism)
+open import Categories.NaturalTransformation.NaturalIsomorphism.Monoidal using () renaming (module Strong to Strong₂)
+open import Categories.NaturalTransformation.NaturalIsomorphism.Monoidal.Symmetric using () renaming (module Strong to Strong₄)
+open import Category.Construction.CMonoids (Setoids-×.symmetric {suc 0ℓ} {suc 0ℓ}) using (CMonoids)
+open import Category.Instance.SymMonCat using () renaming (module Strong to Strong₁)
 open import Data.Circuit.Value using (Monoid)
 open import Data.Fin using (Fin)
 open import Data.Nat using (ℕ)
-open import Data.Product.Base using (_,_; _×_)
+open import Data.Product using (_,_; _×_)
+open import Data.Product.Relation.Binary.Pointwise.NonDependent using (_×ₛ_)
 open import Data.Setoid using (∣_∣)
-open import Data.System {suc 0ℓ} using (System; _≤_; Systemₛ; Systems; ≤-refl; ≤-trans; _≈_)
+open import Data.Setoid.Unit using (⊤ₛ)
+open import Data.System {suc 0ℓ} using (System; _≤_; Systemₛ; Systems; ≤-refl; ≤-trans; _≈_; discrete)
+open import Data.System.Monoidal {suc 0ℓ} using (Systems-MC; Systems-SMC)
 open import Data.System.Values Monoid using (module ≋; module Object; Values; ≋-isEquiv)
-open import Relation.Binary using (Setoid)
 open import Function using (Func; _⟶ₛ_; _⟨$⟩_; _∘_; id)
 open import Function.Construct.Identity using () renaming (function to Id)
 open import Function.Construct.Setoid using (_∙_)
+open import Functor.Free.Instance.InducedCMonoid using (InducedCMonoid)
 open import Functor.Instance.Nat.Pull using (Pull)
 open import Functor.Instance.Nat.Push using (Push)
+open import Object.Monoid.Commutative (Setoids-×.symmetric {0ℓ} {0ℓ}) using (CommutativeMonoid; CommutativeMonoid⇒)
+open import Relation.Binary using (Setoid)
 open import Relation.Binary.PropositionalEquality as ≡ using (_≗_)
 
-open import Category.Instance.Setoids.SymmetricMonoidal {0ℓ} {0ℓ} using (Setoids-×)
-open import Category.Construction.CMonoids Setoids-×.symmetric using (CMonoids)
-open import Object.Monoid.Commutative Setoids-×.symmetric using (CommutativeMonoid; CommutativeMonoid⇒)
-
 open CommutativeMonoid⇒ using (arr)
-open Object using (Valuesₘ)
 open Func
 open Functor
+open Object using (Valuesₘ)
+open Strong₁ using (SymMonCat)
+open Strong₂ using (MonoidalNaturalIsomorphism)
+open Strong₃ using (SymmetricMonoidalFunctor)
+open Strong₄ using (SymmetricMonoidalNaturalIsomorphism)
 open _≤_
 
 private
@@ -250,11 +273,231 @@ Sys-resp-≈ f≗g = niHelper record
         }
     }
 
-Sys : Functor Nat (Cats (suc 0ℓ) (suc 0ℓ) 0ℓ)
-Sys .F₀ = Systems
-Sys .F₁ = Sys₁
-Sys .identity = Sys-identity
-Sys .homomorphism = Sys-homo _ _
-Sys .F-resp-≈ = Sys-resp-≈
+module NatCat where
 
-module Sys = Functor Sys
+  Sys : Functor Nat (Cats (suc 0ℓ) (suc 0ℓ) 0ℓ)
+  Sys .F₀ = Systems
+  Sys .F₁ = Sys₁
+  Sys .identity = Sys-identity
+  Sys .homomorphism = Sys-homo _ _
+  Sys .F-resp-≈ = Sys-resp-≈
+
+  module Sys = Functor Sys
+
+module NatMC where
+
+  module _ (f : Fin A → Fin B) where
+
+    module A = System-⊗ A
+    module B = System-⊗ B
+
+    open CommutativeMonoid⇒ (Push.₁ f)
+    open Morphism (Systems B) using (_≅_)
+
+    opaque
+      unfolding map
+      ε-≅ : discrete B ≅ map f (discrete A)
+      ε-≅ = record
+          -- other fields can be inferred
+          { from = record
+              { ⇒S = Id ⊤ₛ
+              ; ≗-fₒ = λ s → ≋.sym preserves-η
+              }
+          ; to = record
+              { ⇒S = Id ⊤ₛ
+              ; ≗-fₒ = λ s → preserves-η
+              }
+          }
+
+    opaque
+      unfolding map-≤
+      ⊗-homo-≃ : B.⊗ ∘F (Sys₁ f ⁂ Sys₁ f) ≃ Sys₁ f ∘F A.⊗
+      ⊗-homo-≃ = niHelper record
+          { η = λ (X , Y) → record
+              { ⇒S = Id (S X ×ₛ S Y)
+              ; ≗-fₛ = λ i s → Setoid.refl (S X ×ₛ S Y)
+              ; ≗-fₒ = λ (s₁ , s₂) → ≋.sym preserves-μ
+              }
+          ; η⁻¹ = λ (X , Y) → record
+              { ⇒S = Id (S X ×ₛ S Y)
+              ; ≗-fₛ = λ i s → Setoid.refl (S X ×ₛ S Y)
+              ; ≗-fₒ = λ s → preserves-μ
+              }
+          ; commute = λ { {_} {Z′ , Y′} _ → Setoid.refl (S Z′ ×ₛ S Y′) }
+          ; iso = λ (X , Y) → record
+              { isoˡ = Setoid.refl (S X ×ₛ S Y)
+              ; isoʳ = Setoid.refl (S X ×ₛ S Y)
+              }
+          }
+
+    private
+
+      module ε-≅ = _≅_ ε-≅
+      module ⊗-homo-≃ = NaturalIsomorphism ⊗-homo-≃
+      module A-MC = MonoidalCategory A.Systems-MC
+      module B-MC = MonoidalCategory B.Systems-MC
+
+      F : Functor (Systems A) (Systems B)
+      F = Sys₁ f
+
+      module F = Functor F
+
+    open B-MC using () renaming (_∘_ to _∘′_)
+
+    opaque
+
+      unfolding ⊗-homo-≃
+
+      associativity
+          : {X Y Z : System A}
+          → F.₁ A.Associator.assoc-≤
+          ∘′ ⊗-homo-≃.⇒.η (X A.⊗₀ Y , Z)
+          ∘′ ⊗-homo-≃.⇒.η (X , Y) B.⊗₁ B-MC.id
+          B-MC.≈ ⊗-homo-≃.⇒.η (X , Y A.⊗₀ Z)
+          ∘′ B-MC.id B.⊗₁ ⊗-homo-≃.⇒.η (Y , Z) 
+          ∘′ B.Associator.assoc-≤
+      associativity {X} {Y} {Z} = Setoid.refl (S X ×ₛ (S Y ×ₛ S Z))
+
+      unitaryˡ
+          : {X : System A}
+          →  F.₁ A.Unitors.⊗-discreteˡ-≤
+          ∘′ ⊗-homo-≃.⇒.η (A-MC.unit , X)
+          ∘′ ε-≅.from B.⊗₁ B-MC.id 
+          B-MC.≈ B-MC.unitorˡ.from
+      unitaryˡ {X} = Setoid.refl (S X)
+
+      unitaryʳ
+          : {X : System A}
+          →  F.₁ A.Unitors.⊗-discreteʳ-≤
+          ∘′ ⊗-homo-≃.⇒.η (X , discrete A)
+          ∘′ B-MC.id B.⊗₁ ε-≅.from
+          B-MC.≈ B-MC.unitorʳ.from
+      unitaryʳ {X} = Setoid.refl (S X)
+
+    Sys-MC₁ : StrongMonoidalFunctor (Systems-MC A) (Systems-MC B)
+    Sys-MC₁ = record
+        { F = Sys₁ f
+        ; isStrongMonoidal = record
+            { ε = ε-≅
+            ; ⊗-homo = ⊗-homo-≃
+            ; associativity = associativity
+            ; unitaryˡ = unitaryˡ
+            ; unitaryʳ = unitaryʳ
+            }
+        }
+
+  opaque
+    unfolding map-id-≤ ⊗-homo-≃
+    Sys-MC-identity : MonoidalNaturalIsomorphism (Sys-MC₁ id) (idF-StrongMonoidal (Systems-MC A))
+    Sys-MC-identity = record
+        { U = NatCat.Sys.identity
+        ; F⇒G-isMonoidal = record
+            { ε-compat = _
+            ; ⊗-homo-compat = λ {X Y} → Setoid.refl (S X ×ₛ S Y)
+            }
+        }
+
+  opaque
+    unfolding map-∘-≤ ⊗-homo-≃
+    Sys-MC-homomorphism
+        : {g : Fin B → Fin C}
+          {f : Fin A → Fin B}
+        → MonoidalNaturalIsomorphism (Sys-MC₁ (g ∘ f)) (∘-StrongMonoidal (Sys-MC₁ g) (Sys-MC₁ f))
+    Sys-MC-homomorphism = record
+        { U = NatCat.Sys.homomorphism
+        ; F⇒G-isMonoidal = record
+            { ε-compat = _
+            ; ⊗-homo-compat = λ {X Y} → Setoid.refl (S X ×ₛ S Y)
+            }
+        }
+
+  opaque
+    unfolding map-cong-≤ ⊗-homo-≃
+    Sys-MC-resp-≈
+        : {f g : Fin A → Fin B}
+        → f ≗ g
+        → MonoidalNaturalIsomorphism (Sys-MC₁ f) (Sys-MC₁ g)
+    Sys-MC-resp-≈ f≗g = record
+        { U = NatCat.Sys.F-resp-≈ f≗g
+        ; F⇒G-isMonoidal = record
+            { ε-compat = _
+            ; ⊗-homo-compat = λ {X Y} → Setoid.refl (S X ×ₛ S Y)
+            }
+        }
+
+  Sys : Functor Nat (StrongMonoidals (suc 0ℓ) (suc 0ℓ) 0ℓ)
+  Sys .F₀ = Systems-MC
+  Sys .F₁ = Sys-MC₁
+  Sys .identity = Sys-MC-identity
+  Sys .homomorphism = Sys-MC-homomorphism
+  Sys .F-resp-≈ = Sys-MC-resp-≈
+
+  module Sys = Functor Sys
+
+module NatSMC where
+
+  module _ (f : Fin A → Fin B) where
+
+    private
+
+      module A = System-⊗ A
+      module B = System-⊗ B
+      module A-SMC = SymmetricMonoidalCategory A.Systems-SMC
+      module B-SMC = SymmetricMonoidalCategory B.Systems-SMC
+
+      F : Functor (Systems A) (Systems B)
+      F = Sys₁ f
+
+      module F = Functor F
+
+      F-MF : StrongMonoidalFunctor (Systems-MC A) (Systems-MC B)
+      F-MF = NatMC.Sys.₁ f
+      module F-MF = StrongMonoidalFunctor F-MF
+
+    opaque
+      unfolding NatMC.⊗-homo-≃
+      σ-compat
+          : {X Y : System A}
+          → F.₁ (A-SMC.braiding.⇒.η (X , Y)) B-SMC.∘ F-MF.⊗-homo.⇒.η (X , Y)
+          B-SMC.≈ F-MF.⊗-homo.⇒.η (Y , X) B-SMC.∘ B-SMC.braiding.⇒.η (F.₀ X , F.₀ Y)
+      σ-compat {X} {Y} = Setoid.refl (S Y ×ₛ S X)
+
+    Sys-SMC₁ : SymmetricMonoidalFunctor (Systems-SMC A) (Systems-SMC B)
+    Sys-SMC₁ = record
+        { F-MF
+        ; isBraidedMonoidal = record
+            { F-MF
+            ; braiding-compat = σ-compat
+            }
+        }
+
+  Sys-SMC-identity : SymmetricMonoidalNaturalIsomorphism (Sys-SMC₁ id) (idF-StrongSymmetricMonoidal (Systems-SMC A))
+  Sys-SMC-identity = record { MonoidalNaturalIsomorphism NatMC.Sys.identity }
+
+  Sys-SMC-homomorphism
+      : {g : Fin B → Fin C}
+        {f : Fin A → Fin B}
+      → SymmetricMonoidalNaturalIsomorphism (Sys-SMC₁ (g ∘ f)) (∘-StrongSymmetricMonoidal (Sys-SMC₁ g) (Sys-SMC₁ f))
+  Sys-SMC-homomorphism = record { MonoidalNaturalIsomorphism NatMC.Sys.homomorphism }
+
+  Sys-SMC-resp-≈
+      : {f g : Fin A → Fin B}
+      → f ≗ g
+      → SymmetricMonoidalNaturalIsomorphism (Sys-SMC₁ f) (Sys-SMC₁ g)
+  Sys-SMC-resp-≈ f≗g = record { MonoidalNaturalIsomorphism (NatMC.Sys.F-resp-≈ f≗g) }
+
+  Sys : Functor Nat (SymMonCat {suc 0ℓ} {suc 0ℓ} {0ℓ})
+  Sys .F₀ = Systems-SMC
+  Sys .F₁ = Sys-SMC₁
+  Sys .identity = Sys-SMC-identity
+  Sys .homomorphism = Sys-SMC-homomorphism
+  Sys .F-resp-≈ = Sys-SMC-resp-≈
+
+  module Sys = Functor Sys
+
+module NatCMon where
+
+  Sys : Functor Nat CMonoids
+  Sys = InducedCMonoid ∘F SymmetricMonoidalPreorder.Free ∘F NatSMC.Sys
+
+  module Sys = Functor Sys
