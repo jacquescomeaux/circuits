@@ -6,10 +6,10 @@ open import Categories.Category.Monoidal.Bundle using (SymmetricMonoidalCategory
 open import Categories.Category.Cocartesian using (Cocartesian)
 
 module Functor.Instance.CMonoidalize
-    {o o′ ℓ ℓ′ e e ′ : Level}
+    {o o′ ℓ ℓ′ e e′ : Level}
     {C : Category o ℓ e}
     (cocartesian : Cocartesian C)
-    (D : SymmetricMonoidalCategory o ℓ e)
+    (D : SymmetricMonoidalCategory o′ ℓ′ e′)
   where
 
 open import Categories.Category.Cocartesian using (module CocartesianSymmetricMonoidal)

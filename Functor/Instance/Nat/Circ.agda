@@ -10,6 +10,7 @@ open import Categories.Category.Instance.Nat using (Nat)
 open import Categories.Functor using (Functor; _∘F_)
 open import Categories.Morphism.Notation using (_[_≅_])
 open import Category.Instance.Setoids.SymmetricMonoidal {ℓ} {ℓ} using (Setoids-×)
+open import Categories.NaturalTransformation.NaturalIsomorphism using (_≃_)
 open import Data.Circuit using (mk≈)
 open import Data.Circuit {ℓ} using (Circuitₛ; mkCircuitₛ; edgesₛ)
 open import Data.Circuit.Gate using (Gates)
@@ -54,3 +55,6 @@ Edges≅Circₘ n = proj₂ (Edges≅ n)
 
 Circ : Functor Nat CMonoids
 Circ = proj₁ (define-by-pw-iso Edges Circuitₘ Edges≅Circₘ)
+
+Edges≃Circ : Edges ≃ Circ
+Edges≃Circ = proj₂ (define-by-pw-iso Edges Circuitₘ Edges≅Circₘ)
