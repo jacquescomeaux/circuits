@@ -9,7 +9,8 @@ import Categories.Morphism.Reasoning as ⇒-Reasoning
 import Categories.NaturalTransformation.NaturalIsomorphism.Monoidal.Symmetric as SMNI
 import Categories.Functor.Monoidal.Symmetric {o} {o} {ℓ} {ℓ} {e} {e} as SMF
 
-open import Category.Instance.SymMonCat {o} {ℓ} {e} using (SymMonCat)
+open import Category.Instance.SymMonCat {o} {ℓ} {e} using (module Lax)
+open Lax using (SymMonCat)
 
 open import Categories.Category using (Category; _[_≈_]; _[_∘_])
 open import Categories.Object.Product.Core SymMonCat using (Product)

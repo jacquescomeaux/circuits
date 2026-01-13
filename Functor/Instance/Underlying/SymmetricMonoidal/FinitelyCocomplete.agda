@@ -26,12 +26,14 @@ open import Data.Product.Base using (_,_)
 
 open import Category.Instance.FinitelyCocompletes {o} {ℓ} {e} using (FinitelyCocompletes)
 open import Category.Cocomplete.Finitely.Bundle using (FinitelyCocompleteCategory)
-open import Category.Instance.SymMonCat {o} {ℓ} {e} using (SymMonCat)
+open import Category.Instance.SymMonCat {o} {ℓ} {e} using () renaming (module Lax to Lax′)
 open import Functor.Exact using (RightExactFunctor; idREF; ∘-RightExactFunctor)
 
 open FinitelyCocompleteCategory using () renaming (symmetricMonoidalCategory to smc)
 open SymmetricMonoidalCategory using (unit) renaming (braidedMonoidalCategory to bmc)
 open BraidedMonoidalCategory using () renaming (monoidalCategory to mc)
+
+open Lax′ using (SymMonCat)
 
 private
   variable
