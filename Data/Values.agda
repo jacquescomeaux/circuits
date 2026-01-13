@@ -3,7 +3,7 @@
 open import Algebra.Bundles using (CommutativeMonoid)
 open import Level using (0ℓ)
 
-module Data.System.Values (A : CommutativeMonoid 0ℓ 0ℓ) where
+module Data.Values (A : CommutativeMonoid 0ℓ 0ℓ) where
 
 open import Category.Instance.Setoids.SymmetricMonoidal {0ℓ} {0ℓ} using (Setoids-×)
 
