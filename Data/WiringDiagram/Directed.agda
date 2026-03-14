@@ -17,7 +17,9 @@ import Categories.Morphism.Reasoning as ⇒-Reasoning
 open import Categories.Category.Helper using (categoryHelper)
 open import Categories.Category.Monoidal using (Monoidal)
 open import Categories.Category.Monoidal.Utilities using (module Shorthands)
-open import Data.WiringDiagram.Core S using (Box; WiringDiagram; _≈-⧈_; _□_; _⧈_; _⌸_; id-⧈; _⌻_; ≈-isEquiv)
+open import Categories.Functor.Bifunctor using (Bifunctor)
+open import Data.Product using (_,_)
+open import Data.WiringDiagram.Core S using (Box; WiringDiagram; _≈-⧈_; _□_; _⧈_; _⌸_; id-⧈; _⌻_; ≈-isEquiv; pulsh)
 
 open Category 𝒞
 open IdempotentSemiadditiveDagger S
@@ -182,3 +184,37 @@ DWD = categoryHelper record
     ; equiv = ≈-isEquiv
     ; ∘-resp-≈ = ⌻-resp-≈
     }
+
+-- Every pair of morphisms in 𝒞 gives a wiring diagram
+Pulsh : Bifunctor op 𝒞 DWD
+Pulsh = record
+    { F₀ = λ (A , B) → A □ B
+    ; F₁ = λ (f , g) → pulsh f g
+    ; identity = elimˡ Equiv.refl ⌸ Equiv.refl
+    ; homomorphism = λ { {A} {B} {C} {f , g} {f′ , g′} → homoᵢ g g′ f f′ ⌸ Equiv.refl }
+    ; F-resp-≈ = λ (f≈f′ , g≈g′) → (f≈f′ ⟩∘⟨refl) ⌸ g≈g′
+    }
+  where
+    open ⇒-Reasoning 𝒞
+    open ⊗-Reasoning +-monoidal
+    homoᵢ : {A B C D E F : Obj} (g : A ⇒ B) (g′ : B ⇒ C) (f : E ⇒ F) (f′ : D ⇒ E)
+        → (f ∘ f′) ∘ p₂
+        ≈ (f ∘ p₂) ∘ (id ⊕₁ ((f′ ∘ p₂) ∘ g ⊕₁ id)) ∘ α⇒ ∘ (△ ⊕₁ id)
+    homoᵢ g g′ f f′ = begin
+        (f ∘ f′) ∘ p₂                                                     ≈⟨ refl⟩∘⟨ p₂-⊕ ⟩
+        (f ∘ f′) ∘ λ⇒ ∘ ! ⊕₁ id                                           ≈⟨ refl⟩∘⟨ refl⟩∘⟨ insertˡ p₁∘△ ⟩⊗⟨refl  ⟩
+        (f ∘ f′) ∘ λ⇒ ∘ (p₁ ∘ △ ∘ !) ⊕₁ id                                ≈⟨ refl⟩∘⟨ refl⟩∘⟨ (ρ⇒≈p₁ ⟩∘⟨refl) ⟩⊗⟨refl ⟨
+        (f ∘ f′) ∘ λ⇒ ∘ (ρ⇒ ∘ △ ∘ !) ⊕₁ id                                ≈⟨ refl⟩∘⟨ refl⟩∘⟨ (refl⟩∘⟨ ⇒△) ⟩⊗⟨refl ⟩
+        (f ∘ f′) ∘ λ⇒ ∘ (ρ⇒ ∘ ! ⊕₁ ! ∘ △) ⊕₁ id                           ≈⟨ refl⟩∘⟨ refl⟩∘⟨ split₁ʳ ⟩
+        (f ∘ f′) ∘ λ⇒ ∘ ρ⇒ ⊕₁ id ∘ (! ⊕₁ ! ∘ △) ⊕₁ id                     ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ split₁ʳ ⟩
+        (f ∘ f′) ∘ λ⇒ ∘ ρ⇒ ⊕₁ id ∘ (! ⊕₁ !) ⊕₁ id ∘ △ ⊕₁ id               ≈⟨ refl⟩∘⟨ refl⟩∘⟨ pushˡ (Equiv.sym triangle) ⟩
+        (f ∘ f′) ∘ λ⇒ ∘ id ⊕₁ λ⇒ ∘ α⇒ ∘ (! ⊕₁ !) ⊕₁ id ∘ △ ⊕₁ id          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ extendʳ assoc-commute-from ⟩
+        (f ∘ f′) ∘ λ⇒ ∘ id ⊕₁ λ⇒ ∘ ! ⊕₁ ! ⊕₁ id ∘ α⇒ ∘ (△ ⊕₁ id)          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ pullˡ merge₂ˡ ⟩
+        (f ∘ f′) ∘ λ⇒ ∘ ! ⊕₁ (λ⇒ ∘ ! ⊕₁ id) ∘ α⇒ ∘ (△ ⊕₁ id)              ≈⟨ pullʳ (extendʳ (Equiv.sym unitorˡ-commute-from)) ⟩
+        f ∘ λ⇒ ∘ id ⊕₁ f′ ∘ ! ⊕₁ (λ⇒ ∘ ! ⊕₁ id) ∘ α⇒ ∘ (△ ⊕₁ id)          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ pullˡ merge₂ˡ ⟩
+        f ∘ λ⇒ ∘ ! ⊕₁ (f′ ∘ λ⇒ ∘ ! ⊕₁ id) ∘ α⇒ ∘ (△ ⊕₁ id)                ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩⊗⟨ (refl⟩∘⟨ refl⟩∘⟨ ⇒! ⟩⊗⟨refl) ⟩∘⟨refl ⟨
+        f ∘ λ⇒ ∘ ! ⊕₁ (f′ ∘ λ⇒ ∘ (! ∘ g) ⊕₁ id) ∘ α⇒ ∘ (△ ⊕₁ id)          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩⊗⟨ (refl⟩∘⟨ pushʳ split₁ˡ) ⟩∘⟨refl ⟩
+        f ∘ λ⇒ ∘ ! ⊕₁ (f′ ∘ (λ⇒ ∘ ! ⊕₁ id) ∘ g ⊕₁ id) ∘ α⇒ ∘ (△ ⊕₁ id)    ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩⊗⟨ pushˡ (refl⟩∘⟨ p₂-⊕) ⟩∘⟨refl ⟨
+        f ∘ λ⇒ ∘ ! ⊕₁ ((f′ ∘ p₂) ∘ g ⊕₁ id) ∘ α⇒ ∘ (△ ⊕₁ id)              ≈⟨ refl⟩∘⟨ refl⟩∘⟨ pushˡ serialize₁₂ ⟩
+        f ∘ λ⇒ ∘ ! ⊕₁ id ∘ (id ⊕₁ ((f′ ∘ p₂) ∘ g ⊕₁ id)) ∘ α⇒ ∘ (△ ⊕₁ id) ≈⟨ pushʳ (pullˡ (Equiv.sym p₂-⊕)) ⟩
+        (f ∘ p₂) ∘ (id ⊕₁ ((f′ ∘ p₂) ∘ g ⊕₁ id)) ∘ α⇒ ∘ (△ ⊕₁ id)         ∎

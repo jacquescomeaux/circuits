@@ -14,7 +14,7 @@ open import Categories.Category.Monoidal.Utilities using (module Shorthands)
 open import Relation.Binary using (IsEquivalence)
 
 open Category 𝒞 using (Obj; _∘_; _⇒_; id; _≈_; module Equiv)
-open IdempotentSemiadditiveDagger S using (_⊕₀_; _⊕₁_; p₂; +-monoidal; △; ▽)
+open IdempotentSemiadditiveDagger S using (_⊕₀_; _⊕₁_; p₂; +-monoidal; △; ▽; _†)
 open Shorthands +-monoidal using (α⇒)
 
 -- A "Box" is a pair of objects from the underlying category,
@@ -125,6 +125,22 @@ _⌻_ {Aᵢ □ Aₒ} {Bᵢ □ Bₒ} {Cᵢ □ Cₒ} (f′ ⧈ g′) (f ⧈ g) 
 
 infixr 9 _⌻_
 
--- The loop wiring diagram
+-- Special wiring diagrams
+
 loop : {A : Obj} → WiringDiagram (A □ A) (A □ A)
 loop = ▽ ⧈ id
+
+pulsh : {A B C D : Obj} → A ⇒ B → C ⇒ D → WiringDiagram (B □ C) (A □ D)
+pulsh f g = f ∘ p₂ ⧈ g
+
+push : {A B : Obj} → A ⇒ B → WiringDiagram (A □ A) (B □ B)
+push f = pulsh (f †) f
+
+pull : {A B : Obj} → A ⇒ B → WiringDiagram (B □ B) (A □ A)
+pull f = pulsh f (f †)
+
+merge : {A B : Obj} → A ⇒ B → WiringDiagram (A □ A) (B □ B)
+merge f = f † ∘ ▽ ∘ f ⊕₁ id ⧈ f
+
+split : {A B : Obj} → A ⇒ B → WiringDiagram (B □ B) (A □ A)
+split f = ▽ ∘ id ⊕₁ f ⧈ f †
