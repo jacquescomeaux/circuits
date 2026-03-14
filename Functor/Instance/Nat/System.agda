@@ -35,8 +35,7 @@ open import Data.Product using (_,_; _×_)
 open import Data.Product.Relation.Binary.Pointwise.NonDependent using (_×ₛ_)
 open import Data.Setoid using (∣_∣)
 open import Data.Setoid.Unit using (⊤ₛ)
-open import Data.System {suc 0ℓ} using (System; _≤_; Systemₛ; Systems; ≤-refl; ≤-trans; _≈_; discrete)
-open import Data.System.Monoidal {suc 0ℓ} using (Systems-MC; Systems-SMC)
+open import Data.System {suc 0ℓ} using (System; _≤_; _≈_; Systems[_,_]; ≤-refl; ≤-trans; discrete; Systems-MC; Systems-SMC)
 open import Data.Values Monoid using (module ≋; module Object; Values; ≋-isEquiv)
 open import Function using (Func; _⟶ₛ_; _⟨$⟩_; _∘_; id)
 open import Function.Construct.Identity using () renaming (function to Id)
@@ -63,7 +62,7 @@ private
 
 opaque
   unfolding Valuesₘ ≋-isEquiv
-  map : (Fin A → Fin B) → System A → System B
+  map : (Fin A → Fin B) → System A A → System B B
   map {A} {B} f X = let open System X in record
       { S = S
       ; fₛ = fₛ ∙ arr (Pull.₁ f)
@@ -73,7 +72,7 @@ opaque
 opaque
   unfolding map
   open System
-  map-≤ : (f : Fin A → Fin B) {X Y : System A} → X ≤ Y → map f X ≤ map f Y
+  map-≤ : (f : Fin A → Fin B) {X Y : System A A} → X ≤ Y → map f X ≤ map f Y
   ⇒S (map-≤ f x≤y) = ⇒S x≤y
   ≗-fₛ (map-≤ f x≤y) = ≗-fₛ x≤y ∘ to (arr (Pull.₁ f))
   ≗-fₒ (map-≤ f x≤y) = cong (arr (Push.₁ f)) ∘ ≗-fₒ x≤y
@@ -82,15 +81,15 @@ opaque
   unfolding map-≤
   map-≤-refl
       : (f : Fin A → Fin B)
-      → {X : System A}
-      → map-≤ f (≤-refl {A} {X}) ≈ ≤-refl
+      → {X : System A A}
+      → map-≤ f (≤-refl {A} {A} {X}) ≈ ≤-refl
   map-≤-refl f {X} = Setoid.refl (S (map f X))
 
 opaque
   unfolding map-≤
   map-≤-trans
       : (f : Fin A → Fin B)
-      → {X Y Z : System A}
+      → {X Y Z : System A A}
       → {h : X ≤ Y}
       → {g : Y ≤ Z}
       → map-≤ f (≤-trans h g) ≈ ≤-trans (map-≤ f h) (map-≤ f g)
@@ -100,13 +99,13 @@ opaque
   unfolding map-≤
   map-≈
       : (f : Fin A → Fin B)
-      → {X Y : System A}
+      → {X Y : System A A}
       → {g h : X ≤ Y}
       → h ≈ g
       → map-≤ f h ≈ map-≤ f g
   map-≈ f h≈g = h≈g
 
-Sys₁ : (Fin A → Fin B) → Functor (Systems A) (Systems B)
+Sys₁ : (Fin A → Fin B) → Functor Systems[ A , A ] Systems[ B , B ]
 Sys₁ {A} {B} f = record
     { F₀ = map f
     ; F₁ = λ C≤D → map-≤ f C≤D
@@ -117,14 +116,14 @@ Sys₁ {A} {B} f = record
 
 opaque
   unfolding map
-  map-id-≤ : (X : System A) → map id X ≤ X
+  map-id-≤ : (X : System A A) → map id X ≤ X
   map-id-≤ X .⇒S = Id (S X)
   map-id-≤ X .≗-fₛ i s = cong (fₛ X) Pull.identity
   map-id-≤ X .≗-fₒ s = Push.identity
 
 opaque
   unfolding map
-  map-id-≥ : (X : System A) → X ≤ map id X
+  map-id-≥ : (X : System A A) → X ≤ map id X
   map-id-≥ X .⇒S = Id (S X)
   map-id-≥ X .≗-fₛ i s = cong (fₛ X) (≋.sym Pull.identity)
   map-id-≥ X .≗-fₒ s = ≋.sym Push.identity
@@ -132,7 +131,7 @@ opaque
 opaque
   unfolding map-≤ map-id-≤
   map-id-comm
-      : {X Y : System A}
+      : {X Y : System A A}
         (f : X ≤ Y)
       → ≤-trans (map-≤ id f) (map-id-≤ Y) ≈ ≤-trans (map-id-≤ X) f
   map-id-comm {Y} f = Setoid.refl (S Y)
@@ -142,12 +141,12 @@ opaque
   unfolding map-id-≤ map-id-≥
 
   map-id-isoˡ
-      : (X : System A)
+      : (X : System A A)
       → ≤-trans (map-id-≤ X) (map-id-≥ X) ≈ ≤-refl
   map-id-isoˡ X = Setoid.refl (S X)
 
   map-id-isoʳ
-      : (X : System A)
+      : (X : System A A)
       → ≤-trans (map-id-≥ X) (map-id-≤ X) ≈ ≤-refl
   map-id-isoʳ X = Setoid.refl (S X)
 
@@ -167,7 +166,7 @@ opaque
   map-∘-≤
       : (f : Fin A → Fin B)
         (g : Fin B → Fin C)
-        (X : System A)
+        (X : System A A)
       → map (g ∘ f) X ≤ map g (map f X)
   map-∘-≤ f g X .⇒S = Id (S X)
   map-∘-≤ f g X .≗-fₛ i s = cong (fₛ X) Pull.homomorphism
@@ -178,7 +177,7 @@ opaque
   map-∘-≥
       : (f : Fin A → Fin B)
         (g : Fin B → Fin C)
-        (X : System A)
+        (X : System A A)
       → map g (map f X) ≤ map (g ∘ f) X
   map-∘-≥ f g X .⇒S = Id (S X)
   map-∘-≥ f g X .≗-fₛ i s = cong (fₛ X) (≋.sym Pull.homomorphism)
@@ -203,12 +202,12 @@ Sys-homo {A} f g = niHelper record
       map-∘-comm
           : (f : Fin A → Fin B)
             (g : Fin B → Fin C)
-          → {X Y : System A}
+          → {X Y : System A A}
             (X≤Y : X ≤ Y)
           → ≤-trans (map-≤ (g ∘ f) X≤Y) (map-∘-≤ f g Y)
           ≈ ≤-trans (map-∘-≤ f g X) (map-≤ g (map-≤ f X≤Y))
       map-∘-comm f g {Y} X≤Y = Setoid.refl (S Y)
-    module _ (X : System A) where
+    module _ (X : System A A) where
       opaque
         unfolding map-∘-≤ map-∘-≥
         isoˡ : ≤-trans (map-∘-≤ f g X) (map-∘-≥ f g X) ≈ ≤-refl
@@ -216,8 +215,7 @@ Sys-homo {A} f g = niHelper record
         isoʳ : ≤-trans (map-∘-≥ f g X) (map-∘-≤ f g X) ≈ ≤-refl
         isoʳ = Setoid.refl (S X)
 
-
-module _ {f g : Fin A → Fin B} (f≗g : f ≗ g) (X : System A) where
+module _ {f g : Fin A → Fin B} (f≗g : f ≗ g) (X : System A A) where
 
   opaque
 
@@ -238,7 +236,7 @@ opaque
   map-cong-comm
       : {f g : Fin A → Fin B}
         (f≗g : f ≗ g)
-        {X Y : System A}
+        {X Y : System A A}
         (h : X ≤ Y)
       → ≤-trans (map-≤ f h) (map-cong-≤ f≗g Y)
       ≈ ≤-trans (map-cong-≤ f≗g X) (map-≤ g h)
@@ -251,14 +249,14 @@ opaque
   map-cong-isoˡ
       : {f g : Fin A → Fin B}
         (f≗g : f ≗ g)
-        (X : System A)
+        (X : System A A)
       → ≤-trans (map-cong-≤ f≗g X) (map-cong-≥ f≗g X) ≈ ≤-refl
   map-cong-isoˡ f≗g X = Setoid.refl (S X)
 
   map-cong-isoʳ
       : {f g : Fin A → Fin B}
         (f≗g : f ≗ g)
-        (X : System A)
+        (X : System A A)
       → ≤-trans (map-cong-≥ f≗g X) (map-cong-≤ f≗g X) ≈ ≤-refl
   map-cong-isoʳ f≗g X = Setoid.refl (S X)
 
@@ -276,7 +274,7 @@ Sys-resp-≈ f≗g = niHelper record
 module NatCat where
 
   Sys : Functor Nat (Cats (suc 0ℓ) (suc 0ℓ) 0ℓ)
-  Sys .F₀ = Systems
+  Sys .F₀ n = Systems[ n , n ]
   Sys .F₁ = Sys₁
   Sys .identity = Sys-identity
   Sys .homomorphism = Sys-homo _ _
@@ -288,15 +286,15 @@ module NatMC where
 
   module _ (f : Fin A → Fin B) where
 
-    module A = System-⊗ A
-    module B = System-⊗ B
+    module A = System-⊗ A A
+    module B = System-⊗ B B
 
     open CommutativeMonoid⇒ (Push.₁ f)
-    open Morphism (Systems B) using (_≅_)
+    open Morphism Systems[ B , B ] using (_≅_)
 
     opaque
       unfolding map
-      ε-≅ : discrete B ≅ map f (discrete A)
+      ε-≅ : discrete B B ≅ map f (discrete A A)
       ε-≅ = record
           -- other fields can be inferred
           { from = record
@@ -337,7 +335,7 @@ module NatMC where
       module A-MC = MonoidalCategory A.Systems-MC
       module B-MC = MonoidalCategory B.Systems-MC
 
-      F : Functor (Systems A) (Systems B)
+      F : Functor Systems[ A , A ] Systems[ B , B ]
       F = Sys₁ f
 
       module F = Functor F
@@ -349,7 +347,7 @@ module NatMC where
       unfolding ⊗-homo-≃
 
       associativity
-          : {X Y Z : System A}
+          : {X Y Z : System A A}
           → F.₁ A.Associator.assoc-≤
           ∘′ ⊗-homo-≃.⇒.η (X A.⊗₀ Y , Z)
           ∘′ ⊗-homo-≃.⇒.η (X , Y) B.⊗₁ B-MC.id
@@ -359,7 +357,7 @@ module NatMC where
       associativity {X} {Y} {Z} = Setoid.refl (S X ×ₛ (S Y ×ₛ S Z))
 
       unitaryˡ
-          : {X : System A}
+          : {X : System A A}
           →  F.₁ A.Unitors.⊗-discreteˡ-≤
           ∘′ ⊗-homo-≃.⇒.η (A-MC.unit , X)
           ∘′ ε-≅.from B.⊗₁ B-MC.id 
@@ -367,14 +365,14 @@ module NatMC where
       unitaryˡ {X} = Setoid.refl (S X)
 
       unitaryʳ
-          : {X : System A}
+          : {X : System A A}
           →  F.₁ A.Unitors.⊗-discreteʳ-≤
-          ∘′ ⊗-homo-≃.⇒.η (X , discrete A)
+          ∘′ ⊗-homo-≃.⇒.η (X , discrete A A)
           ∘′ B-MC.id B.⊗₁ ε-≅.from
           B-MC.≈ B-MC.unitorʳ.from
       unitaryʳ {X} = Setoid.refl (S X)
 
-    Sys-MC₁ : StrongMonoidalFunctor (Systems-MC A) (Systems-MC B)
+    Sys-MC₁ : StrongMonoidalFunctor (Systems-MC A A) (Systems-MC B B)
     Sys-MC₁ = record
         { F = Sys₁ f
         ; isStrongMonoidal = record
@@ -388,7 +386,7 @@ module NatMC where
 
   opaque
     unfolding map-id-≤ ⊗-homo-≃
-    Sys-MC-identity : MonoidalNaturalIsomorphism (Sys-MC₁ id) (idF-StrongMonoidal (Systems-MC A))
+    Sys-MC-identity : MonoidalNaturalIsomorphism (Sys-MC₁ id) (idF-StrongMonoidal (Systems-MC A A))
     Sys-MC-identity = record
         { U = NatCat.Sys.identity
         ; F⇒G-isMonoidal = record
@@ -426,7 +424,7 @@ module NatMC where
         }
 
   Sys : Functor Nat (StrongMonoidals (suc 0ℓ) (suc 0ℓ) 0ℓ)
-  Sys .F₀ = Systems-MC
+  Sys .F₀ n = Systems-MC n n
   Sys .F₁ = Sys-MC₁
   Sys .identity = Sys-MC-identity
   Sys .homomorphism = Sys-MC-homomorphism
@@ -440,29 +438,29 @@ module NatSMC where
 
     private
 
-      module A = System-⊗ A
-      module B = System-⊗ B
+      module A = System-⊗ A A
+      module B = System-⊗ B B
       module A-SMC = SymmetricMonoidalCategory A.Systems-SMC
       module B-SMC = SymmetricMonoidalCategory B.Systems-SMC
 
-      F : Functor (Systems A) (Systems B)
+      F : Functor Systems[ A , A ] Systems[ B , B ]
       F = Sys₁ f
 
       module F = Functor F
 
-      F-MF : StrongMonoidalFunctor (Systems-MC A) (Systems-MC B)
+      F-MF : StrongMonoidalFunctor (Systems-MC A A) (Systems-MC B B)
       F-MF = NatMC.Sys.₁ f
       module F-MF = StrongMonoidalFunctor F-MF
 
     opaque
       unfolding NatMC.⊗-homo-≃
       σ-compat
-          : {X Y : System A}
+          : {X Y : System A A}
           → F.₁ (A-SMC.braiding.⇒.η (X , Y)) B-SMC.∘ F-MF.⊗-homo.⇒.η (X , Y)
           B-SMC.≈ F-MF.⊗-homo.⇒.η (Y , X) B-SMC.∘ B-SMC.braiding.⇒.η (F.₀ X , F.₀ Y)
       σ-compat {X} {Y} = Setoid.refl (S Y ×ₛ S X)
 
-    Sys-SMC₁ : SymmetricMonoidalFunctor (Systems-SMC A) (Systems-SMC B)
+    Sys-SMC₁ : SymmetricMonoidalFunctor (Systems-SMC A A) (Systems-SMC B B)
     Sys-SMC₁ = record
         { F-MF
         ; isBraidedMonoidal = record
@@ -471,7 +469,7 @@ module NatSMC where
             }
         }
 
-  Sys-SMC-identity : SymmetricMonoidalNaturalIsomorphism (Sys-SMC₁ id) (idF-StrongSymmetricMonoidal (Systems-SMC A))
+  Sys-SMC-identity : SymmetricMonoidalNaturalIsomorphism (Sys-SMC₁ id) (idF-StrongSymmetricMonoidal (Systems-SMC A A))
   Sys-SMC-identity = record { MonoidalNaturalIsomorphism NatMC.Sys.identity }
 
   Sys-SMC-homomorphism
@@ -487,7 +485,7 @@ module NatSMC where
   Sys-SMC-resp-≈ f≗g = record { MonoidalNaturalIsomorphism (NatMC.Sys.F-resp-≈ f≗g) }
 
   Sys : Functor Nat (SymMonCat {suc 0ℓ} {suc 0ℓ} {0ℓ})
-  Sys .F₀ = Systems-SMC
+  Sys .F₀ n = Systems-SMC n n
   Sys .F₁ = Sys-SMC₁
   Sys .identity = Sys-SMC-identity
   Sys .homomorphism = Sys-SMC-homomorphism

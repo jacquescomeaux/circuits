@@ -3,16 +3,17 @@
 open import Data.Nat using (ℕ)
 open import Level using (Level; suc; 0ℓ)
 
-module Data.System.Monoidal {ℓ : Level} (n : ℕ) where
+module Data.System.Monoidal {ℓ : Level} (n m : ℕ) where
 
-open import Data.System {ℓ} using (System; Systems; _≤_; ≤-refl; ≤-trans; _≈_; discrete)
+open import Data.System.Core {ℓ} using (System; _≤_; ≤-refl; ≤-trans; discrete)
+open import Data.System.Category {ℓ} using (Systems[_,_])
 
 open import Categories.Category.Monoidal using (Monoidal)
 open import Categories.Category.Monoidal.Symmetric using (Symmetric)
 open import Categories.Category.Monoidal.Bundle using (MonoidalCategory; SymmetricMonoidalCategory)
 open import Categories.Functor using (Functor)
 open import Categories.Functor.Bifunctor using (Bifunctor; flip-bifunctor)
-open import Categories.Morphism (Systems n) using (_≅_; Iso)
+open import Categories.Morphism (Systems[ n , m ]) using (_≅_; Iso)
 open import Categories.NaturalTransformation.NaturalIsomorphism using (_≃_; niHelper)
 open import Data.Circuit.Value using (Monoid)
 open import Data.Product using (_,_; _×_; uncurry′)
@@ -35,11 +36,11 @@ module _ where
   δₛ .to v = v , v
   δₛ .cong v≋w = v≋w , v≋w
 
-  ⊕ₛ : Values n ×ₛ Values n ⟶ₛ Values n
+  ⊕ₛ : Values m ×ₛ Values m ⟶ₛ Values m
   ⊕ₛ .to (v , w) = v ⊕ w
   ⊕ₛ .cong (v₁≋v₂ , w₁≋w₂) = ⊕-cong v₁≋v₂ w₁≋w₂
 
-_⊗₀_ : System n → System n → System n
+_⊗₀_ : System n m → System n m → System n m
 _⊗₀_ X Y = let open System in record
     { S = S X ×ₛ S Y
     ; fₛ = fₛ X ×-⇒ fₛ Y ∙ δₛ
@@ -47,7 +48,7 @@ _⊗₀_ X Y = let open System in record
     }
 
 _⊗₁_
-    : {A A′ B B′ : System n}
+    : {A A′ B B′ : System n m}
       (f : A ≤ A′)
       (g : B ≤ B′)
     → A ⊗₀ B ≤ A′ ⊗₀ B′
@@ -60,33 +61,33 @@ module _ where
   open Functor
   open System
 
-  ⊗ : Bifunctor (Systems n) (Systems n) (Systems n)
+  ⊗ : Bifunctor Systems[ n , m ] Systems[ n , m ] Systems[ n , m ]
   ⊗ .F₀ = uncurry′ _⊗₀_
   ⊗ .F₁ = uncurry′ _⊗₁_
   ⊗ .identity {X , Y} = refl (S X) , refl (S Y)
   ⊗ .homomorphism {_} {_} {X″ , Y″} = refl (S X″) , refl (S Y″)
   ⊗ .F-resp-≈ (f≈f′ , g≈g′) = f≈f′ , g≈g′
 
-module Unitors {X : System n} where
+module Unitors {X : System n m} where
 
   open System X
 
-  ⊗-discreteˡ-≤ : discrete n ⊗₀ X ≤ X
+  ⊗-discreteˡ-≤ : discrete n m ⊗₀ X ≤ X
   ⊗-discreteˡ-≤ .⇒S = proj₂ₛ
   ⊗-discreteˡ-≤ .≗-fₛ i s = S.refl
   ⊗-discreteˡ-≤ .≗-fₒ (_ , s) = ⊕-identityˡ (fₒ′ s)
 
-  ⊗-discreteˡ-≥ : X ≤ discrete n ⊗₀ X
+  ⊗-discreteˡ-≥ : X ≤ discrete n m ⊗₀ X
   ⊗-discreteˡ-≥ .⇒S = record { to = λ s → _ , s ; cong = λ s≈s′ → _ , s≈s′ }
   ⊗-discreteˡ-≥ .≗-fₛ i s = _ , S.refl
   ⊗-discreteˡ-≥ .≗-fₒ s = ≋.sym (⊕-identityˡ (fₒ′ s))
 
-  ⊗-discreteʳ-≤ : X ⊗₀ discrete n ≤ X
+  ⊗-discreteʳ-≤ : X ⊗₀ discrete n m ≤ X
   ⊗-discreteʳ-≤ .⇒S = proj₁ₛ
   ⊗-discreteʳ-≤ .≗-fₛ i s = S.refl
   ⊗-discreteʳ-≤ .≗-fₒ (s , _) = ⊕-identityʳ (fₒ′ s)
 
-  ⊗-discreteʳ-≥ : X ≤ X ⊗₀ discrete n
+  ⊗-discreteʳ-≥ : X ≤ X ⊗₀ discrete n m
   ⊗-discreteʳ-≥ .⇒S = record { to = λ s → s , _ ; cong = λ s≈s′ → s≈s′ , _ }
   ⊗-discreteʳ-≥ .≗-fₛ i s = S.refl , _
   ⊗-discreteʳ-≥ .≗-fₒ s = ≋.sym (⊕-identityʳ (fₒ′ s))
@@ -94,13 +95,13 @@ module Unitors {X : System n} where
   open _≅_
   open Iso
 
-  unitorˡ : discrete n ⊗₀ X ≅ X
+  unitorˡ : discrete n m ⊗₀ X ≅ X
   unitorˡ .from = ⊗-discreteˡ-≤
   unitorˡ .to = ⊗-discreteˡ-≥
   unitorˡ .iso .isoˡ = _ , S.refl
   unitorˡ .iso .isoʳ = S.refl
 
-  unitorʳ : X ⊗₀ discrete n ≅ X
+  unitorʳ : X ⊗₀ discrete n m ≅ X
   unitorʳ .from = ⊗-discreteʳ-≤
   unitorʳ .to = ⊗-discreteʳ-≥
   unitorʳ .iso .isoˡ = S.refl , _
@@ -108,7 +109,7 @@ module Unitors {X : System n} where
 
 open Unitors using (unitorˡ; unitorʳ) public
 
-module Associator {X Y Z : System n} where
+module Associator {X Y Z : System n m} where
 
   module X = System X
   module Y = System Y
@@ -135,10 +136,10 @@ module Associator {X Y Z : System n} where
 
 open Associator using (associator) public
 
-Systems-Monoidal : Monoidal (Systems n)
+Systems-Monoidal : Monoidal Systems[ n , m ]
 Systems-Monoidal = let open System in record
     { ⊗ = ⊗
-    ; unit = discrete n
+    ; unit = discrete n m
     ; unitorˡ = unitorˡ
     ; unitorʳ = unitorʳ
     ; associator = associator
@@ -154,7 +155,7 @@ Systems-Monoidal = let open System in record
 
 open System
 
-⊗-swap-≤ : {X Y : System n} → Y ⊗₀ X ≤ X ⊗₀ Y
+⊗-swap-≤ : {X Y : System n m} → Y ⊗₀ X ≤ X ⊗₀ Y
 ⊗-swap-≤ .⇒S = swapₛ
 ⊗-swap-≤ {X} {Y} .≗-fₛ i (s₁ , s₂) = refl (S X) , refl (S Y)
 ⊗-swap-≤ {X} {Y} .≗-fₒ (s₁ , s₂) = ⊕-comm (fₒ′ Y s₁) (fₒ′ X s₂)

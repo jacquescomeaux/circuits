@@ -44,12 +44,12 @@ opaque
 
   unfolding Values
 
-  1-cell : Value → System 1
+  1-cell : Value → System 1 1
   1-cell x .S = ⊤ₛ
   1-cell x .fₛ = Const (Values 1) (⊤ₛ ⇒ₛ ⊤ₛ) (Id ⊤ₛ)
   1-cell x .fₒ = Const ⊤ₛ (Values 1) λ { 0F → x }
 
-  2-cell : (Value → Value) → System 2
+  2-cell : (Value → Value) → System 2 2
   2-cell f .S = Valueₛ
   2-cell f .fₛ .to x = Const Valueₛ Valueₛ (f (x (# 0)))
   2-cell f .fₛ .cong x = ≡.cong f (x (# 0))
@@ -58,7 +58,7 @@ opaque
   2-cell f .fₒ .cong _ 0F = ≡.refl
   2-cell f .fₒ .cong x 1F = x
 
-  3-cell : (Value → Value → Value) → System 3
+  3-cell : (Value → Value → Value) → System 3 3
   3-cell f .S = Valueₛ
   3-cell f .fₛ .to i = Const Valueₛ Valueₛ (f (i (# 0)) (i (# 1)))
   3-cell f .fₛ .cong ≡i = ≡.cong₂ f (≡i (# 0)) (≡i (# 1))
@@ -125,7 +125,7 @@ module _ where
   open Belnap
   open Gate
 
-  system-of-gate : {n : ℕ} → Gate n → System n
+  system-of-gate : {n : ℕ} → Gate n → System n n
   system-of-gate ZERO = 1-cell true
   system-of-gate ONE  = 1-cell false
   system-of-gate ID   = 2-cell id
@@ -147,7 +147,7 @@ private
 
 open EGate hiding (Edge)
 
-system-of-edge : {n : ℕ} → ∣ Edge.₀ n ∣ → System n
+system-of-edge : {n : ℕ} → ∣ Edge.₀ n ∣ → System n n
 system-of-edge (mkEdge gate ports) = U.₁ (Sys.₁ ports) ⟨$⟩ system-of-gate gate
 
 system-of-edgeₛ : (n : ℕ) → Edge.₀ n ⟶ₛ U.₀ (Sys.₀ n)
