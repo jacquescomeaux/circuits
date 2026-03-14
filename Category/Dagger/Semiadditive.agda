@@ -50,9 +50,10 @@ record SemiadditiveDagger : Set (suc (o ⊔ ℓ ⊔ e)) where
   open DaggerCocartesianMonoidal daggerCocartesianMonoidal public
   open CocartesianMonoidal cocartesian using (+-monoidal) renaming (_⊗₀_ to _⊕₀_; _⊗₁_ to _⊕₁_; ⊗ to ⊕) public
 
-  open Cocartesian cocartesian using (⊥; i₁; i₂; [_,_]; ¡; ∘[]; []∘+₁; []-cong₂; coproduct; ¡-unique; inject₁; inject₂; +-unique; +-g-η)
+  open Cocartesian cocartesian using (i₁; i₂; ¡) public
+  open Cocartesian cocartesian using (⊥; [_,_]; ∘[]; []∘+₁; []-cong₂; coproduct; ¡-unique; inject₁; inject₂; +-unique; +-g-η)
   open CocartesianSymmetricMonoidal cocartesian using (+-symmetric)
-  open HasDagger dagger using (_†; †-involutive; †-resp-≈; †-identity; †-homomorphism)
+  open HasDagger dagger using (_†; †-involutive; †-resp-≈; †-identity; †-homomorphism) public
   open Monoidal +-monoidal using (unitorˡ-commute-from; unitorʳ-commute-from; assoc-commute-from; module unitorˡ; module unitorʳ; module associator)
   open σ-Shorthands +-symmetric using (σ⇒)
   open Symmetric +-symmetric using (module braiding)
@@ -231,6 +232,34 @@ record SemiadditiveDagger : Set (suc (o ⊔ ℓ ⊔ e)) where
       λ⇒ † † ∘ (¡ †) ⊕₁ (id †)  ≈⟨ †-involutive λ⇒ ⟩∘⟨ refl⟩⊗⟨ †-identity ⟩
       λ⇒ ∘ (¡ †) ⊕₁ id          ∎
 
+  ▽∘i₁ : {A : Obj} → ▽ ∘ i₁ ≈ id {A}
+  ▽∘i₁ = begin
+      ▽ ∘ i₁            ≈⟨ refl⟩∘⟨ i₁-⊕ ⟩
+      ▽ ∘ id ⊕₁ ¡ ∘ ρ⇐  ≈⟨ pullˡ ▽-identityʳ ⟩
+      ρ⇒ ∘ ρ⇐           ≈⟨ unitorʳ.isoʳ ⟩
+      id                ∎
+
+  ▽∘i₂ : {A : Obj} → ▽ ∘ i₂ ≈ id {A}
+  ▽∘i₂ = begin
+      ▽ ∘ i₂            ≈⟨ refl⟩∘⟨ i₂-⊕ ⟩
+      ▽ ∘ ¡ ⊕₁ id ∘ λ⇐  ≈⟨ pullˡ ▽-identityˡ ⟩
+      λ⇒ ∘ λ⇐           ≈⟨ unitorˡ.isoʳ ⟩
+      id                ∎
+
+  p₁∘△ : {A : Obj} → p₁ ∘ △ ≈ id {A}
+  p₁∘△ = begin
+      p₁ ∘ △            ≈⟨ pushˡ p₁-⊕ ⟩
+      ρ⇒ ∘ id ⊕₁ ! ∘ △  ≈⟨ refl⟩∘⟨ △-identityʳ ⟩
+      ρ⇒ ∘ ρ⇐           ≈⟨ unitorʳ.isoʳ ⟩
+      id                ∎
+
+  p₂∘△ : {A : Obj} → p₂ ∘ △ ≈ id {A}
+  p₂∘△ = begin
+      p₂ ∘ △            ≈⟨ pushˡ p₂-⊕ ⟩
+      λ⇒ ∘ ! ⊕₁ id ∘ △  ≈⟨ refl⟩∘⟨ △-identityˡ ⟩
+      λ⇒ ∘ λ⇐           ≈⟨ unitorˡ.isoʳ ⟩
+      id                ∎
+
   -- zero arrows
   z : {A B : Obj} → A ⇒ B
   z = ¡ ∘ !
@@ -285,3 +314,47 @@ record SemiadditiveDagger : Set (suc (o ⊔ ℓ ⊔ e)) where
         ▽ ∘ f ⊕₁ g ∘ σ⇒ ∘ △ ≈⟨ refl⟩∘⟨ extendʳ (braiding.⇒.sym-commute _) ⟩
         ▽ ∘ σ⇒ ∘ g ⊕₁ f ∘ △ ≈⟨ pullˡ ▽-comm ⟩
         ▽ ∘ g ⊕₁ f ∘ △      ∎
+
+record IdempotentSemiadditiveDagger : Set (suc (o ⊔ ℓ ⊔ e)) where
+
+  field
+    semiadditiveDagger : SemiadditiveDagger
+
+  open SemiadditiveDagger semiadditiveDagger public
+  open Category 𝒞
+
+  open ⊗-Reasoning +-monoidal
+  open ⇒-Reasoning 𝒞
+
+  field
+    idempotent : {A B : Obj} {f : A ⇒ B} → f + f ≈ f
+
+  open import Relation.Binary using (Rel)
+
+  _≤_ : {A B : Obj} → Rel (A ⇒ B) e
+  _≤_ {A} {B} f g = f + g ≈ g
+
+  ≤-refl : {A B : Obj} {f : A ⇒ B} → f ≤ f
+  ≤-refl = idempotent
+
+  ≤-antisym : {A B : Obj} {f g : A ⇒ B} → f ≤ g → g ≤ f → f ≈ g
+  ≤-antisym {A} {B} {f} {g} f≤g g≤f = begin
+      f     ≈⟨ g≤f ⟨
+      g + f ≈⟨ +-commutative ⟩
+      f + g ≈⟨ f≤g ⟩
+      g ∎
+
+  ≤-trans : {A B : Obj} {f g h : A ⇒ B} → f ≤ g → g ≤ h → f ≤ h
+  ≤-trans {A} {B} {f} {g} {h} f≤g g≤h = begin
+      f + h       ≈⟨ refl⟩∘⟨ refl⟩⊗⟨ g≤h ⟩∘⟨refl ⟨
+      f + (g + h) ≈⟨ +-associative ⟨
+      (f + g) + h ≈⟨ refl⟩∘⟨ f≤g ⟩⊗⟨refl ⟩∘⟨refl ⟩
+      g + h       ≈⟨ g≤h ⟩
+      h           ∎
+
+  -- special law
+  ▽∘△ : {A : Obj} → ▽ ∘ △ ≈ id {A}
+  ▽∘△ = begin
+      ▽ ∘ △             ≈⟨ refl⟩∘⟨ introˡ ⊕.identity ⟩
+      ▽ ∘ id ⊕₁ id ∘ △  ≈⟨ idempotent ⟩
+      id                ∎
