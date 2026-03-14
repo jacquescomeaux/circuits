@@ -6,7 +6,7 @@
 (define-empty-tokens punct-tokens (LPAREN RPAREN EOF COMMA SEMICOLON LBRACE RBRACE))
 (define-empty-tokens keyword-tokens (WIRE MODULE))
 
-(define-lex-abbrev ident-special-char (char-set "_|~+-^&#!"))
+(define-lex-abbrev ident-special-char (char-set "_|~+-^&#![]"))
 
 ;; Lexer for circuits DSL
 (define circuits-lexer
