@@ -53,7 +53,7 @@ record SemiadditiveDagger : Set (suc (o ⊔ ℓ ⊔ e)) where
   open Cocartesian cocartesian using (i₁; i₂; ¡) public
   open Cocartesian cocartesian using (⊥; [_,_]; ∘[]; []∘+₁; []-cong₂; coproduct; ¡-unique; inject₁; inject₂; +-unique; +-g-η)
   open CocartesianSymmetricMonoidal cocartesian using (+-symmetric)
-  open HasDagger dagger using (_†; †-involutive; †-resp-≈; †-identity; †-homomorphism) public
+  open HasDagger dagger using (_†; †-involutive; ⟨_⟩†; †-identity; †-homomorphism) public
   open Monoidal +-monoidal using (unitorˡ-commute-from; unitorʳ-commute-from; assoc-commute-from; module unitorˡ; module unitorʳ; module associator)
   open σ-Shorthands +-symmetric using (σ⇒)
   open Symmetric +-symmetric using (module braiding)
@@ -95,15 +95,15 @@ record SemiadditiveDagger : Set (suc (o ⊔ ℓ ⊔ e)) where
   △-assoc : {A : Obj} → id ⊕₁ △ ∘ △ {A} ≈ α⇒ ∘ △ ⊕₁ id ∘ △
   △-assoc = begin
       id ⊕₁ △ ∘ △                 ≈⟨ †-involutive (id ⊕₁ △ ∘ △) ⟨
-      (id ⊕₁ △ ∘ △) † †           ≈⟨ †-resp-≈ †-homomorphism ⟩
-      (△ † ∘ (id ⊕₁ △) †) †       ≈⟨ †-resp-≈ (†-involutive ▽ ⟩∘⟨ †-resp-⊗) ⟩
-      (▽ ∘ (id †) ⊕₁ (△ †)) †     ≈⟨ †-resp-≈ (refl⟩∘⟨ †-identity ⟩⊗⟨ †-involutive ▽)⟩
-      (▽ ∘ id ⊕₁ ▽) †             ≈⟨ †-resp-≈ (refl⟩∘⟨ introʳ associator.isoʳ) ⟩
-      (▽ ∘ id ⊕₁ ▽ ∘ α⇒ ∘ α⇐) †   ≈⟨ †-resp-≈ (refl⟩∘⟨ assoc ) ⟨
-      (▽ ∘ (id ⊕₁ ▽ ∘ α⇒) ∘ α⇐) † ≈⟨ †-resp-≈ (extendʳ ▽-assoc) ⟨
+      (id ⊕₁ △ ∘ △) † †           ≈⟨ ⟨ †-homomorphism ⟩† ⟩
+      (△ † ∘ (id ⊕₁ △) †) †       ≈⟨ ⟨ (†-involutive ▽ ⟩∘⟨ †-resp-⊗) ⟩† ⟩
+      (▽ ∘ (id †) ⊕₁ (△ †)) †     ≈⟨ ⟨ refl⟩∘⟨ †-identity ⟩⊗⟨ †-involutive ▽ ⟩† ⟩
+      (▽ ∘ id ⊕₁ ▽) †             ≈⟨ ⟨ refl⟩∘⟨ introʳ associator.isoʳ ⟩† ⟩
+      (▽ ∘ id ⊕₁ ▽ ∘ α⇒ ∘ α⇐) †   ≈⟨ ⟨ refl⟩∘⟨ assoc ⟩† ⟨
+      (▽ ∘ (id ⊕₁ ▽ ∘ α⇒) ∘ α⇐) † ≈⟨ ⟨ extendʳ ▽-assoc ⟩† ⟨
       (▽ ∘ ▽ ⊕₁ id ∘ α⇐) †        ≈⟨ †-homomorphism ⟩
       (▽ ⊕₁ id ∘ α⇐) † ∘ ▽ †      ≈⟨ pushˡ †-homomorphism ⟩
-      α⇐ † ∘ (▽ ⊕₁ id) † ∘ △      ≈⟨ †-resp-≈ α≅† ⟩∘⟨refl ⟨
+      α⇐ † ∘ (▽ ⊕₁ id) † ∘ △      ≈⟨ ⟨ α≅† ⟩† ⟩∘⟨refl ⟨
       α⇒ † † ∘ (▽ ⊕₁ id) † ∘ △    ≈⟨ †-involutive α⇒ ⟩∘⟨refl ⟩
       α⇒ ∘ (▽ ⊕₁ id) † ∘ △        ≈⟨ refl⟩∘⟨ †-resp-⊗ ⟩∘⟨refl ⟩
       α⇒ ∘ (▽ †) ⊕₁ (id †) ∘ △    ≈⟨ refl⟩∘⟨ refl⟩⊗⟨ †-identity ⟩∘⟨refl ⟩
@@ -123,7 +123,7 @@ record SemiadditiveDagger : Set (suc (o ⊔ ℓ ⊔ e)) where
       ! ⊕₁ id ∘ △           ≈⟨ refl⟩⊗⟨ †-identity ⟩∘⟨refl ⟨
       (¡ †) ⊕₁ (id †) ∘ ▽ † ≈⟨ †-resp-⊗ ⟩∘⟨refl ⟨
       (¡ ⊕₁ id) † ∘ ▽ †     ≈⟨ †-homomorphism ⟨
-      (▽ ∘ ¡ ⊕₁ id) †       ≈⟨ †-resp-≈ ▽-identityˡ ⟩
+      (▽ ∘ ¡ ⊕₁ id) †       ≈⟨ ⟨ ▽-identityˡ ⟩† ⟩
       λ⇒ †                  ≈⟨ λ≅† ⟩
       λ⇐ ∎
 
@@ -138,7 +138,7 @@ record SemiadditiveDagger : Set (suc (o ⊔ ℓ ⊔ e)) where
       id ⊕₁ (¡ †) ∘ ▽ †     ≈⟨ †-identity ⟩⊗⟨refl ⟩∘⟨refl ⟨
       (id †) ⊕₁ (¡ †) ∘ ▽ † ≈⟨ †-resp-⊗ ⟩∘⟨refl ⟨
       (id ⊕₁ ¡) † ∘ ▽ †     ≈⟨ †-homomorphism ⟨
-      (▽ ∘ id ⊕₁ ¡) †       ≈⟨ †-resp-≈ ▽-identityʳ ⟩
+      (▽ ∘ id ⊕₁ ¡) †       ≈⟨ ⟨ ▽-identityʳ ⟩† ⟩
       ρ⇒ †                  ≈⟨ ρ≅† ⟩
       ρ⇐                    ∎
 
@@ -149,7 +149,7 @@ record SemiadditiveDagger : Set (suc (o ⊔ ℓ ⊔ e)) where
   △-comm = begin
       σ⇒ ∘ ▽ †    ≈⟨ σ≅† ⟩∘⟨refl ⟨
       σ⇒ † ∘ ▽ †  ≈⟨ †-homomorphism ⟨
-      (▽ ∘ σ⇒) †  ≈⟨ †-resp-≈ ▽-comm ⟩
+      (▽ ∘ σ⇒) †  ≈⟨ ⟨ ▽-comm ⟩† ⟩
       ▽ †         ∎
 
   ⇒▽ : {A B : Obj} {f : A ⇒ B} → f ∘ ▽ ≈ ▽ ∘ f ⊕₁ f
@@ -164,7 +164,7 @@ record SemiadditiveDagger : Set (suc (o ⊔ ℓ ⊔ e)) where
   ⇒△ {A} {B} {f} = begin
       ▽ † ∘ f                   ≈⟨ refl⟩∘⟨ †-involutive f ⟨
       ▽ † ∘ f † †               ≈⟨ †-homomorphism ⟨
-      (f † ∘ ▽) †               ≈⟨ †-resp-≈ ⇒▽ ⟩
+      (f † ∘ ▽) †               ≈⟨ ⟨ ⇒▽ ⟩† ⟩
       (▽ ∘ (f †) ⊕₁ (f †)) †    ≈⟨ †-homomorphism ⟩
       ((f †) ⊕₁ (f †)) † ∘ ▽ †  ≈⟨ †-resp-⊗ ⟩∘⟨refl ⟩
       (f † †) ⊕₁ (f † †) ∘ ▽ †  ≈⟨ †-involutive f ⟩⊗⟨ †-involutive f ⟩∘⟨refl ⟩
@@ -177,7 +177,7 @@ record SemiadditiveDagger : Set (suc (o ⊔ ℓ ⊔ e)) where
   ⇒! {A} {B} {f} = begin
       ¡ † ∘ f     ≈⟨ refl⟩∘⟨ †-involutive f ⟨
       ¡ † ∘ f † † ≈⟨ †-homomorphism ⟨
-      (f † ∘ ¡) † ≈⟨ †-resp-≈ ⇒¡ ⟩
+      (f † ∘ ¡) † ≈⟨ ⟨ ⇒¡ ⟩† ⟩
       ¡ †         ∎
 
   ρ⇐≈i₁ : {A : Obj} → ρ⇐ {A} ≈ i₁
@@ -189,15 +189,15 @@ record SemiadditiveDagger : Set (suc (o ⊔ ℓ ⊔ e)) where
   λ⇒≈p₂ : {A : Obj} → λ⇒ {A} ≈ p₂
   λ⇒≈p₂ = begin
       λ⇒      ≈⟨ †-involutive λ⇒ ⟨
-      λ⇒ † †  ≈⟨ †-resp-≈ λ≅† ⟩
-      λ⇐ †    ≈⟨ †-resp-≈ λ⇐≈i₂ ⟩
+      λ⇒ † †  ≈⟨ ⟨ λ≅† ⟩† ⟩
+      λ⇐ †    ≈⟨ ⟨ λ⇐≈i₂ ⟩† ⟩
       i₂ †    ∎
 
   ρ⇒≈p₁ : {A : Obj} → ρ⇒ {A} ≈ p₁
   ρ⇒≈p₁ = begin
       ρ⇒      ≈⟨ †-involutive ρ⇒ ⟨
-      ρ⇒ † †  ≈⟨ †-resp-≈ ρ≅† ⟩
-      ρ⇐ †    ≈⟨ †-resp-≈ ρ⇐≈i₁ ⟩
+      ρ⇒ † †  ≈⟨ ⟨ ρ≅† ⟩† ⟩
+      ρ⇐ †    ≈⟨ ⟨ ρ⇐≈i₁ ⟩† ⟩
       i₁ †    ∎
 
   i₁-⊕ : {A B : Obj} → i₁ {A} {B} ≈ id ⊕₁ ¡ ∘ ρ⇐
@@ -216,19 +216,19 @@ record SemiadditiveDagger : Set (suc (o ⊔ ℓ ⊔ e)) where
 
   p₁-⊕ : {A B : Obj} → p₁ {A} {B} ≈ ρ⇒ ∘ id ⊕₁ !
   p₁-⊕ {A} {B} = begin
-      i₁ †                      ≈⟨ †-resp-≈ i₁-⊕ ⟩
+      i₁ †                      ≈⟨ ⟨ i₁-⊕ ⟩† ⟩
       (id ⊕₁ ¡ ∘ ρ⇐) †          ≈⟨ †-homomorphism ⟩
       ρ⇐ † ∘ (id ⊕₁ ¡) †        ≈⟨ refl⟩∘⟨ †-resp-⊗ ⟩
-      ρ⇐ † ∘ (id †) ⊕₁ (¡ †)    ≈⟨ †-resp-≈ ρ≅† ⟩∘⟨refl ⟨
+      ρ⇐ † ∘ (id †) ⊕₁ (¡ †)    ≈⟨ ⟨ ρ≅† ⟩† ⟩∘⟨refl ⟨
       ρ⇒ † † ∘ (id †) ⊕₁ (¡ †)  ≈⟨ †-involutive ρ⇒ ⟩∘⟨ †-identity ⟩⊗⟨refl ⟩
       ρ⇒ ∘ id ⊕₁ (¡ †)          ∎
 
   p₂-⊕ : {A B : Obj} → p₂ {A} {B} ≈ λ⇒ ∘ ! ⊕₁ id
   p₂-⊕ {A} {B} = begin
-      i₂ †                      ≈⟨ †-resp-≈ i₂-⊕ ⟩
+      i₂ †                      ≈⟨ ⟨ i₂-⊕ ⟩† ⟩
       (¡ ⊕₁ id ∘ λ⇐) †          ≈⟨ †-homomorphism ⟩
       λ⇐ † ∘ (¡ ⊕₁ id) †        ≈⟨ refl⟩∘⟨ †-resp-⊗ ⟩
-      λ⇐ † ∘ (¡ †) ⊕₁ (id †)    ≈⟨ †-resp-≈ λ≅† ⟩∘⟨refl ⟨
+      λ⇐ † ∘ (¡ †) ⊕₁ (id †)    ≈⟨ ⟨ λ≅† ⟩† ⟩∘⟨refl ⟨
       λ⇒ † † ∘ (¡ †) ⊕₁ (id †)  ≈⟨ †-involutive λ⇒ ⟩∘⟨ refl⟩⊗⟨ †-identity ⟩
       λ⇒ ∘ (¡ †) ⊕₁ id          ∎
 
