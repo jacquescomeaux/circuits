@@ -102,7 +102,7 @@ loop∘pull∘loop≈split f f∘f†≤id = ≈ᵢ ⌸ (identityˡ ○ identity
         ≈ ▽ ∘ id ⊕₁ f
     ≈ᵢ = begin
         (▽ ∘ (id ⊕₁ ((f ∘ p₂) ∘ id ⊕₁ id) ∘ α⇒ ∘ △ ⊕₁ id)) ∘ id ⊕₁ (▽ ∘ (f † ∘ id) ⊕₁ id) ∘ α⇒ ∘ △ ⊕₁ id  ≈⟨ (refl⟩∘⟨ refl⟩⊗⟨ elimʳ ⊕.identity ⟩∘⟨refl) ⟩∘⟨refl ⟩
-        (▽ ∘ (id ⊕₁ (f ∘ p₂) ∘ α⇒ ∘ △ ⊕₁ id)) ∘ id ⊕₁ (▽ ∘ (f † ∘ id) ⊕₁ id) ∘ α⇒ ∘ △ ⊕₁ id               ≈⟨ pullʳ (pullʳ (pullʳ (refl⟩∘⟨ refl⟩⊗⟨ (refl⟩∘⟨ identityʳ ⟩⊗⟨refl) ⟩∘⟨refl)))⟩ 
+        (▽ ∘ (id ⊕₁ (f ∘ p₂) ∘ α⇒ ∘ △ ⊕₁ id)) ∘ id ⊕₁ (▽ ∘ (f † ∘ id) ⊕₁ id) ∘ α⇒ ∘ △ ⊕₁ id               ≈⟨ pullʳ (pullʳ (pullʳ (refl⟩∘⟨ refl⟩⊗⟨ (refl⟩∘⟨ identityʳ ⟩⊗⟨refl) ⟩∘⟨refl)))⟩
         ▽ ∘ id ⊕₁ (f ∘ p₂) ∘ α⇒ ∘ △ ⊕₁ id ∘ id ⊕₁ (▽ ∘ (f †) ⊕₁ id) ∘ α⇒ ∘ △ ⊕₁ id                        ≈⟨ refl⟩∘⟨ pushˡ split₂ˡ ⟩
         ▽ ∘ id ⊕₁ f ∘ id ⊕₁ p₂ ∘ α⇒ ∘ △ ⊕₁ id ∘ id ⊕₁ (▽ ∘ (f †) ⊕₁ id) ∘ α⇒ ∘ △ ⊕₁ id                    ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩⊗⟨ p₂-⊕ ⟩∘⟨refl ⟩
         ▽ ∘ id ⊕₁ f ∘ id ⊕₁ (λ⇒ ∘ ! ⊕₁ id) ∘ α⇒ ∘ △ ⊕₁ id ∘ id ⊕₁ (▽ ∘ (f †) ⊕₁ id) ∘ α⇒ ∘ △ ⊕₁ id        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ pushˡ split₂ˡ ⟩
@@ -121,8 +121,8 @@ loop∘pull∘loop≈split f f∘f†≤id = ≈ᵢ ⌸ (identityˡ ○ identity
         ▽ ∘ (id ⊕₁ ▽ ∘ α⇒) ∘ (id ⊕₁ (f ∘ f †)) ⊕₁ f ∘ △ ⊕₁ id                                             ≈⟨ extendʳ ▽-assoc ⟨
         ▽ ∘ ▽ ⊕₁ id ∘ (id ⊕₁ (f ∘ f †)) ⊕₁ f ∘ △ ⊕₁ id                                                    ≈⟨ refl⟩∘⟨ refl⟩∘⟨ merge₁ʳ ⟩
         ▽ ∘ ▽ ⊕₁ id ∘ (id ⊕₁ (f ∘ f †) ∘ △) ⊕₁ f                                                          ≈⟨ refl⟩∘⟨ merge₁ˡ ⟩
-        ▽ ∘ id + (f ∘ f †) ⊕₁ f                                                                           ≈⟨ refl⟩∘⟨ +-commutative ⟩⊗⟨refl ⟩
-        ▽ ∘ (f ∘ f †) + id ⊕₁ f                                                                           ≈⟨ refl⟩∘⟨ f∘f†≤id ⟩⊗⟨refl ⟩
+        ▽ ∘ (id + (f ∘ f †)) ⊕₁ f                                                                         ≈⟨ refl⟩∘⟨ +-commutative ⟩⊗⟨refl ⟩
+        ▽ ∘ ((f ∘ f †) + id) ⊕₁ f                                                                         ≈⟨ refl⟩∘⟨ f∘f†≤id ⟩⊗⟨refl ⟩
         ▽ ∘ id ⊕₁ f                                                                                       ∎
 
 split≈pull∘loop : {A B : Obj} (f : A ⇒ B) → split f ≈-⧈ pull f ⌻ loop
