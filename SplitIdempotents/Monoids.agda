@@ -13,12 +13,12 @@ open import Categories.Category.Construction.Monoids Setoids-×.monoidal using (
 open import Categories.Category.Instance.Setoids using (Setoids)
 open import Categories.Category.Monoidal using (Monoidal)
 open import Categories.Object.Monoid Setoids-×.monoidal using (Monoid; Monoid⇒)
+open import Category.KaroubiComplete Monoids using (KaroubiComplete)
 open import Data.Product using (_,_)
 open import Data.Setoid using (∣_∣)
 open import Function using (Func; _⟶ₛ_; _⟨$⟩_; id)
 open import Function.Construct.Identity using () renaming (function to Id)
 open import Function.Construct.Setoid using (_∙_)
-open import Morphism.SplitIdempotent Monoids using (IsSplitIdempotent)
 open import Relation.Binary using (Setoid)
 open import SplitIdempotents.Setoids using () renaming (Q to Q′)
 
@@ -149,13 +149,13 @@ module _ {M : Monoid} (F : Monoid⇒ M M) where
         preserves-μ : {x : ∣ X′ ⊗₀ X′ ∣} → arr ∙ μ ⟨$⟩ x S.≈ M.μ ∙ arr ⊗₁ arr ⟨$⟩ x
         preserves-μ = F.preserves-μ
 
-  module _ (idem : F ∘ F ≈ F) where
-
-    split : IsSplitIdempotent F
-    split = record
-        { B = Q
-        ; r = M⇒Q
-        ; s = Q⇒M
-        ; s∘r = S.refl
-        ; r∘s = idem
+Monoids-KaroubiComplete : KaroubiComplete
+Monoids-KaroubiComplete = record
+    { split = λ {A} {f} f∘f≈f → record
+        { obj = Q f
+        ; retract = M⇒Q f
+        ; section = Q⇒M f
+        ; retracts = f∘f≈f
+        ; splits = Setoid.refl (Monoid.Carrier A)
         }
+    }

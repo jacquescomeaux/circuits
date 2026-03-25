@@ -14,11 +14,11 @@ open import Categories.Category.Instance.Setoids using (Setoids)
 open import Categories.Category.Monoidal.Symmetric using (Symmetric)
 open import Categories.Object.Monoid Setoids-×.monoidal using (Monoid)
 open import Category.Construction.CMonoids Setoids-×.symmetric using (CMonoids)
+open import Category.KaroubiComplete CMonoids using (KaroubiComplete)
 open import Data.Product using (_,_)
 open import Data.Setoid using (∣_∣)
 open import Function using (_⟶ₛ_; _⟨$⟩_)
 open import Function.Construct.Setoid using (_∙_)
-open import Morphism.SplitIdempotent CMonoids using (IsSplitIdempotent)
 open import Object.Monoid.Commutative Setoids-×.symmetric using (CommutativeMonoid; CommutativeMonoid⇒)
 open import Relation.Binary using (Setoid)
 
@@ -73,13 +73,13 @@ module _ {M : CommutativeMonoid} (F : CommutativeMonoid⇒ M M) where
       { monoid⇒ = SIM.Q⇒M F.monoid⇒
       }
 
-  module _ (idem : F ∘ F ≈ F) where
-
-    split : IsSplitIdempotent F
-    split = record
-        { B = Q
-        ; r = M⇒Q
-        ; s = Q⇒M
-        ; s∘r = S.refl
-        ; r∘s = idem
+Monoids-KaroubiComplete : KaroubiComplete
+Monoids-KaroubiComplete = record
+    { split = λ {A} {f} f∘f≈f → record
+        { obj = Q f
+        ; retract = M⇒Q f
+        ; section = Q⇒M f
+        ; retracts = f∘f≈f
+        ; splits = Setoid.refl (CommutativeMonoid.Carrier A)
         }
+    }

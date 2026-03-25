@@ -6,13 +6,12 @@ module SplitIdempotents.Setoids {c ℓ : Level} where
 
 open import Categories.Category using (Category)
 open import Categories.Category.Instance.Setoids using (Setoids)
+open import Category.KaroubiComplete (Setoids c ℓ) using (KaroubiComplete)
 open import Function using (Func; _⟶ₛ_; _⟨$⟩_; id)
 open import Function.Construct.Identity using () renaming (function to Id)
 open import Function.Construct.Setoid using (_∙_)
 open import Relation.Binary using (Setoid)
-open import Morphism.SplitIdempotent (Setoids c ℓ) using (IsSplitIdempotent)
 
-open Category (Setoids c ℓ) using (_≈_)
 open Func using (cong)
 
 module _ {S : Setoid c ℓ} (f : S ⟶ₛ S)  where
@@ -43,19 +42,13 @@ module _ {S : Setoid c ℓ} (f : S ⟶ₛ S)  where
       ; cong = id
       }
 
-  from∘to : from ∙ to ≈ f
-  from∘to = S.refl
-
-  module _ (idem : (f ∙ f) ≈ f) where
-
-    to∘from : to ∙ from ≈ Id Q
-    to∘from = idem
-
-    split : IsSplitIdempotent f
-    split = record
-        { B = Q
-        ; r = to
-        ; s = from
-        ; s∘r = from∘to
-        ; r∘s = to∘from
+Setoids-KaroubiComplete : KaroubiComplete
+Setoids-KaroubiComplete = record
+    { split = λ {A} {f} idem → record
+        { obj = Q f
+        ; retract = to f
+        ; section = from f
+        ; retracts = idem
+        ; splits = Setoid.refl A
         }
+    }
