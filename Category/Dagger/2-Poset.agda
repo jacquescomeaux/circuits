@@ -6,7 +6,7 @@ open import Level using (Level; suc; _⊔_)
 
 module Category.Dagger.2-Poset {o ℓ e : Level} where
 
-import Categories.Category.Monoidal.Reasoning as ⊗-Reasoning
+import Relation.Binary.Reasoning.PartialOrder as ≤-Reasoning
 
 open import Category.Monoidal.Instance.Posets {ℓ} {e} {e} using (Posets-Monoidal)
 
@@ -19,7 +19,7 @@ open import Data.Unit.Polymorphic using (tt)
 open import Relation.Binary using (Poset)
 open import Relation.Binary.Morphism.Bundles using (PosetHomomorphism; mkPosetHomo)
 
-open PosetHomomorphism using (⟦_⟧; cong)
+open PosetHomomorphism using (⟦_⟧; cong; mono)
 
 record Dagger-2-Poset : Set (suc (o ⊔ ℓ ⊔ e)) where
 
@@ -28,7 +28,8 @@ record Dagger-2-Poset : Set (suc (o ⊔ ℓ ⊔ e)) where
   field
     2-poset : 2-Poset o
 
-  open 2-Poset 2-poset
+  open 2-Poset 2-poset hiding (id) public
+  open 2-Poset 2-poset using (id)
 
   category : Category o ℓ e
   category = categoryHelper record
@@ -51,8 +52,8 @@ record Dagger-2-Poset : Set (suc (o ⊔ ℓ ⊔ e)) where
     module P {A B : Obj} = Poset (hom A B)
 
   open P using (_≤_) public
-  open Category category using (_⇒_) public
-  open HasDagger hasDagger using (_†) public
+  open Category category hiding (Obj) public
+  open HasDagger hasDagger public
 
   field
     †-resp-≤ : {A B : Obj} {f g : A ⇒ B} → f ≤ g → f † ≤ g †
@@ -92,4 +93,98 @@ dagger-2-poset {𝒞} ISA† = record
   where
     module ISA† = IdempotentSemiadditiveDagger ISA†
     open Category 𝒞
-    open ⊗-Reasoning ISA†.+-monoidal
+
+module _ (S : Dagger-2-Poset) where
+
+  open Dagger-2-Poset S
+
+  record IsMap {A B : Obj} (f : A ⇒ B) : Set e where
+
+    field
+      functional : f ∘ f † ≤ id
+      entire : id ≤ f † ∘ f
+
+  record Map (A B : Obj) : Set (ℓ ⊔ e) where
+
+    field
+      map : A ⇒ B
+      isMap : IsMap map
+
+    open IsMap isMap public
+
+  idMap : {A : Obj} → Map A A
+  idMap {A} = record
+      { map = id
+      ; isMap = record
+          { functional = begin
+              id ∘ id † ≈⟨ identityˡ ⟩
+              id †      ≈⟨ †-identity ⟩
+              id        ∎
+          ; entire = begin
+              id        ≈⟨ †-identity ⟨
+              id †      ≈⟨ identityʳ ⟨
+              id † ∘ id ∎
+          }
+      }
+    where
+      open ≤-Reasoning (hom A A)
+
+  _∘-map_ : {A B C : Obj} → Map B C → Map A B → Map A C
+  _∘-map_ {A} {B} {C} g f = record
+      { map = g.map ∘ f.map
+      ; isMap = record
+          { functional = func
+          ; entire = ent
+          }
+      }
+    where
+      module g = Map g
+      module f = Map f
+      func : (g.map ∘ f.map) ∘ (g.map ∘ f.map) † ≤ id
+      func = begin
+          (g.map ∘ f.map) ∘ (g.map ∘ f.map) † ≈⟨ refl⟩∘⟨ †-homomorphism ⟩
+          (g.map ∘ f.map) ∘ f.map † ∘ g.map † ≈⟨ assoc ⟩
+          g.map ∘ f.map ∘ f.map † ∘ g.map †   ≈⟨ refl⟩∘⟨ assoc ⟨
+          g.map ∘ (f.map ∘ f.map †) ∘ g.map † ≤⟨ mono ⊚ (Poset.refl (hom B C) , mono ⊚ (f.functional , Poset.refl (hom C B))) ⟩
+          g.map ∘ id ∘ g.map †                ≈⟨ refl⟩∘⟨ identityˡ ⟩
+          g.map ∘ g.map †                     ≤⟨ g.functional ⟩
+          id                                  ∎
+        where
+          open ≤-Reasoning (hom C C)
+          open HomReasoning using (refl⟩∘⟨_)
+          open Poset (hom C C)
+      ent : id ≤ (g.map ∘ f.map) † ∘ g.map ∘ f.map
+      ent = begin
+          id                                  ≤⟨ f.entire ⟩
+          f.map † ∘ f.map                     ≈⟨ refl⟩∘⟨ identityˡ ⟨
+          f.map † ∘ id ∘ f.map                ≤⟨ mono ⊚ (Poset.refl (hom B A) , mono ⊚ (g.entire , Poset.refl (hom A B))) ⟩
+          f.map † ∘ (g.map † ∘ g.map) ∘ f.map ≈⟨ refl⟩∘⟨ assoc ⟩
+          f.map † ∘ g.map † ∘ g.map ∘ f.map   ≈⟨ assoc ⟨
+          (f.map † ∘ g.map †) ∘ g.map ∘ f.map ≈⟨ †-homomorphism ⟩∘⟨refl ⟨
+          (g.map ∘ f.map) † ∘ g.map ∘ f.map   ∎
+        where
+          open ≤-Reasoning (hom A A)
+          open HomReasoning using (refl⟩∘⟨_; _⟩∘⟨refl)
+          open Poset (hom A A)
+
+  infixr 9 _∘-map_
+
+  open Map
+
+  Maps : Category o (ℓ ⊔ e) e
+  Maps = categoryHelper record
+      { Obj = Obj
+      ; _⇒_ = Map
+      ; _≈_ = λ a b → map a ≈ map b
+      ; id = idMap
+      ; _∘_ = _∘-map_
+      ; assoc = assoc
+      ; identityˡ = identityˡ
+      ; identityʳ = identityʳ
+      ; equiv = record
+          { refl = Equiv.refl
+          ; sym = Equiv.sym
+          ; trans = Equiv.trans
+          }
+      ; ∘-resp-≈ = ∘-resp-≈
+      }
