@@ -19,6 +19,7 @@ open import Categories.Category.Monoidal.Symmetric using (module Symmetric)
 open import Categories.Category.Monoidal.Symmetric.Properties using () renaming (module Shorthands to σ-Shorthands)
 open import Categories.Category.Monoidal.Utilities using (module Shorthands)
 open import Categories.Object.Duality using (Coproduct⇒coProduct)
+open import Relation.Binary using (Rel)
 
 record DaggerCocartesianMonoidal : Set (suc (o ⊔ ℓ ⊔ e)) where
 
@@ -277,6 +278,8 @@ record SemiadditiveDagger : Set (suc (o ⊔ ℓ ⊔ e)) where
     _+_ : A ⇒ B → A ⇒ B → A ⇒ B
     _+_ f g = ▽ ∘ f ⊕₁ g ∘ △
 
+    infixl 6 _+_
+
     +-associative : {f g h : A ⇒ B} → (f + g) + h ≈ f + (g + h)
     +-associative {f} {g} {h} = begin
         ▽ ∘ (▽ ∘ f ⊕₁ g ∘ △) ⊕₁ h ∘ △                     ≈⟨ refl⟩∘⟨ pushˡ split₁ˡ ⟩
@@ -315,6 +318,36 @@ record SemiadditiveDagger : Set (suc (o ⊔ ℓ ⊔ e)) where
         ▽ ∘ σ⇒ ∘ g ⊕₁ f ∘ △ ≈⟨ pullˡ ▽-comm ⟩
         ▽ ∘ g ⊕₁ f ∘ △      ∎
 
+    +-cong : {f g h i : A ⇒ B} → f ≈ h → g ≈ i → f + g ≈ h + i
+    +-cong f≈h g≈i = refl⟩∘⟨ f≈h ⟩⊗⟨ g≈i ⟩∘⟨refl
+
+    +-congˡ : {f g i : A ⇒ B} → g ≈ i → f + g ≈ f + i
+    +-congˡ g≈i = +-cong Equiv.refl g≈i
+
+    +-congʳ : {f g h : A ⇒ B} → f ≈ h → f + g ≈ h + g
+    +-congʳ f≈h = +-cong f≈h Equiv.refl
+
+  +-† : {A B : Obj} {f g : A ⇒ B} → (f + g) † ≈ (f †) + (g †)
+  +-† {f = f} {g} = begin
+      (▽ ∘ f ⊕₁ g ∘ △) †     ≈⟨ †-homomorphism ⟩
+      (f ⊕₁ g ∘ △) † ∘ ▽ †   ≈⟨ pushˡ †-homomorphism ⟩
+      △ † ∘ (f ⊕₁ g) † ∘ ▽ † ≈⟨ †-involutive ▽ ⟩∘⟨refl ⟩
+      ▽ ∘ (f ⊕₁ g) † ∘ △     ≈⟨ refl⟩∘⟨ †-resp-⊗ ⟩∘⟨refl ⟩
+      ▽ ∘ (f †) ⊕₁ (g †) ∘ △ ∎
+
+  -- bilinearity of composition
+  ∘-distribˡ : {A B C : Obj} {f : B ⇒ C} {g h : A ⇒ B} → f ∘ (g + h) ≈ f ∘ g + f ∘ h
+  ∘-distribˡ {f = f} {g} {h} = begin
+      f ∘ ▽ ∘ g ⊕₁ h ∘ △          ≈⟨ extendʳ ⇒▽ ⟩
+      ▽ ∘ f ⊕₁ f ∘ g ⊕₁ h ∘ △     ≈⟨ refl⟩∘⟨ pullˡ (Equiv.sym ⊗-distrib-over-∘) ⟩
+      ▽ ∘ (f ∘ g) ⊕₁ (f ∘ h) ∘ △  ∎
+
+  ∘-distribʳ : {A B C : Obj} {f g : B ⇒ C} {h : A ⇒ B} → (f + g) ∘ h ≈ f ∘ h + g ∘ h
+  ∘-distribʳ {f = f} {g} {h} = begin
+      (▽ ∘ f ⊕₁ g ∘ △) ∘ h        ≈⟨ pullʳ (pullʳ ⇒△) ⟩
+      ▽ ∘ f ⊕₁ g ∘ h ⊕₁ h ∘ △     ≈⟨ refl⟩∘⟨ pullˡ (Equiv.sym ⊗-distrib-over-∘) ⟩
+      ▽ ∘ (f ∘ h) ⊕₁ (g ∘ h) ∘ △  ∎
+
 record IdempotentSemiadditiveDagger : Set (suc (o ⊔ ℓ ⊔ e)) where
 
   field
@@ -328,8 +361,6 @@ record IdempotentSemiadditiveDagger : Set (suc (o ⊔ ℓ ⊔ e)) where
 
   field
     idempotent : {A B : Obj} {f : A ⇒ B} → f + f ≈ f
-
-  open import Relation.Binary using (Rel)
 
   _≤_ : {A B : Obj} → Rel (A ⇒ B) e
   _≤_ {A} {B} f g = f + g ≈ g
@@ -351,6 +382,44 @@ record IdempotentSemiadditiveDagger : Set (suc (o ⊔ ℓ ⊔ e)) where
       (f + g) + h ≈⟨ refl⟩∘⟨ f≤g ⟩⊗⟨refl ⟩∘⟨refl ⟩
       g + h       ≈⟨ g≤h ⟩
       h           ∎
+
+  ≤-resp-+
+      : {A B : Obj}
+        {f g h i : A ⇒ B}
+      → f ≤ h
+      → g ≤ i
+      → (f + g) ≤ (h + i)
+  ≤-resp-+ {f = f} {g} {h} {i} f≤h g≤i = begin
+      f + g + (h + i)   ≈⟨ +-associative ⟩
+      f + (g + (h + i)) ≈⟨ +-congˡ +-associative ⟨
+      f + (g + h + i)   ≈⟨ +-congˡ (+-congʳ +-commutative) ⟩
+      f + (h + g + i)   ≈⟨ +-congˡ +-associative ⟩
+      f + (h + (g + i)) ≈⟨ +-associative ⟨
+      f + h + (g + i)   ≈⟨ +-cong f≤h g≤i ⟩
+      h + i             ∎
+
+  ≤-resp-∘
+      : {A B C : Obj}
+        {f h : B ⇒ C}
+        {g i : A ⇒ B}
+      → f ≤ h
+      → g ≤ i
+      → (f ∘ g) ≤ (h ∘ i)
+  ≤-resp-∘ {f = f} {h} {g} {i} f≤h g≤i = begin
+      f ∘ g + (h ∘ i)         ≈⟨ +-congˡ (f≤h ⟩∘⟨refl) ⟨
+      f ∘ g + ((f + h) ∘ i)   ≈⟨ +-congˡ ∘-distribʳ ⟩
+      f ∘ g + (f ∘ i + h ∘ i) ≈⟨ +-associative ⟨
+      f ∘ g + f ∘ i + h ∘ i   ≈⟨ +-congʳ ∘-distribˡ ⟨
+      f ∘ (g + i) + h ∘ i     ≈⟨ +-congʳ (refl⟩∘⟨ g≤i) ⟩
+      f ∘ i + h ∘ i           ≈⟨ ∘-distribʳ ⟨
+      (f + h) ∘ i             ≈⟨ f≤h ⟩∘⟨refl ⟩
+      h ∘ i                   ∎
+
+  †-resp-≤ : {A B : Obj} {f g : A ⇒ B} → f ≤ g → (f †) ≤ (g †)
+  †-resp-≤ {A} {B} {f} {g} f≤g = begin
+      (f †) + (g †) ≈⟨ +-† ⟨
+      (f + g) †     ≈⟨ ⟨ f≤g ⟩† ⟩
+      g †           ∎
 
   -- special law
   ▽∘△ : {A : Obj} → ▽ ∘ △ ≈ id {A}
