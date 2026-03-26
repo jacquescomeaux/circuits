@@ -7,9 +7,9 @@ import Data.Vec.Relation.Binary.Equality.Setoid as ≋
 import Data.Vec.Relation.Binary.Pointwise.Inductive as PW
 import Relation.Binary.Reasoning.Setoid as ≈-Reasoning
 
-open import Data.Nat using (ℕ)
+open import Data.Nat using (ℕ; _+_)
 open import Data.Setoid using (∣_∣)
-open import Data.Vec using (Vec; zipWith; foldr; map; replicate)
+open import Data.Vec using (Vec; zipWith; foldr; map; replicate; _++_)
 open import Level using (Level)
 open import Relation.Binary using (Rel; Setoid; Monotonic₂)
 open import Relation.Binary.PropositionalEquality as ≡ using (_≗_; _≡_; module ≡-Reasoning)
@@ -27,16 +27,16 @@ transpose : Vec (Vec A n) m → Vec (Vec A m) n
 transpose [] = replicate _ []
 transpose (row ∷ mat) = zipWith _∷_ row (transpose mat)
 
-transpose-empty : (m : ℕ) → transpose (replicate {A = Vec A zero} m []) ≡ []
-transpose-empty zero = ≡.refl
-transpose-empty (suc m) = ≡.cong (zipWith _∷_ []) (transpose-empty m)
+transpose-empty : (m : ℕ) (E : Vec (Vec A 0) m) → transpose E ≡ []
+transpose-empty zero [] = ≡.refl
+transpose-empty (suc m) ([] ∷ E) = ≡.cong (zipWith _∷_ []) (transpose-empty m E)
 
 transpose-zipWith : (V : Vec A m) (M : Vec (Vec A n) m) → transpose (zipWith _∷_ V M) ≡ V ∷ transpose M
 transpose-zipWith [] [] = ≡.refl
 transpose-zipWith (x ∷ V) (M₀ ∷ M) = ≡.cong (zipWith _∷_ (x ∷ M₀)) (transpose-zipWith V M)
 
 transpose-involutive : (M : Vec (Vec A n) m) → transpose (transpose M) ≡ M
-transpose-involutive {n} [] = transpose-empty n
+transpose-involutive {n} [] = transpose-empty n (replicate n [])
 transpose-involutive (V ∷ M) = begin
     transpose (zipWith _∷_ V (transpose M)) ≡⟨ transpose-zipWith V (transpose M) ⟩
     V ∷ transpose (transpose M)             ≡⟨ ≡.cong (V ∷_) (transpose-involutive M) ⟩
@@ -47,6 +47,10 @@ transpose-involutive (V ∷ M) = begin
 map-replicate : (x : A) (v : Vec B n) → map (λ _ → x) v ≡ replicate n x
 map-replicate x [] = ≡.refl
 map-replicate x (y ∷ v) = ≡.cong (x ∷_) (map-replicate x v)
+
+replicate-++ : (n m : ℕ) (x : A) → replicate n x ++ replicate m x ≡ replicate (n + m) x
+replicate-++ zero _ x = ≡.refl
+replicate-++ (suc n) m x = ≡.cong (x ∷_) (replicate-++ n m x)
 
 zipWith-map-map
     : (f : A → C)
