@@ -11,7 +11,7 @@ import Data.Vec.Relation.Binary.Pointwise.Inductive as PW
 open import Data.Mat.Category Rig
   using
    ( Mat; Matrix; Vector; zeros; I; _≊_; module ≊; ≊-setoid; _≋_; module ≋; ≋-setoid
-   ; _ᵀ; mapRows; _·_; _∙_; _ᵀᵀ; _⊕_; ·-identityʳ; ∙-zerosʳ
+   ; _ᵀ; mapRows; _·_; _∙_; _ᵀᵀ; _⊕_; ·-identityʳ; ∙-zerosʳ; ∙-zerosˡ
    )
   renaming ([_]_ to [_]′_)
 
@@ -22,7 +22,7 @@ open import Data.Mat.Util using (replicate-++; zipWith-map; transpose-zipWith; z
 open import Data.Nat as ℕ using (ℕ)
 open import Data.Product using (_,_; Σ-syntax)
 open import Data.Vec using (Vec; map; zipWith; replicate; _++_; head; tail)
-open import Data.Vec.Properties using (zipWith-replicate; map-cong; map-id)
+open import Data.Vec.Properties using (zipWith-replicate; map-cong; map-const; map-id)
 open import Function using (id; _∘_)
 open import Relation.Binary.PropositionalEquality as ≡ using (_≡_; module ≡-Reasoning)
 
@@ -141,8 +141,8 @@ opaque
 
 opaque
   unfolding []ᵥ
-  []-ᵀ : []ᵥ ᵀ ≡ []ₕ {A}
-  []-ᵀ = []ₕ ᵀᵀ
+  []ᵥ-ᵀ : []ᵥ ᵀ ≡ []ₕ {A}
+  []ᵥ-ᵀ = []ₕ ᵀᵀ
 
 opaque
   unfolding []ₕ
@@ -228,7 +228,7 @@ opaque
   unfolding []ₕ [_]′_ _ᵀ []ᵥ ⟨⟩
   [-]-[]ᵥ : (V : Vector A) → [ V ]′ []ᵥ ≡ ⟨⟩
   [-]-[]ᵥ [] = ≡.refl
-  [-]-[]ᵥ (x ∷ V) = ≡.cong (map ((x ∷ V) ∙_)) []-ᵀ
+  [-]-[]ᵥ (x ∷ V) = ≡.cong (map ((x ∷ V) ∙_)) []ᵥ-ᵀ
 
 opaque
   unfolding [_]′_ _ᵀ _∷ᵥ_ _∷′_
@@ -242,7 +242,7 @@ opaque
       (M : Matrix A C)
       (N : Matrix B C)
     → [ V ]′ (M ∥ N) ≡ ([ V ]′ M) +++ ([ V ]′ N)
-[-]--∥ {C} {zero} V M N rewrite ([]ᵥ-! M) = begin
+[-]--∥ {C} {zero} V M N rewrite []ᵥ-! M = begin
     [ V ]′ ([]ᵥ ∥ N)            ≡⟨ ≡.cong ([ V ]′_) ([]ᵥ-∥ N) ⟩
     [ V ]′ N                    ≡⟨ ⟨⟩-+++ ([ V ]′ N) ⟨
     ⟨⟩ +++ ([ V ]′ N)           ≡⟨ ≡.cong (_+++ ([ V ]′ N)) ([-]-[]ᵥ V) ⟨
@@ -250,7 +250,7 @@ opaque
   where
     open ≡-Reasoning
 [-]--∥ {C} {suc A} V M N
-  rewrite (≡.sym (head-∷-tailₕ M))
+  rewrite ≡.sym (head-∷-tailₕ M)
   using M₀ ← headₕ M
   using M ← tailₕ M = begin
     [ V ]′ ((M₀ ∷ₕ M) ∥ N)                ≡⟨ ≡.cong ([ V ]′_) (∷ₕ-∥ M₀ M N) ⟨
@@ -263,7 +263,7 @@ opaque
     open ≡-Reasoning
 
 opaque
-  unfolding Matrix _∥_ mapRows _+++_
+  unfolding _∥_ mapRows _+++_
   ·-∥
       : (M : Matrix C D)
         (N : Matrix A C)
@@ -271,6 +271,15 @@ opaque
       → M · (N ∥ P) ≡ M · N ∥ M · P
   ·-∥ {C} {D} {A} {B} [] N P = ≡.refl
   ·-∥ {C} {D} {A} {B} (M₀ ∷ M) N P = ≡.cong₂ _∷_ ([-]--∥ M₀ N P) (·-∥ M N P)
+
+opaque
+  unfolding _≑_ mapRows
+  ≑-· : (M : Matrix B C)
+        (N : Matrix B D)
+        (P : Matrix A B)
+      → (M ≑ N) · P ≡ (M · P) ≑ (N · P)
+  ≑-· [] N P = ≡.refl
+  ≑-· (M₀ ∷ M) N P = ≡.cong ([ M₀ ]′ P ∷_) (≑-· M N P)
 
 opaque
   unfolding Matrix
@@ -314,8 +323,8 @@ opaque
       → [ V +++ W ]′ (M ≑ N)
       ≊ [ V ]′ M ⊕ [ W ]′ N
   [+++]-≑ {B} {C} {zero} V W M N
-    rewrite ([]ᵥ-! M)
-    rewrite ([]ᵥ-! N) = begin
+    rewrite []ᵥ-! M
+    rewrite []ᵥ-! N = begin
       [ V +++ W ]′ ([]ᵥ {B} ≑ []ᵥ)  ≡⟨ ≡.cong ([ V +++ W ]′_) []ᵥ-≑ ⟩
       [ V +++ W ]′ []ᵥ              ≡⟨ [-]-[]ᵥ (V +++ W) ⟩
       ⟨⟩                            ≡⟨ ⟨⟩-⊕ ⟨
@@ -324,8 +333,8 @@ opaque
     where
       open ≈-Reasoning (≊-setoid 0)
   [+++]-≑ {B} {C} {suc A} V W M N
-    rewrite (≡.sym (head-∷-tailₕ M))
-    rewrite (≡.sym (head-∷-tailₕ N))
+    rewrite ≡.sym (head-∷-tailₕ M)
+    rewrite ≡.sym (head-∷-tailₕ N)
     using M₀ ← headₕ M
     using M ← tailₕ M
     using N₀ ← headₕ N
@@ -415,6 +424,26 @@ opaque
       open ≈-Reasoning (≋-setoid _ _)
 
 opaque
+  unfolding Matrix zeros ≊-setoid _∷′_ ⟨⟩
+  [zeros]- : (M : Matrix A B) → [ zeros ]′ M ≊ zeros
+  [zeros]- {zero} M rewrite []ᵥ-! M = ≊.reflexive ([-]-[]ᵥ zeros)
+  [zeros]- {suc A} M
+    rewrite ≡.sym (head-∷-tailₕ M)
+    using M₀ ← headₕ M
+    using M ← tailₕ M = begin
+      [ zeros ]′ (M₀ ∷ₕ M)      ≡⟨ [-]-∷ₕ zeros M₀ M ⟩
+      zeros ∙ M₀ ∷ [ zeros ]′ M ≈⟨ ∙-zerosˡ M₀ PW.∷ [zeros]- M ⟩
+      0# ∷ zeros                ∎
+    where
+      open ≈-Reasoning (≊-setoid _)
+
+opaque
+  unfolding ≋-setoid mapRows 𝟎 _ᵀ []ᵥ
+  ·-𝟎ˡ : (M : Matrix A B) →  𝟎 {B} {C} · M ≋ 𝟎
+  ·-𝟎ˡ {A} {B} {zero} M = PW.[]
+  ·-𝟎ˡ {A} {B} {suc C} M = [zeros]- M PW.∷ ·-𝟎ˡ M
+
+opaque
   unfolding ≋-setoid
   inj₁ : (M : Matrix A C) (N : Matrix B C) → (M ∥ N) · (I ≑ 𝟎) ≋ M
   inj₁ {A} {C} M N = begin
@@ -441,7 +470,7 @@ opaque
   split-∥ : (A : ℕ) → (M : Matrix (A ℕ.+ B) C) → Σ[ M₁ ∈ Matrix A C ] Σ[ M₂ ∈ Matrix B C ] M₁ ∥ M₂ ≡ M
   split-∥ zero M = []ᵥ , M , []ᵥ-∥ M
   split-∥ (suc A) M′
-    rewrite (≡.sym (head-∷-tailₕ M′))
+    rewrite ≡.sym (head-∷-tailₕ M′)
     using M₀ ← headₕ M′
     using M ← tailₕ M′
     with split-∥ A M
@@ -498,8 +527,8 @@ opaque
   unfolding _≋_ _∥_ []ᵥ _∷ₕ_
   ∥-cong : {M M′ : Matrix A C} {N N′ : Matrix B C} → M ≋ M′ → N ≋ N′ → M ∥ N ≋ M′ ∥ N′
   ∥-cong {zero} {C} {B} {M} {M′} {N} {N′} ≋M ≋N
-    rewrite ([]ᵥ-! M)
-    rewrite ([]ᵥ-! M′) = begin
+    rewrite []ᵥ-! M
+    rewrite []ᵥ-! M′ = begin
       ([]ᵥ ∥ N)   ≡⟨ []ᵥ-∥ N ⟩
       N           ≈⟨ ≋N ⟩
       N′          ≡⟨ []ᵥ-∥ N′ ⟨
@@ -507,10 +536,10 @@ opaque
     where
       open ≈-Reasoning (≋-setoid _ _)
   ∥-cong {suc A} {C} {B} {M} {M′} {N} {N′} ≋M ≋N
-    rewrite (≡.sym (head-∷-tailₕ M))
+    rewrite ≡.sym (head-∷-tailₕ M)
     using M₀ ← headₕ M
     using M- ← tailₕ M
-    rewrite (≡.sym (head-∷-tailₕ M′))
+    rewrite ≡.sym (head-∷-tailₕ M′)
     using M₀′ ← headₕ M′
     using M-′ ← tailₕ M′ = begin
       (M₀ ∷ₕ M-) ∥ N     ≡⟨ ∷ₕ-∥ M₀ M- N ⟨
@@ -537,6 +566,12 @@ opaque
       open ≈-Reasoning (≋-setoid _ _)
 
 opaque
+  unfolding _≋_ _≑_
+  ≑-cong : {M M′ : Matrix A B} {N N′ : Matrix A C} → M ≋ M′ → N ≋ N′ → M ≑ N ≋ M′ ≑ N′
+  ≑-cong PW.[] ≋N = ≋N
+  ≑-cong (M₀≊M₀′ PW.∷ ≋M) ≋N = M₀≊M₀′ PW.∷ ≑-cong ≋M ≋N
+
+opaque
   unfolding ≋-setoid
   uniq
       : (H : Matrix (A ℕ.+ B) C)
@@ -547,7 +582,7 @@ opaque
       → M ∥ N ≋ H
   uniq {A} {B} {C} H M N eq₁ eq₂
     with (H₁ , H₂ , H₁∥H₂≡H) ← split-∥ A H
-    rewrite (≡.sym H₁∥H₂≡H) = begin
+    rewrite ≡.sym H₁∥H₂≡H = begin
       M ∥ N                                         ≈⟨ ∥-cong eq₁ eq₂ ⟨
       (H₁ ∥ H₂) · (I {A} ≑ 𝟎) ∥ (H₁ ∥ H₂) · (𝟎 ≑ I) ≈⟨ ∥-cong (inj₁ H₁ H₂) (inj₂ H₁ H₂) ⟩
       (H₁ ∥ H₂) ∎
