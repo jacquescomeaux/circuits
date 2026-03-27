@@ -25,8 +25,8 @@ open import Data.Mat.Cocartesian Rig.semiring
     ( Mat-Cocartesian; []ᵥ; []ₕ; [-]-[]ᵥ; ⟨⟩; _∷ₕ_; ∷ₕ-cong; _∷ᵥ_
     ; [-]-∷ₕ; _∷′_; ∷ₕ-ᵀ; ∷ᵥ-ᵀ; 𝟎; _∥_; _≑_; []ᵥ-∥; []ₕ-≑; []ₕ-!
     ; _+++_; ∷ₕ-≑; []ᵥ-ᵀ; ∥-cong; ≑-cong; ≑-·; ·-𝟎ʳ; ·-𝟎ˡ; 𝟎ᵀ; ·-∥
-    ; headₕ; tailₕ; head-∷-tailₕ
-    ; ∷ₕ-∥; []ᵥ-!
+    ; headₕ; tailₕ; head-∷-tailₕ; [⟨⟩]-[]ₕ
+    ; ∷ₕ-∥; []ᵥ-!; _[+]_; ∥-·-≑; [+]-cong; [+]-𝟎ʳ; [+]-𝟎ˡ
     )
 
 open import Category.Dagger.Semiadditive Mat using (DaggerCocartesianMonoidal; SemiadditiveDagger)
@@ -425,4 +425,79 @@ Mat-DaggerCocartesian = record
     ; α≅† = ≋αᵀ
     ; σ≅† = ≋σᵀ
     ; †-resp-⊗ = ᵀ-resp-⊗
+    }
+
+opaque
+  unfolding ≋-setoid
+  p₁-i₁ : (I ≑ 𝟎) ᵀ · (I ≑ 𝟎 {A} {B}) ≋ I
+  p₁-i₁ = begin
+      (I ≑ 𝟎) ᵀ · (I ≑ 𝟎)   ≡⟨ ≡.cong (_· (I ≑ 𝟎)) (≑-ᵀ I 𝟎) ⟩
+      (I ᵀ ∥ 𝟎 ᵀ) · (I ≑ 𝟎) ≡⟨ ≡.cong₂ (λ h₁ h₂ → (h₁ ∥ h₂) · (I ≑ 𝟎)) transpose-I 𝟎ᵀ ⟩
+      (I ∥ 𝟎) · (I ≑ 𝟎)     ≈⟨ ∥-·-≑ I 𝟎 I 𝟎 ⟩
+      (I · I) [+] (𝟎 · 𝟎)   ≈⟨ [+]-cong ·-identityˡ (·-𝟎ˡ 𝟎) ⟩
+      I [+] 𝟎               ≈⟨ [+]-𝟎ʳ I ⟩
+      I                     ∎
+    where
+      open ≈-Reasoning (≋-setoid _ _)
+
+opaque
+  unfolding ≋-setoid
+  p₂-i₂ : (𝟎 {A} {B} ≑ I) ᵀ · (𝟎 ≑ I) ≋ I
+  p₂-i₂ = begin
+      (𝟎 ≑ I) ᵀ · (𝟎 ≑ I)   ≡⟨ ≡.cong (_· (𝟎 ≑ I)) (≑-ᵀ 𝟎 I) ⟩
+      (𝟎 ᵀ ∥ I ᵀ) · (𝟎 ≑ I) ≡⟨ ≡.cong₂ (λ h₁ h₂ → (h₁ ∥ h₂) · (𝟎 ≑ I)) 𝟎ᵀ transpose-I ⟩
+      (𝟎 ∥ I) · (𝟎 ≑ I)     ≈⟨ ∥-·-≑ 𝟎 I 𝟎 I ⟩
+      (𝟎 · 𝟎) [+] (I · I)   ≈⟨ [+]-cong (·-𝟎ˡ 𝟎) ·-identityˡ ⟩
+      𝟎 [+] I               ≈⟨ [+]-𝟎ˡ I ⟩
+      I                     ∎
+    where
+      open ≈-Reasoning (≋-setoid _ _)
+
+opaque
+  unfolding 𝟎 mapRows ⟨⟩
+  []ᵥ·[]ₕ : []ᵥ · []ₕ ≡ 𝟎 {A} {B}
+  []ᵥ·[]ₕ {A} {B} = begin
+      map ([_] []ₕ) []ᵥ     ≡⟨ map-cong (λ { [] → [⟨⟩]-[]ₕ }) []ᵥ ⟩
+      map (λ _ → zeros) []ᵥ ≡⟨ map-const []ᵥ zeros ⟩
+      replicate B zeros     ∎
+    where
+      open ≡-Reasoning
+
+opaque
+  unfolding ≋-setoid
+  p₂-i₁ : (𝟎 {A} ≑ I) ᵀ · (I ≑ 𝟎 {B}) ≋ []ᵥ · []ᵥ ᵀ
+  p₂-i₁ = begin
+      (𝟎 ≑ I) ᵀ · (I ≑ 𝟎)   ≡⟨ ≡.cong (_· (I ≑ 𝟎)) (≑-ᵀ 𝟎 I) ⟩
+      (𝟎 ᵀ ∥ I ᵀ) · (I ≑ 𝟎) ≡⟨ ≡.cong₂ (λ h₁ h₂ → (h₁ ∥ h₂) · (I ≑ 𝟎)) 𝟎ᵀ transpose-I ⟩
+      (𝟎 ∥ I) · (I ≑ 𝟎)     ≈⟨ ∥-·-≑ 𝟎 I I 𝟎 ⟩
+      (𝟎 · I) [+] (I · 𝟎)   ≈⟨ [+]-cong (·-𝟎ˡ I) (·-𝟎ʳ I) ⟩
+      𝟎 [+] 𝟎               ≈⟨ [+]-𝟎ˡ 𝟎 ⟩
+      𝟎                     ≡⟨ []ᵥ·[]ₕ ⟨
+      []ᵥ · []ₕ             ≡⟨ ≡.cong ([]ᵥ ·_) []ᵥ-ᵀ ⟨
+      []ᵥ · []ᵥ ᵀ           ∎
+    where
+      open ≈-Reasoning (≋-setoid _ _)
+
+opaque
+  unfolding ≋-setoid
+  p₁-i₂ : (I ≑ 𝟎 {A}) ᵀ · (𝟎 {B} ≑ I) ≋ []ᵥ · []ᵥ ᵀ
+  p₁-i₂ = begin
+      (I ≑ 𝟎) ᵀ · (𝟎 ≑ I)   ≡⟨ ≡.cong (_· (𝟎 ≑ I)) (≑-ᵀ I 𝟎) ⟩
+      (I ᵀ ∥ 𝟎 ᵀ) · (𝟎 ≑ I) ≡⟨ ≡.cong₂ (λ h₁ h₂ → (h₁ ∥ h₂) · (𝟎 ≑ I)) transpose-I 𝟎ᵀ ⟩
+      (I ∥ 𝟎) · (𝟎 ≑ I)     ≈⟨ ∥-·-≑ I 𝟎 𝟎 I ⟩
+      (I · 𝟎) [+] (𝟎 · I)   ≈⟨ [+]-cong (·-𝟎ʳ I) (·-𝟎ˡ I) ⟩
+      𝟎 [+] 𝟎               ≈⟨ [+]-𝟎ˡ 𝟎 ⟩
+      𝟎                     ≡⟨ []ᵥ·[]ₕ ⟨
+      []ᵥ · []ₕ             ≡⟨ ≡.cong ([]ᵥ ·_) []ᵥ-ᵀ ⟨
+      []ᵥ · []ᵥ ᵀ           ∎
+    where
+      open ≈-Reasoning (≋-setoid _ _)
+
+Mat-SemiadditiveDagger : SemiadditiveDagger
+Mat-SemiadditiveDagger = record
+    { daggerCocartesianMonoidal = Mat-DaggerCocartesian
+    ; p₁-i₁ = p₁-i₁
+    ; p₂-i₂ = p₂-i₂
+    ; p₂-i₁ = p₂-i₁
+    ; p₁-i₂ = p₁-i₂
     }
