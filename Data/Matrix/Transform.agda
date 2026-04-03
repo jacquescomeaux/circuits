@@ -27,7 +27,7 @@ open import Data.Matrix.Monoid R.+-monoid using (𝟎; 𝟎ᵀ; _[+]_)
 open import Data.Vector.Core R.setoid using (Vector; Vectorₛ; ⟨⟩; module ≊; _≊_; _++_; ⟨⟩-++)
 open import Data.Vector.Vec using (zipWith-map; map-zipWith; zipWith-map-map)
 open import Data.Vector.Monoid R.+-monoid using (_⊕_; ⊕-cong; ⊕-identityˡ; ⊕-identityʳ) renaming (⟨ε⟩ to ⟨0⟩)
-open import Data.Vector.Bisemimodule R using (_∙_; ∙-cong; ∙-zeroˡ; ∙-zeroʳ; _⟨_⟩; *-∙ˡ; ∙-distribʳ)
+open import Data.Vector.Bisemimodule R using (_∙_; ∙-cong; ∙-zeroˡ; ∙-zeroʳ; _⟨_⟩; *-∙ˡ; *-∙ʳ; ∙-distribˡ; ∙-distribʳ)
 
 open Vec
 open ℕ
@@ -55,6 +55,9 @@ opaque
     -[-]-cong : {x y : Vector n} (A : Matrix n m) → x ≊ y → A [ x ] ≊ A [ y ]
     -[-]-cong {x = x} {y} A ≋V = PW.map⁺ (λ ≋w → ∙-cong ≋w ≋V) {xs = A} ≋.refl
 
+    -[-]-cong₁ : {M M′ : Matrix n m} → M ≋ M′ → (V : Vector n) → M [ V ] ≊ M′ [ V ]
+    -[-]-cong₁ {n} {m} {M} {M′} ≋M V = PW.map⁺ (λ ≊V → ∙-cong ≊V ≊.refl) ≋M
+
     [-]--cong : {x y : Vector m} {A B : Matrix n m} → x ≊ y → A ≋ B → [ x ] A ≊ [ y ] B
     [-]--cong ≋V A≋B = PW.map⁺ (∙-cong ≋V) (-ᵀ-cong A≋B)
 
@@ -73,6 +76,12 @@ opaque
       [-]-[]ₕ : (V : Vector 0) → [ V ] []ₕ ≡ ⟨0⟩ {n}
       [-]-[]ₕ {zero} [] = ≡.refl
       [-]-[]ₕ {suc A} [] = ≡.cong (0# ∷_) ([-]-[]ₕ [])
+
+    opaque
+      unfolding _⊕_
+      -[⊕] : (M : Matrix A B) (V W : Vector A) → M [ V ⊕ W ] ≊ (M [ V ]) ⊕ (M [ W ])
+      -[⊕] [] V W = PW.[]
+      -[⊕] (x ∷ M) V W = ∙-distribˡ x V W PW.∷ -[⊕] M V W
 
 opaque
 
@@ -296,3 +305,9 @@ opaque
       0# ∷ ⟨0⟩              ∎
     where
       open ≈-Reasoning (Vectorₛ _)
+
+opaque
+  unfolding _[_] ⟨0⟩
+  -[⟨0⟩] : (M : Matrix A B) → M [ ⟨0⟩ ] ≊ ⟨0⟩
+  -[⟨0⟩] {A} {B} [] = PW.[]
+  -[⟨0⟩] {A} {B} (M₀ ∷ M) = ∙-zeroʳ M₀ PW.∷ -[⟨0⟩] M

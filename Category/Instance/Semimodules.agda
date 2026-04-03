@@ -12,6 +12,7 @@ open import Algebra.Module using (Semimodule)
 open import Algebra.Module.Morphism.Structures using (IsSemimoduleHomomorphism)
 open import Categories.Category using (Category)
 open import Categories.Category.Helper using (categoryHelper)
+open import Relation.Binary using (Rel; IsEquivalence)
 open import Relation.Binary.PropositionalEquality as ≡ using (_≗_)
 
 record SemimoduleHomomorphism (M N : Semimodule R m ℓm) : Set (c ⊔ m ⊔ ℓm) where
@@ -23,6 +24,8 @@ record SemimoduleHomomorphism (M N : Semimodule R m ℓm) : Set (c ⊔ m ⊔ ℓ
   field
     ⟦_⟧ : M.Carrierᴹ → N.Carrierᴹ
     isSemimoduleHomomorphism : IsSemimoduleHomomorphism M.rawSemimodule N.rawSemimodule ⟦_⟧
+
+  open IsSemimoduleHomomorphism isSemimoduleHomomorphism public
 
 id : (M : Semimodule R m ℓm) → SemimoduleHomomorphism M M
 id M = record
@@ -50,20 +53,46 @@ compose M N P f g = record
 
 open SemimoduleHomomorphism
 
-Semimodules : Category (c ⊔ ℓ ⊔ suc (m ⊔ ℓm)) (c ⊔ m ⊔ ℓm) m
+_≈_ : {M N : Semimodule R m ℓm} → Rel (SemimoduleHomomorphism M N) (m ⊔ ℓm)
+_≈_ {M} {N} f g = (x : M.Carrierᴹ) → ⟦ f ⟧ x N.≈ᴹ ⟦ g ⟧ x
+  where
+    module M = Semimodule M
+    module N = Semimodule N
+
+≈-isEquiv : {M N : Semimodule R m ℓm} → IsEquivalence (_≈_ {M} {N})
+≈-isEquiv {M} {N} = record
+    { refl = λ _ → N.≈ᴹ-refl
+    ; sym = λ f≈g x → N.≈ᴹ-sym (f≈g x)
+    ; trans = λ f≈g g≈h x → N.≈ᴹ-trans (f≈g x) (g≈h x)
+    }
+  where
+    module M = Semimodule M
+    module N = Semimodule N
+
+∘-resp-≈
+    : {M N P : Semimodule R m ℓm}
+      {f h : SemimoduleHomomorphism N P}
+      {g i : SemimoduleHomomorphism M N}
+    → f ≈ h
+    → g ≈ i
+    → compose M N P f g ≈ compose M N P h i
+∘-resp-≈ {M} {N} {P} {f} {g} {h} {i} f≈h g≈i x = P.≈ᴹ-trans (f.⟦⟧-cong (g≈i x)) (f≈h (⟦ i ⟧ x))
+  where
+    module P = Semimodule P
+    module f = SemimoduleHomomorphism f
+
+open Semimodule
+
+Semimodules : Category (c ⊔ ℓ ⊔ suc (m ⊔ ℓm)) (c ⊔ m ⊔ ℓm) (m ⊔ ℓm)
 Semimodules = categoryHelper record
     { Obj = Semimodule R m ℓm
     ; _⇒_ = SemimoduleHomomorphism
-    ; _≈_ = λ f g → ⟦ f ⟧ ≗ ⟦ g ⟧
+    ; _≈_ = _≈_
     ; id = λ {M} → id M
     ; _∘_ = λ {M N P} f g → compose M N P f g
-    ; assoc = λ _ → ≡.refl
-    ; identityˡ = λ _ → ≡.refl
-    ; identityʳ = λ _ → ≡.refl
-    ; equiv = record
-        { refl = λ _ → ≡.refl
-        ; sym = λ f≈g x → ≡.sym (f≈g x)
-        ; trans = λ f≈g g≈h x → ≡.trans (f≈g x) (g≈h x)
-        }
-    ; ∘-resp-≈ = λ {f = f} {h g i} eq₁ eq₂ x → ≡.trans (≡.cong ⟦ f ⟧ (eq₂ x)) (eq₁ (⟦ i ⟧ x))
+    ; assoc = λ {D = D} _ → ≈ᴹ-refl D
+    ; identityˡ = λ {B = B} _ → ≈ᴹ-refl B
+    ; identityʳ = λ {B = B} _ → ≈ᴹ-refl B
+    ; equiv = ≈-isEquiv
+    ; ∘-resp-≈ = λ {f = f} {g h i } → ∘-resp-≈ {f = f} {g} {h} {i}
     }
