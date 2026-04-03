@@ -136,19 +136,19 @@ opaque
 
   unfolding _∙_ ⟨ε⟩
 
-  ∙-identityˡ : (V : Vector n) → ⟨ε⟩ ∙ V ≈ 0#
-  ∙-identityˡ [] = refl
-  ∙-identityˡ (x ∷ V) = begin
+  ∙-zeroˡ : (V : Vector n) → ⟨ε⟩ ∙ V ≈ 0#
+  ∙-zeroˡ [] = refl
+  ∙-zeroˡ (x ∷ V) = begin
       0# * x + ⟨ε⟩ ∙ V  ≈⟨ +-congʳ (zeroˡ x) ⟩
-      0# + ⟨ε⟩ ∙ V      ≈⟨ +-congˡ (∙-identityˡ V) ⟩
+      0# + ⟨ε⟩ ∙ V      ≈⟨ +-congˡ (∙-zeroˡ V) ⟩
       0# + 0#           ≈⟨ +-identityˡ 0# ⟩
       0#                ∎
 
-  ∙-identityʳ : (V : Vector n) → V ∙ ⟨ε⟩ ≈ 0#
-  ∙-identityʳ [] = refl
-  ∙-identityʳ (x ∷ V) = begin
+  ∙-zeroʳ : (V : Vector n) → V ∙ ⟨ε⟩ ≈ 0#
+  ∙-zeroʳ [] = refl
+  ∙-zeroʳ (x ∷ V) = begin
       x * 0# + V ∙ ⟨ε⟩  ≈⟨ +-congʳ (zeroʳ x) ⟩
-      0# + V ∙ ⟨ε⟩      ≈⟨ +-congˡ (∙-identityʳ V) ⟩
+      0# + V ∙ ⟨ε⟩      ≈⟨ +-congˡ (∙-zeroʳ V) ⟩
       0# + 0#           ≈⟨ +-identityˡ 0# ⟩
       0#                ∎
 

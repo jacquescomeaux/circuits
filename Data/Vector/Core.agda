@@ -13,18 +13,18 @@ open import Categories.Category.Instance.Nat using (Natop)
 open import Categories.Category.Instance.Setoids using (Setoids)
 open import Categories.Functor using (Functor)
 open import Data.Fin using (Fin)
-open import Data.Nat using (ℕ)
+open import Data.Nat using (ℕ; _+_)
 open import Data.Setoid using (∣_∣)
-open import Data.Vec using (Vec; lookup; tabulate)
+open import Data.Vec as Vec using (Vec; lookup; tabulate)
 open import Data.Vec.Properties using (tabulate∘lookup; lookup∘tabulate; tabulate-cong)
 open import Data.Vec.Relation.Binary.Equality.Setoid S using (_≋_; ≋-isEquivalence)
 open import Function using (Func; _⟶ₛ_; id; _⟨$⟩_; _∘_)
-open import Relation.Binary.PropositionalEquality as ≡ using (_≗_)
+open import Relation.Binary.PropositionalEquality as ≡ using (_≡_; _≗_)
 
 open Func
 open Setoid S
-open Vec
 open Fin
+open Vec.Vec
 
 private
   variable
@@ -43,6 +43,18 @@ opaque
   -- Pointwise equivalence is an equivalence relation
   ≊-isEquiv : IsEquivalence (_≊_ {n})
   ≊-isEquiv {n} = ≋-isEquivalence n
+
+  _++_ : Vector A → Vector B → Vector (A + B)
+  _++_ = Vec._++_
+
+  ⟨⟩ : Vector 0
+  ⟨⟩ = []
+
+  ⟨⟩-! : (V : Vector 0) → V ≡ ⟨⟩
+  ⟨⟩-! [] = ≡.refl
+
+  ⟨⟩-++ : (V : Vector A) → ⟨⟩ ++ V ≡ V
+  ⟨⟩-++ V = ≡.refl
 
 -- A setoid of vectors for every natural number
 Vectorₛ : ℕ → Setoid c (c ⊔ ℓ)
