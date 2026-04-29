@@ -6,28 +6,29 @@ open import Level using (Level; _⊔_)
 -- The endofunctor in setoids sending A to Matrix A n m for fixed n and m
 module Data.Matrix.Endofunctor (n m : ℕ) {c ℓ : Level} where
 
+import Data.Vector.Endofunctor as Vector
+
 open import Categories.Category.Instance.Setoids using (Setoids)
-open import Categories.Functor using (Functor)
-open import Data.Vec.Properties using (map-id; map-∘)
-open import Data.Vec.Relation.Binary.Pointwise.Inductive using (map⁺)
-open import Data.Vector.Core using (module ≊)
-open import Data.Matrix.Core as Core using (Matrix; Matrixₛ; module ≋)
-open import Function using (Func; _⟶ₛ_; _⟨$⟩_)
+open import Categories.Functor using (Functor; _∘F_)
+open import Data.Matrix.Core as Core using (Matrix; Matrixₛ)
+open import Data.Vector.Core using (Vector)
+open import Function using (_⟶ₛ_; _⟨$⟩_)
 open import Function.Construct.Composition using () renaming (function to compose)
 open import Function.Construct.Identity using () renaming (function to Id)
+open import Function.Construct.Setoid using (setoid)
 open import Relation.Binary using (Setoid)
-open import Relation.Binary.PropositionalEquality as ≡ using (_≡_)
 
-open Func
+private
 
-import Data.Vector.Endofunctor as Vector
-import Data.Vec as Vec
+  Vec∘Vec : Functor (Setoids c ℓ) (Setoids c (c ⊔ ℓ))
+  Vec∘Vec = Vector.Vec m ∘F Vector.Vec n
+
+  module Vec∘Vec = Functor Vec∘Vec
 
 opaque
-  unfolding Matrix
+  unfolding Matrix Vector
   map : {A B : Setoid c ℓ} → A ⟶ₛ B → Matrixₛ A n m ⟶ₛ Matrixₛ B n m
-  map f .to = Vec.map (to (Vector.map n f))
-  map f .cong = map⁺ (cong (Vector.map n f))
+  map = Vec∘Vec.₁
 
 abstract opaque
 
@@ -38,7 +39,7 @@ abstract opaque
         {M : Matrix A n m}
         (open Core A using (_≋_))
       → map (Id A) ⟨$⟩ M ≋ M
-  identity {A} {M} = ≋.trans A (map⁺ (≊.trans A (Vector.identity n)) (≋.refl A)) (≋.reflexive A (map-id M))
+  identity = Vec∘Vec.identity
 
   homomorphism
       : {X Y Z : Setoid c ℓ}
@@ -47,26 +48,17 @@ abstract opaque
         {M : Matrix X n m}
         (open Core Z using (_≋_))
       → map (compose f g) ⟨$⟩ M ≋ map g ⟨$⟩ (map f ⟨$⟩ M)
-  homomorphism {X} {_} {Z} {f} {g} {M} =
-      ≋.trans
-          Z
-          (map⁺ (λ x≈y → ≊.trans Z (Vector.homomorphism n) (cong (Vector.map n g) (cong (Vector.map n f) x≈y))) (≋.refl X))
-          (≋.reflexive Z (map-∘ (to (Vector.map n g)) (to (Vector.map n f)) M))
+  homomorphism = Vec∘Vec.homomorphism
 
   F-resp-≈
       : {A B : Setoid c ℓ}
         {f g : A ⟶ₛ B}
-      → ({x : Setoid.Carrier A} → (B Setoid.≈ to f x) (to g x))
+        (open Setoid (setoid A B))
+      → (f ≈ g)
       → {M : Matrix A n m}
         (open Core B using (_≋_))
       → map f ⟨$⟩ M ≋ map g ⟨$⟩ M
-  F-resp-≈ {A} {B} {f} {g} f≈g {M} =
-      ≋.trans
-          B
-          (map⁺ (λ x≈y → ≊.trans B (Vector.F-resp-≈ n f≈g) (cong (Vector.map n g) x≈y)) (≋.refl A))
-          (map⁺ (cong (Vector.map n g)) (≋.refl A))
-    where
-      module B = Setoid B
+  F-resp-≈ = Vec∘Vec.F-resp-≈
 
 -- only a true endofunctor when c ≤ ℓ
 Mat : Functor (Setoids c ℓ) (Setoids c (c ⊔ ℓ))
