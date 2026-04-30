@@ -12,6 +12,7 @@ open import Category.Instance.Setoids.SymmetricMonoidal {ℓ} {ℓ} using (Setoi
 
 module S = SymmetricMonoidalCategory Setoids-×
 
+open import Algebra.Morphism.Bundles using (MonoidHomomorphism)
 open import Categories.Adjoint using (_⊣_)
 open import Categories.Category.Construction.Monoids using (Monoids)
 open import Categories.Functor using (Functor; id; _∘F_)
@@ -19,7 +20,7 @@ open import Categories.NaturalTransformation using (NaturalTransformation; ntHel
 open import Categories.Object.Monoid S.monoidal using (Monoid; IsMonoid; Monoid⇒)
 open import Data.Monoid using (toMonoid; toMonoid⇒)
 open import Data.Opaque.List using ([-]ₛ; Listₛ; mapₛ; foldₛ; ++ₛ-homo; []ₛ-homo; fold-mapₛ; fold)
-open import Data.Product using (_,_; uncurry)
+open import Data.Product using (_,_)
 open import Data.Setoid using (∣_∣)
 open import Function using (_⟶ₛ_; _⟨$⟩_)
 open import Functor.Forgetful.Instance.Monoid {suc ℓ} {ℓ} {ℓ} using () renaming (Forget to Forget′)
@@ -70,10 +71,12 @@ opaque
       : {X Y : Monoid}
         (f : Monoid⇒ X Y)
         {x : ∣ Listₛ (Carrier X) ∣}
-      → (open Setoid (Carrier Y))
+        (open Setoid (Carrier Y))
       → arr (foldₘ Y) ⟨$⟩ (arr (mapₘ (arr f)) ⟨$⟩ x)
       ≈ arr f ⟨$⟩ (arr (foldₘ X) ⟨$⟩ x)
-  fold-mapₘ {X} {Y} f = uncurry (fold-mapₛ (toMonoid X) (toMonoid Y)) (toMonoid⇒ X Y f)
+  fold-mapₘ {X} {Y} f = fold-mapₛ (toMonoid X) (toMonoid Y) (record { cong = ⟦⟧-cong }) isMonoidHomomorphism
+    where
+      open MonoidHomomorphism (toMonoid⇒ X Y f)
 
 counit : NaturalTransformation (Free ∘F Forget) id
 counit = ntHelper record

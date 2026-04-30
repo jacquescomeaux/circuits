@@ -6,7 +6,7 @@ module Data.Monoid {c ℓ : Level} where
 
 import Algebra.Bundles as Alg
 
-open import Algebra.Morphism using (IsMonoidHomomorphism)
+open import Algebra.Morphism.Bundles using (MonoidHomomorphism)
 open import Categories.Object.Monoid using (Monoid; Monoid⇒)
 open import Category.Instance.Setoids.SymmetricMonoidal {c} {ℓ} using (Setoids-×; ×-monoidal′)
 open import Data.Product using (curry′; uncurry′; _,_; Σ)
@@ -100,8 +100,10 @@ open FromMonoid using (fromMonoid) public
 
 module  _ (M N : Monoid Setoids-×.monoidal) where
 
-  module M = Alg.Monoid (toMonoid M)
-  module N = Alg.Monoid (toMonoid N)
+  private
+
+    module M = Alg.Monoid (toMonoid M)
+    module N = Alg.Monoid (toMonoid N)
 
   open Monoid⇒
 
@@ -111,12 +113,34 @@ module  _ (M N : Monoid Setoids-×.monoidal) where
 
     toMonoid⇒
         : Monoid⇒ Setoids-×.monoidal M N
-        → Σ (M.setoid ⟶ₛ N.setoid) (λ f
-        → IsMonoidHomomorphism M.rawMonoid N.rawMonoid (to f))
-    toMonoid⇒ f = arr f , record
-        { isMagmaHomomorphism = record
-            { isRelHomomorphism = record { cong = cong (arr f) }
-            ; homo = λ x y → preserves-μ f {x , y}
+        → MonoidHomomorphism M.rawMonoid N.rawMonoid
+    toMonoid⇒ f = record
+        { ⟦_⟧ = to (arr f)
+        ; isMonoidHomomorphism = record
+            { isMagmaHomomorphism = record
+                { isRelHomomorphism = record { cong = cong (arr f) }
+                ; homo = λ x y → preserves-μ f {x , y}
+                }
+            ; ε-homo = preserves-η f
             }
-        ; ε-homo = preserves-η f
+        }
+
+module  _ (M N : Alg.Monoid c ℓ) where
+
+  private
+
+    module M = Alg.Monoid M
+    module N = Alg.Monoid N
+
+  open MonoidHomomorphism
+
+  opaque
+    unfolding FromMonoid.μ
+    fromMonoid⇒
+        : MonoidHomomorphism M.rawMonoid N.rawMonoid
+        → Monoid⇒ Setoids-×.monoidal (fromMonoid M) (fromMonoid N)
+    fromMonoid⇒ f = record
+        { arr = record { cong = ⟦⟧-cong f }
+        ; preserves-μ = λ { {x , y} → homo f x y }
+        ; preserves-η = ε-homo f
         }

@@ -16,6 +16,7 @@ import Functor.Forgetful.Instance.CMonoid S.symmetric as CMonoid
 import Functor.Forgetful.Instance.Monoid S.monoidal as Monoid
 import Object.Monoid.Commutative S.symmetric as CMonoidObject
 
+open import Algebra.Morphism.Bundles using (MonoidHomomorphism)
 open import Categories.Adjoint using (_⊣_)
 open import Categories.Category using (Category)
 open import Categories.Functor using (Functor; id; _∘F_)
@@ -24,7 +25,7 @@ open import Category.Construction.CMonoids using (CMonoids)
 open import Data.CMonoid using (toCMonoid; toCMonoid⇒)
 open import Data.Monoid using (toMonoid; toMonoid⇒)
 open import Data.Opaque.Multiset using ([-]ₛ; Multisetₛ; foldₛ; ++ₛ-homo; []ₛ-homo; fold-mapₛ; fold)
-open import Data.Product using (_,_; uncurry)
+open import Data.Product using (_,_)
 open import Data.Setoid using (∣_∣)
 open import Function using (_⟶ₛ_; _⟨$⟩_)
 open import Functor.Free.Instance.CMonoid {ℓ} {ℓ} using (Multisetₘ; mapₘ; MultisetCMonoid) renaming (Free to Free′)
@@ -78,7 +79,9 @@ opaque
       → (open Setoid (Carrier Y))
       → arr (foldₘ Y) ⟨$⟩ (arr (mapₘ (arr f)) ⟨$⟩ x)
       ≈ arr f ⟨$⟩ (arr (foldₘ X) ⟨$⟩ x)
-  fold-mapₘ {X} {Y} f = uncurry (fold-mapₛ (toCMonoid X) (toCMonoid Y)) (toCMonoid⇒ X Y f)
+  fold-mapₘ {X} {Y} f = fold-mapₛ (toCMonoid X) (toCMonoid Y) (record { cong = ⟦⟧-cong }) isMonoidHomomorphism
+    where
+      open MonoidHomomorphism (toCMonoid⇒ X Y f)
 
 counit : NaturalTransformation (Free ∘F Forget) id
 counit = ntHelper record

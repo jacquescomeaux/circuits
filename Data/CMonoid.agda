@@ -5,7 +5,7 @@ module Data.CMonoid {c ℓ : Level} where
 
 import Algebra.Bundles as Alg
 
-open import Algebra.Morphism using (IsMonoidHomomorphism)
+open import Algebra.Morphism.Bundles using (MonoidHomomorphism)
 open import Categories.Object.Monoid using (Monoid)
 open import Category.Instance.Setoids.SymmetricMonoidal {c} {ℓ} using (Setoids-×; ×-symmetric′)
 open import Data.Monoid {c} {ℓ} using (toMonoid; fromMonoid; toMonoid⇒; module FromMonoid)
@@ -63,6 +63,5 @@ module  _ (M N : CommutativeMonoid Setoids-×.symmetric) where
 
   toCMonoid⇒
       : CommutativeMonoid⇒ Setoids-×.symmetric M N
-      → Σ (M.setoid ⟶ₛ N.setoid) (λ f
-      → IsMonoidHomomorphism M.rawMonoid N.rawMonoid (to f))
+      → MonoidHomomorphism M.rawMonoid N.rawMonoid
   toCMonoid⇒ f = toMonoid⇒ (monoid M) (monoid N) (monoid⇒ f)
