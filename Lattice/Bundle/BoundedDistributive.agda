@@ -2,7 +2,16 @@
 
 module Lattice.Bundle.BoundedDistributive where
 
+import Relation.Binary.Lattice.Properties.BoundedJoinSemilattice as BJS
+import Relation.Binary.Lattice.Properties.BoundedLattice as BL
+import Relation.Binary.Lattice.Properties.BoundedMeetSemilattice as BMS
+import Relation.Binary.Lattice.Properties.DistributiveLattice as DL
+import Relation.Binary.Lattice.Properties.JoinSemilattice as JS
+import Relation.Binary.Lattice.Properties.MeetSemilattice as MS
+
 open import Algebra using (Op₂)
+open import Algebra.Bundles using (Semiring)
+open import Data.Product using (_,_)
 open import Lattice.Structure.IsBoundedDistributive using (IsBoundedDistributiveLattice)
 open import Level using (suc; _⊔_)
 open import Relation.Binary using (Rel)
@@ -35,4 +44,43 @@ record BoundedDistributiveLattice c ℓ₁ ℓ₂ : Set (suc (c ⊔ ℓ₁ ⊔ �
       }
 
   open BoundedLattice boundedLattice public
-    using (lattice; joinSemilattice; meetSemilattice; poset; preorder; setoid)
+    using (lattice; boundedJoinSemilattice; boundedMeetSemilattice; joinSemilattice; meetSemilattice; poset; preorder; setoid)
+
+  semiring : Semiring c ℓ₁
+  semiring = record
+      { Carrier = Carrier
+      ; _≈_ = _≈_
+      ; _+_ = _∨_
+      ; _*_ = _∧_
+      ; 0# = ⊥
+      ; 1# = ⊤
+      ; isSemiring = record
+          { isSemiringWithoutAnnihilatingZero = record
+              { +-isCommutativeMonoid = record
+                  { isMonoid = record
+                      { isSemigroup = record
+                          { isMagma = record
+                              { isEquivalence = isEquivalence
+                              ; ∙-cong = ∨-cong
+                              }
+                          ; assoc = ∨-assoc
+                          }
+                      ; identity = ∨-identity
+                      }
+                  ; comm = ∨-comm
+                  }
+              ; *-cong = ∧-cong
+              ; *-assoc = ∧-assoc
+              ; *-identity = ∧-identity
+              ; distrib = ∧-distribˡ-∨ , ∧-distribʳ-∨
+              }
+          ; zero = ∧-zero
+          }
+      }
+    where
+      open BJS boundedJoinSemilattice using () renaming (identity to ∨-identity)
+      open BL boundedLattice using (∧-zero)
+      open BMS boundedMeetSemilattice using () renaming (identity to ∧-identity)
+      open DL distributiveLattice using (∧-distribʳ-∨)
+      open JS joinSemilattice using (∨-comm; ∨-cong; ∨-assoc)
+      open MS meetSemilattice using (∧-comm; ∧-cong; ∧-assoc)

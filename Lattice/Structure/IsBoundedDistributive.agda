@@ -27,8 +27,6 @@ record IsBoundedDistributiveLattice
     minimum       : Minimum _≤_ ⊥
     ∧-distribˡ-∨  : _DistributesOverˡ_ _≈_ _∧_ _∨_
 
-  open IsLattice isLattice public
-
   isBoundedLattice : IsBoundedLattice _∨_ _∧_ ⊤ ⊥
   isBoundedLattice = record
       { isLattice = isLattice
@@ -41,3 +39,5 @@ record IsBoundedDistributiveLattice
       { isLattice = isLattice
       ; ∧-distribˡ-∨ = ∧-distribˡ-∨
       }
+
+  open IsBoundedLattice isBoundedLattice public

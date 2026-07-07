@@ -4,19 +4,14 @@ module Data.Circuit.Value where
 
 import Relation.Binary.Lattice.Properties.BoundedJoinSemilattice as LatticeProp
 
-open import Algebra.Bundles using (CommutativeMonoid)
+open import Algebra.Bundles using (CommutativeMonoid; Semiring)
+open import Algebra.Lattice.Bundles using (Semilattice)
 open import Algebra.Structures using (IsCommutativeMonoid; IsMonoid; IsSemigroup; IsMagma)
 open import Data.Product.Base using (_×_; _,_)
 open import Data.String.Base using (String)
+open import Lattice.Bundle.BoundedDistributive using (BoundedDistributiveLattice)
 open import Level using (0ℓ)
-open import Relation.Binary.Lattice.Bundles using (BoundedJoinSemilattice)
 open import Relation.Binary.PropositionalEquality as ≡ using (_≡_)
-
-open CommutativeMonoid
-open IsCommutativeMonoid
-open IsMagma
-open IsMonoid
-open IsSemigroup
 
 data Value : Set where
   U T F X : Value
@@ -49,35 +44,86 @@ showValue X = "X"
 
 join : Value → Value → Value
 join U y = y
-join x U = x
+join T U = T
 join T T = T
 join T F = X
+join T X = X
+join F U = F
 join F T = X
 join F F = F
+join F X = X
 join X _ = X
-join _ X = X
+
+meet : Value → Value → Value
+meet U _ = U
+meet T U = U
+meet T T = T
+meet T F = U
+meet T X = T
+meet F U = U
+meet F T = U
+meet F F = F
+meet F X = F
+meet X y = y
+
+implies : Value → Value → Value
+implies U _ = X
+implies T U = U
+implies T T = X
+implies T F = F
+implies T X = X
+implies F U = U
+implies F T = T
+implies F F = X
+implies F X = X
+implies X U = U
+implies X T = T
+implies X F = F
+implies X X = X
+
+≤-infimum
+    : (x y : Value)
+    → ≤-Value (meet x y) x
+    × ≤-Value (meet x y) y
+    × ((z : Value) → ≤-Value z x → ≤-Value z y → ≤-Value z (meet x y))
+≤-infimum U U = v≤v , v≤v , λ _ z≤x _ → z≤x
+≤-infimum U T = v≤v , U≤T , λ _ z≤x _ → z≤x
+≤-infimum U F = v≤v , U≤F , λ _ z≤x _ → z≤x
+≤-infimum U X = v≤v , U≤X , λ _ z≤x _ → z≤x
+≤-infimum T U = U≤T , v≤v , λ _ _ z≤y → z≤y
+≤-infimum T T = v≤v , v≤v , λ _ z≤x _ → z≤x
+≤-infimum T F = U≤T , U≤F , λ { U _ _ → v≤v }
+≤-infimum T X = v≤v , T≤X , λ _ z≤x _ → z≤x
+≤-infimum F U = U≤F , v≤v , λ _ _ z≤y → z≤y
+≤-infimum F T = U≤F , U≤T , λ { U _ _ → v≤v }
+≤-infimum F F = v≤v , v≤v , λ _ z≤x _ → z≤x
+≤-infimum F X = v≤v , F≤X , λ _ z≤x _ → z≤x
+≤-infimum X U = U≤X , v≤v , λ _ _ z≤y → z≤y
+≤-infimum X T = T≤X , v≤v , λ _ _ z≤y → z≤y
+≤-infimum X F = F≤X , v≤v , λ _ _ z≤y → z≤y
+≤-infimum X X = v≤v , v≤v , λ _ z≤x _ → z≤x
 
 ≤-supremum
     : (x y : Value)
     → ≤-Value x (join x y)
     × ≤-Value y (join x y)
     × ((z : Value) → ≤-Value x z → ≤-Value y z → ≤-Value (join x y) z)
-≤-supremum U U = v≤v , v≤v , λ _ U≤z _ → U≤z
-≤-supremum U T = U≤T , v≤v , λ { z x≤z y≤z → y≤z }
-≤-supremum U F = U≤F , v≤v , λ { z x≤z y≤z → y≤z }
-≤-supremum U X = U≤X , v≤v , λ { z x≤z y≤z → y≤z }
-≤-supremum T U = v≤v , U≤T , λ { z x≤z y≤z → x≤z }
-≤-supremum T T = v≤v , v≤v , λ { z x≤z y≤z → x≤z }
-≤-supremum T F = T≤X , F≤X , λ { X x≤z y≤z → v≤v }
-≤-supremum T X = T≤X , v≤v , λ { z x≤z y≤z → y≤z }
-≤-supremum F U = v≤v , U≤F , λ { z x≤z y≤z → x≤z }
-≤-supremum F T = F≤X , T≤X , λ { X x≤z y≤z → v≤v }
-≤-supremum F F = v≤v , v≤v , λ { z x≤z y≤z → x≤z }
-≤-supremum F X = F≤X , v≤v , λ { z x≤z y≤z → y≤z }
-≤-supremum X U = v≤v , U≤X , λ { z x≤z y≤z → x≤z }
-≤-supremum X T = v≤v , T≤X , λ { z x≤z y≤z → x≤z }
-≤-supremum X F = v≤v , F≤X , λ { z x≤z y≤z → x≤z }
-≤-supremum X X = v≤v , v≤v , λ { z x≤z y≤z → x≤z }
+≤-supremum U U = v≤v , v≤v , λ _ x≤z _ → x≤z
+≤-supremum U T = U≤T , v≤v , λ _ _ y≤z → y≤z
+≤-supremum U F = U≤F , v≤v , λ _ _ y≤z → y≤z
+≤-supremum U X = U≤X , v≤v , λ _ _ y≤z → y≤z
+≤-supremum T U = v≤v , U≤T , λ _ x≤z _ → x≤z
+≤-supremum T T = v≤v , v≤v , λ _ x≤z _ → x≤z
+≤-supremum T F = T≤X , F≤X , λ { X _ _ → v≤v }
+≤-supremum T X = T≤X , v≤v , λ _ _ y≤z → y≤z
+≤-supremum F U = v≤v , U≤F , λ _ x≤z _ → x≤z
+≤-supremum F T = F≤X , T≤X , λ { X _ _ → v≤v }
+≤-supremum F F = v≤v , v≤v , λ _ x≤z _ → x≤z
+≤-supremum F X = F≤X , v≤v , λ _ _ y≤z → y≤z
+≤-supremum X U = v≤v , U≤X , λ _ x≤z _ → x≤z
+≤-supremum X T = v≤v , T≤X , λ _ x≤z _ → x≤z
+≤-supremum X F = v≤v , F≤X , λ _ x≤z _ → x≤z
+≤-supremum X X = v≤v , v≤v , λ _ x≤z _ → x≤z
 
 join-comm : (x y : Value) → join x y ≡ join y x
 join-comm U U = ≡.refl
@@ -139,15 +185,59 @@ join-assoc X X T = ≡.refl
 join-assoc X X F = ≡.refl
 join-assoc X X X = ≡.refl
 
-Lattice : BoundedJoinSemilattice 0ℓ 0ℓ 0ℓ
-Lattice = record
+meet-distribˡ-join : (x y z : Value) → meet x (join y z) ≡ join (meet x y) (meet x z)
+meet-distribˡ-join U _ _ = ≡.refl
+meet-distribˡ-join T U _ = ≡.refl
+meet-distribˡ-join T T U = ≡.refl
+meet-distribˡ-join T T T = ≡.refl
+meet-distribˡ-join T T F = ≡.refl
+meet-distribˡ-join T T X = ≡.refl
+meet-distribˡ-join T F U = ≡.refl
+meet-distribˡ-join T F T = ≡.refl
+meet-distribˡ-join T F F = ≡.refl
+meet-distribˡ-join T F X = ≡.refl
+meet-distribˡ-join T X U = ≡.refl
+meet-distribˡ-join T X T = ≡.refl
+meet-distribˡ-join T X F = ≡.refl
+meet-distribˡ-join T X X = ≡.refl
+meet-distribˡ-join F U _ = ≡.refl
+meet-distribˡ-join F T U = ≡.refl
+meet-distribˡ-join F T T = ≡.refl
+meet-distribˡ-join F T F = ≡.refl
+meet-distribˡ-join F T X = ≡.refl
+meet-distribˡ-join F F U = ≡.refl
+meet-distribˡ-join F F T = ≡.refl
+meet-distribˡ-join F F F = ≡.refl
+meet-distribˡ-join F F X = ≡.refl
+meet-distribˡ-join F X U = ≡.refl
+meet-distribˡ-join F X T = ≡.refl
+meet-distribˡ-join F X F = ≡.refl
+meet-distribˡ-join F X X = ≡.refl
+meet-distribˡ-join X _ _ = ≡.refl
+
+v≤X : (v : Value) → ≤-Value v X
+v≤X U = U≤X
+v≤X T = T≤X
+v≤X F = F≤X
+v≤X X = v≤v
+
+U≤v : (v : Value) → ≤-Value U v
+U≤v U = v≤v
+U≤v T = U≤T
+U≤v F = U≤F
+U≤v X = U≤X
+
+𝕍 : BoundedDistributiveLattice 0ℓ 0ℓ 0ℓ
+𝕍 = record
     { Carrier = Value
     ; _≈_ = _≡_
     ; _≤_ = ≤-Value
     ; _∨_ = join
+    ; _∧_ = meet
+    ; ⊤ = X
     ; ⊥ = U
-    ; isBoundedJoinSemilattice = record
-        { isJoinSemilattice = record
+    ; isBoundedDistributiveLattice = record
+        { isLattice = record
             { isPartialOrder = record 
                 { isPreorder = record
                     { isEquivalence = ≡.isEquivalence
@@ -157,24 +247,18 @@ Lattice = record
                 ; antisym = ≤-antisymmetric
                 }
             ; supremum = ≤-supremum
+            ; infimum = ≤-infimum
             }
-        ; minimum = λ where
-            U → v≤v
-            T → U≤T
-            F → U≤F
-            X → U≤X
+        ; maximum = v≤X
+        ; minimum = U≤v
+        ; ∧-distribˡ-∨ = meet-distribˡ-join
         }
     }
 
-module Lattice = BoundedJoinSemilattice Lattice
+module 𝕍 = BoundedDistributiveLattice 𝕍
 
-Monoid : CommutativeMonoid 0ℓ 0ℓ
-Monoid .Carrier = Lattice.Carrier
-Monoid ._≈_ = Lattice._≈_
-Monoid ._∙_ = Lattice._∨_
-Monoid .ε = Lattice.⊥
-Monoid .isCommutativeMonoid .isMonoid .isSemigroup .isMagma .isEquivalence = ≡.isEquivalence
-Monoid .isCommutativeMonoid .isMonoid .isSemigroup .isMagma .∙-cong = ≡.cong₂ join
-Monoid .isCommutativeMonoid .isMonoid .isSemigroup .assoc = join-assoc
-Monoid .isCommutativeMonoid .isMonoid .identity = LatticeProp.identity Lattice
-Monoid .isCommutativeMonoid .comm = join-comm
+semiring : Semiring 0ℓ 0ℓ
+semiring = 𝕍.semiring
+
+monoid : CommutativeMonoid 0ℓ 0ℓ
+monoid = let open Semiring semiring in +-commutativeMonoid

@@ -12,8 +12,10 @@ open import Algebra using (Monoid)
 open import Categories.Category using (Category)
 open import Categories.Category.Helper using (categoryHelper)
 open import Relation.Binary using (IsEquivalence)
+open import Function using (Func; _⟶ₛ_)
 
 open Monoid hiding (_≈_)
+open Func
 
 record MonoidHomomorphism (M N : Monoid c ℓ) : Set (c ⊔ ℓ) where
 
@@ -23,6 +25,10 @@ record MonoidHomomorphism (M N : Monoid c ℓ) : Set (c ⊔ ℓ) where
     rawMonoidHomomorphism : Raw.MonoidHomomorphism (rawMonoid M) (rawMonoid N)
 
   open Raw.MonoidHomomorphism rawMonoidHomomorphism public
+
+  func : setoid M ⟶ₛ setoid N
+  func .to = ⟦_⟧
+  func .cong = ⟦⟧-cong
 
 module _ {M N : Monoid c ℓ} where
 

@@ -6,11 +6,11 @@ module Data.System.Core {ℓ : Level} where
 
 import Relation.Binary.Reasoning.Setoid as ≈-Reasoning
 
-open import Data.Circuit.Value using (Monoid)
+open import Data.Circuit.Value using (monoid)
 open import Data.Nat using (ℕ)
 open import Data.Setoid using (_⇒ₛ_; ∣_∣)
 open import Data.Setoid.Unit using (⊤ₛ)
-open import Data.Values Monoid using (Values; _≋_; module ≋; <ε>)
+open import Data.Values monoid using (Values; _≋_; module ≋; <ε>)
 open import Function using (Func; _⟨$⟩_)
 open import Function.Construct.Constant using () renaming (function to Const)
 open import Function.Construct.Identity using () renaming (function to Id)
