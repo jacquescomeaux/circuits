@@ -7,12 +7,13 @@ module Data.Matrix.Cast {c ℓ : Level} (S : Setoid c ℓ) where
 
 module S = Setoid S
 
-open import Data.Matrix.Core S using (Matrix; _∥_; _≑_; _∷ₕ_; []ᵥ; []ᵥ-!; []ᵥ-∥; ∷ₕ-∥; head-∷-tailₕ; headₕ; tailₕ)
+open import Data.Matrix.Raw using (_∥_; _≑_; _∷ₕ_; []ᵥ; []ᵥ-!; []ᵥ-∥; ∷ₕ-∥; head-∷-tailₕ; headₕ; tailₕ)
+open import Data.Matrix.Core S using (Matrix; _≋_)
 open import Data.Nat using (ℕ; _+_)
 open import Data.Nat.Properties using (suc-injective; +-assoc)
-open import Data.Vec using (Vec; map) renaming (cast to castVec)
+open import Data.Vec using (Vec; map; _++_) renaming (cast to castVec)
 open import Data.Vec.Properties using (++-assoc-eqFree) renaming (cast-is-id to castVec-is-id)
-open import Data.Vector.Core S using (Vector; _++_)
+open import Data.Vector.Core S using (Vector)
 open import Relation.Binary.PropositionalEquality as ≡ using (_≡_; module ≡-Reasoning)
 
 open Vec
@@ -23,30 +24,24 @@ private
     A B C D E F : ℕ
 
 opaque
-  unfolding Matrix Vector
+
+  unfolding Matrix
+
   cast₁ : .(A ≡ B) → Matrix A C → Matrix B C
   cast₁ eq = map (castVec eq)
 
-opaque
-  unfolding Matrix
   cast₂ : .(B ≡ C) → Matrix A B → Matrix A C
   cast₂ eq [] = castVec eq []
   cast₂ {B} {suc C} {A} eq (x ∷ M) = x ∷ cast₂ (suc-injective eq) M
 
-opaque
-  unfolding cast₁
   cast₁-is-id : .(eq : A ≡ A) (M : Matrix A B) → cast₁ eq M ≡ M
   cast₁-is-id _ [] = ≡.refl
   cast₁-is-id _ (M₀ ∷ M) = ≡.cong₂ _∷_ (castVec-is-id _ M₀) (cast₁-is-id _ M)
 
-opaque
-  unfolding cast₂
   cast₂-is-id : .(eq : B ≡ B) (M : Matrix A B) → cast₂ eq M ≡ M
   cast₂-is-id _ [] = ≡.refl
   cast₂-is-id eq (M₀ ∷ M) = ≡.cong (M₀ ∷_) (cast₂-is-id (suc-injective eq) M)
 
-opaque
-  unfolding cast₂
   cast₂-trans : .(eq₁ : B ≡ C) (eq₂ : C ≡ D) (M : Matrix A B) → cast₂ eq₂ (cast₂ eq₁ M) ≡ cast₂ (≡.trans eq₁ eq₂) M
   cast₂-trans {zero} {zero} {zero} {A} eq₁ eq₂ [] = ≡.refl
   cast₂-trans {suc B} {suc C} {suc D} {A} eq₁ eq₂ (M₀ ∷ M) = ≡.cong (M₀ ∷_) (cast₂-trans (suc-injective eq₁) (suc-injective eq₂) M)
@@ -123,7 +118,6 @@ opaque
     open ≡-Reasoning
 
 opaque
-  unfolding Vector
   cast : .(A ≡ B) → Vector A → Vector B
   cast = castVec
 

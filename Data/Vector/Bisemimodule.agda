@@ -32,8 +32,6 @@ private
 
 opaque
 
-  unfolding Vector
-
   -- Scaling a vector from the left
   _⟨_⟩ : Carrier → Vector n → Vector n
   _⟨_⟩ r = map (r *_)

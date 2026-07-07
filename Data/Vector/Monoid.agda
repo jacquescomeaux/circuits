@@ -24,8 +24,6 @@ private
 
 opaque
 
-  unfolding Vector
-
   -- Sum the elements of a vector
   sum : Vector n → M.Carrier
   sum = foldr′ _∙_ ε
@@ -35,8 +33,6 @@ opaque
   sum-cong (≈x PW.∷ ≊V) = ∙-cong ≈x (sum-cong ≊V)
 
 opaque
-
-  unfolding Vector
 
   -- Pointwise sum of two vectors
   _⊕_ : Vector n → Vector n → Vector n
@@ -53,8 +49,6 @@ opaque
 infixl 6 _⊕_
 
 opaque
-
-  unfolding Vector
 
   -- The identity vector
   ⟨ε⟩ : Vector n
@@ -119,7 +113,7 @@ open ≡-Reasoning
 
 opaque
 
-  unfolding pull _⊕_
+  unfolding _⊕_
 
   pull-⊕ : {f : Fin A → Fin B} (V W : Vector B) → pull f ⟨$⟩ (V ⊕ W) ≡ (pull f ⟨$⟩ V) ⊕ (pull f ⟨$⟩ W)
   pull-⊕ {A} {B} {f} V W = begin
@@ -132,7 +126,7 @@ opaque
 
 opaque
 
-  unfolding pull ⟨ε⟩
+  unfolding ⟨ε⟩
 
   pull-⟨ε⟩ : {f : Fin A → Fin B} → pull f ⟨$⟩ ⟨ε⟩ ≡ ⟨ε⟩
   pull-⟨ε⟩ {f = f} = begin
@@ -157,7 +151,7 @@ opaque
         {g : Fin C → Fin B}
         {v : Vector A}
       → arr (pullₘ (f ∘ g)) ⟨$⟩ v ≊ arr (pullₘ g) ⟨$⟩ (arr (pullₘ f) ⟨$⟩ v)
-  pullₘ-∘ = S.pull-∘
+  pullₘ-∘ {f = f} {g} {v} = S.pull-∘ {f = f} {g} {v}
 
   pullₘ-cong
       : {f g : Fin B → Fin A}

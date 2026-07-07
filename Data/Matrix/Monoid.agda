@@ -10,7 +10,8 @@ module M = Monoid M
 import Relation.Binary.Reasoning.Setoid as ≈-Reasoning
 import Data.Vec.Relation.Binary.Pointwise.Inductive as PW
 
-open import Data.Matrix.Core M.setoid using (Matrix; _≋_; _ᵀ; _∷ₕ_; []ᵥ; _≑_; _∥_; []ᵥ-!; []ᵥ-∥; ∷ₕ-∥)
+open import Data.Matrix.Raw using (_ᵀ; _∷ₕ_; []ᵥ; _≑_; _∥_; []ᵥ-!; []ᵥ-∥; ∷ₕ-∥)
+open import Data.Matrix.Core M.setoid using (Matrix; _≋_)
 open import Data.Nat using (ℕ)
 open import Data.Vec using (Vec; replicate; zipWith)
 open import Data.Vec.Properties using (zipWith-replicate)
@@ -72,7 +73,7 @@ opaque
 
 opaque
 
-  unfolding Matrix
+  unfolding _≋_
 
   _[+]_ : Matrix A B → Matrix A B → Matrix A B
   _[+]_ = zipWith _⊕_

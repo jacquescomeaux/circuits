@@ -12,7 +12,8 @@ import Relation.Binary.Reasoning.Setoid as ≈-Reasoning
 
 open import Categories.Category using (Category)
 open import Categories.Category.Helper using (categoryHelper)
-open import Data.Matrix.Core R.setoid using (Matrix; Matrixₛ; _≋_; ≋-isEquiv; _ᵀ; -ᵀ-cong; _∷ₕ_; mapRows; _ᵀᵀ; module ≋; _∥_; _≑_)
+open import Data.Matrix.Raw using (_ᵀ; _∷ₕ_; _ᵀᵀ; _∥_; _≑_; mapRows)
+open import Data.Matrix.Core R.setoid using (Matrix; Matrixₛ; _≋_; ≋-isEquiv; ᵀ-cong; module ≋)
 open import Data.Matrix.Monoid R.+-monoid using (𝟎; _[+]_)
 open import Data.Matrix.Transform R using ([_]_; _[_]; -[-]-cong; [-]--cong; -[-]ᵀ; []-∙; [-]--∥; [++]-≑; I; Iᵀ; I[-]; map--[-]-I; [-]-𝟎; [⟨0⟩]-)
 open import Data.Nat using (ℕ)
@@ -112,7 +113,7 @@ opaque
 
 opaque
 
-  unfolding Matrix
+  unfolding _≋_
 
   ·-resp-≋ : {X X′ : Matrix n p} {Y Y′ : Matrix m n} → X ≋ X′ → Y ≋ Y′ → X · Y ≋ X′ · Y′
   ·-resp-≋ ≋X ≋Y = PW.map⁺ (λ {_} {y} ≋V → [-]--cong ≋V ≋Y) ≋X
@@ -128,7 +129,7 @@ opaque
   ·-Iˡ : {f : Matrix n m} → I · f ≋ f
   ·-Iˡ {A} {B} {f} = begin
       I · f               ≡⟨ ·-·′ I f ⟩
-      map (I [_]) (f ᵀ) ᵀ ≈⟨ -ᵀ-cong (PW.map⁺ (λ {x} ≊V → ≊.trans (I[-] x) ≊V) {xs = f ᵀ} ≋.refl) ⟩
+      map (I [_]) (f ᵀ) ᵀ ≈⟨ ᵀ-cong (PW.map⁺ (λ {x} ≊V → ≊.trans (I[-] x) ≊V) {xs = f ᵀ} ≋.refl) ⟩
       map id (f ᵀ) ᵀ      ≡⟨ ≡.cong (_ᵀ) (map-id (f ᵀ)) ⟩
       f ᵀ ᵀ               ≡⟨ f ᵀᵀ ⟩
       f                   ∎
@@ -138,8 +139,8 @@ opaque
   ·-Iʳ : {f : Matrix n m} → f · I ≋ f
   ·-Iʳ {A} {B} {f} = begin
       f · I               ≡⟨ ·-·′ f I ⟩
-      map (f [_]) (I ᵀ) ᵀ ≈⟨ -ᵀ-cong (≋.reflexive (≡.cong (map (f [_])) Iᵀ)) ⟩
-      map (f [_]) I ᵀ     ≈⟨ -ᵀ-cong (map--[-]-I f) ⟩
+      map (f [_]) (I ᵀ) ᵀ ≈⟨ ᵀ-cong (≋.reflexive (≡.cong (map (f [_])) Iᵀ)) ⟩
+      map (f [_]) I ᵀ     ≈⟨ ᵀ-cong (map--[-]-I f) ⟩
       f ᵀ ᵀ               ≡⟨ f ᵀᵀ ⟩
       f ∎
     where
@@ -147,7 +148,7 @@ opaque
 
 opaque
 
-  unfolding 𝟎
+  unfolding 𝟎 _≋_
 
   ·-𝟎ʳ : (M : Matrix A B) →  M · 𝟎 {C} ≋ 𝟎
   ·-𝟎ʳ [] = ≋.refl

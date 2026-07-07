@@ -13,7 +13,7 @@ import Relation.Binary.Reasoning.Setoid as ≈-Reasoning
 open import Categories.Functor using (Functor)
 open import Category.Instance.Semimodules {c} {ℓ} {c} {c ⊔ ℓ} R using (Semimodules; SemimoduleHomomorphism)
 open import Data.Matrix.Category R.semiring using (Mat; _·_; ·-[])
-open import Data.Matrix.Core R.setoid using (Matrix; module ≋; mapRows)
+open import Data.Matrix.Core R.setoid using (Matrix; module ≋)
 open import Data.Matrix.Transform R.semiring using (I; _[_]; -[-]-cong; -[-]-cong₁; [_]_; -[⟨0⟩]; I[-]; -[⊕])
 open import Data.Nat using (ℕ)
 open import Data.Vec using (map)

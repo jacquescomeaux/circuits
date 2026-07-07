@@ -2,10 +2,9 @@
 
 module Data.Matrix.Vec where
 
-open import Relation.Binary.PropositionalEquality using (_≡_)
-open import Level using (Level)
 open import Data.Nat using (ℕ)
 open import Data.Vec using (Vec; replicate; zipWith)
+open import Level using (Level)
 
 private
   variable

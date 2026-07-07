@@ -18,15 +18,17 @@ open import Categories.Object.Initial using (Initial)
 open import Category.Dagger.Semiadditive using (DaggerCocartesianMonoidal; SemiadditiveDagger)
 open import Data.Matrix.Cast R.setoid using (cast₂; cast₂-∥; ∥-≑; ∥-≑⁴; ≑-sym-assoc)
 open import Data.Matrix.Category R.semiring using (Mat; _·_; ≑-·; ·-Iˡ; ·-Iʳ; ·-𝟎ˡ; ·-𝟎ʳ; ·-∥; ∥-·-≑)
-open import Data.Matrix.Core R.setoid using (Matrix; Matrixₛ; _ᵀ; _ᵀᵀ; _≋_; module ≋; mapRows; []ᵥ; []ᵥ-∥; []ₕ; []ₕ-!; []ₕ-≑; _∷ᵥ_; _∷ₕ_; ∷ᵥ-ᵀ; _∥_; _≑_; ∷ₕ-ᵀ; ∷ₕ-≑; []ᵥ-ᵀ; ∥-cong; ≑-cong; -ᵀ-cong; head-∷-tailₕ; headₕ; tailₕ; ∷ₕ-∥; []ᵥ-!)
+open import Data.Matrix.Raw using (_ᵀ; _ᵀᵀ; mapRows; []ᵥ; []ᵥ-∥; []ₕ; []ₕ-!; []ₕ-≑; _∷ᵥ_; _∷ₕ_; ∷ᵥ-ᵀ; _∥_; _≑_; ∷ₕ-ᵀ; ∷ₕ-≑; []ᵥ-ᵀ; head-∷-tailₕ; headₕ; tailₕ; ∷ₕ-∥; []ᵥ-!)
+open import Data.Matrix.Core R.setoid using (Matrix; Matrixₛ; _≋_; module ≋; ∥-cong; ≑-cong; ᵀ-cong)
 open import Data.Matrix.Monoid R.+-monoid using (𝟎; 𝟎ᵀ; 𝟎≑𝟎; 𝟎∥𝟎; _[+]_; [+]-cong; [+]-𝟎ˡ; [+]-𝟎ʳ)
 open import Data.Matrix.Transform R.semiring using (I; Iᵀ; [_]_; _[_]; -[-]ᵀ; [-]--cong; [-]-[]ᵥ; [⟨⟩]-[]ₕ)
 open import Data.Nat using (ℕ)
 open import Data.Product using (_,_; Σ-syntax)
-open import Data.Vec using (Vec; map; replicate)
+open import Data.Vec using (Vec; map; replicate; _++_)
 open import Data.Vec.Properties using (map-cong; map-const)
 open import Data.Vector.Bisemimodule R.semiring using (_∙_ ; ∙-cong)
-open import Data.Vector.Core R.setoid using (Vector; Vectorₛ; ⟨⟩; _++_; module ≊; _≊_)
+open import Data.Vector.Raw using (⟨⟩)
+open import Data.Vector.Core R.setoid using (Vector; Vectorₛ; module ≊; _≊_)
 open import Data.Vector.Monoid R.+-monoid using () renaming (⟨ε⟩ to ⟨0⟩)
 open import Data.Vector.Vec using (replicate-++)
 open import Function using (_∘_)
@@ -41,13 +43,13 @@ private
     A B C D E F : ℕ
 
 opaque
-  unfolding Vector _∙_
+  unfolding _∙_
   ∙-comm : (V W : Vector A) → V ∙ W ≈ W ∙ V
   ∙-comm [] [] = refl
   ∙-comm (x ∷ V) (w ∷ W) = +-cong (*-comm x w) (∙-comm V W)
 
 opaque
-  unfolding _[_] [_]_ _ᵀ []ᵥ ⟨⟩ _∷ₕ_ _≊_ _≋_ _∷ᵥ_
+  unfolding _[_] [_]_ _ᵀ []ᵥ _∷ₕ_ _≋_ _∷ᵥ_
   [-]-ᵀ : (M : Matrix A B) (V : Vector A) →  M [ V ] ≊ [ V ] (M ᵀ)
   [-]-ᵀ [] V = ≊.sym (≊.reflexive ([-]-[]ᵥ V))
   [-]-ᵀ (M₀ ∷ M) V = begin
@@ -60,7 +62,7 @@ opaque
       open ≈-Reasoning (Vectorₛ _)
 
 opaque
-  unfolding []ᵥ mapRows ⟨⟩ _∷ₕ_ _∷ᵥ_ _ᵀ
+  unfolding []ᵥ mapRows _∷ₕ_ _∷ᵥ_ _ᵀ _≋_
   ·-ᵀ
       : {A B C : ℕ}
         (M : Matrix A B)
@@ -211,7 +213,7 @@ opaque
     → ((I ≑ 𝟎) · M ∥ (𝟎 ≑ I) · N) ᵀ
     ≋ (I ≑ 𝟎) · M ᵀ ∥ (𝟎 ≑ I) · N ᵀ
 ᵀ-resp-⊗ {M = M} {N = N} = begin
-    ((I ≑ 𝟎) · M ∥ (𝟎 ≑ I) · N) ᵀ ≈⟨ -ᵀ-cong (≋⊗ M N) ⟩
+    ((I ≑ 𝟎) · M ∥ (𝟎 ≑ I) · N) ᵀ ≈⟨ ᵀ-cong (≋⊗ M N) ⟩
     ((M ≑ 𝟎) ∥ (𝟎 ≑ N)) ᵀ         ≡⟨ ≡.cong (_ᵀ) (∥-≑ M 𝟎 𝟎 N) ⟨
     ((M ∥ 𝟎) ≑ (𝟎 ∥ N)) ᵀ         ≡⟨ ≑-ᵀ (M ∥ 𝟎) (𝟎 ∥ N) ⟩
     (M ∥ 𝟎) ᵀ ∥ (𝟎 ∥ N) ᵀ         ≡⟨ ≡.cong₂ _∥_ (∥-ᵀ M 𝟎) (∥-ᵀ 𝟎 N) ⟩
@@ -311,7 +313,7 @@ Mat-DaggerCocartesian = record
         { _† = λ M → M ᵀ
         ; †-identity = ≋.reflexive Iᵀ
         ; †-homomorphism = λ {f = f} {g} → ·-ᵀ f g
-        ; †-resp-≈ = -ᵀ-cong
+        ; †-resp-≈ = ᵀ-cong
         ; †-involutive = ᵀ-involutive
         }
     ; λ≅† = ≋λᵀ
@@ -344,7 +346,7 @@ p₂-i₂ = begin
     open ≈-Reasoning (Matrixₛ _ _)
 
 opaque
-  unfolding 𝟎 ⟨⟩
+  unfolding 𝟎 mapRows
   []ᵥ·[]ₕ : []ᵥ · []ₕ ≡ 𝟎 {A} {B}
   []ᵥ·[]ₕ {A} {B} = begin
       map ([_] []ₕ) []ᵥ   ≡⟨ map-cong (λ { [] → [⟨⟩]-[]ₕ }) []ᵥ ⟩

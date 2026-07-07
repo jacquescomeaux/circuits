@@ -16,10 +16,11 @@ import Relation.Binary.Reasoning.Setoid as ≈-Reasoning
 open import Category.Dagger.2-Poset using (dagger-2-poset; Dagger-2-Poset)
 open import Category.Dagger.Semiadditive using (IdempotentSemiadditiveDagger)
 open import Data.Matrix.Category R.semiring using (Mat; _·_; ·-Iˡ; ·-Iʳ; ·-resp-≋; ·-assoc; ∥-·-≑; ·-∥; ·-𝟎ˡ; ≑-·)
-open import Data.Matrix.Core R.setoid using (Matrix; Matrixₛ; _≋_; _∥_; _≑_; _ᵀ; module ≋; ∥-cong; ≑-cong)
+open import Data.Matrix.Core R.setoid using (Matrix; Matrixₛ; _≋_; module ≋; ∥-cong; ≑-cong)
 open import Data.Matrix.Monoid R.+-monoid using (𝟎; _[+]_; [+]-cong; [+]-𝟎ˡ; [+]-𝟎ʳ)
-open import Data.Matrix.Transform R.semiring using (I; Iᵀ)
+open import Data.Matrix.Raw using (_∥_; _≑_; _ᵀ)
 open import Data.Matrix.SemiadditiveDagger R using (∥-ᵀ; Mat-SemiadditiveDagger)
+open import Data.Matrix.Transform R.semiring using (I; Iᵀ)
 open import Data.Nat using (ℕ)
 open import Data.Vec using (Vec)
 open import Data.Vector.Core R.setoid using (Vector; _≊_)
@@ -33,7 +34,7 @@ private
     A B : ℕ
 
 opaque
-  unfolding _≊_ _⊕_
+  unfolding _⊕_
   ⊕-idem : (V : Vector A) → V ⊕ V ≊ V
   ⊕-idem [] = PW.[]
   ⊕-idem (v ∷ V) = +-idem v PW.∷ ⊕-idem V

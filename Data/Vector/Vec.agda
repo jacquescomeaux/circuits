@@ -5,6 +5,8 @@ module Data.Vector.Vec where
 open import Data.Fin using (Fin)
 open import Data.Nat using (ℕ; _+_)
 open import Data.Vec using (Vec; tabulate; zipWith; replicate; map; _++_)
+open import Data.Vec.Relation.Binary.Pointwise.Inductive as PW using (Pointwise-≡⇒≡)
+open import Data.Vector.Raw using (R-zipWith)
 open import Function using (_∘_)
 open import Level using (Level)
 open import Relation.Binary.PropositionalEquality as ≡ using (_≡_)
@@ -71,3 +73,16 @@ zipWith-map-map
     → zipWith (λ x y → f x ⊕ g y) v w ≡ zipWith _⊕_ (map f v) (map g w)
 zipWith-map-map f g _⊕_ [] [] = ≡.refl
 zipWith-map-map f g _⊕_ (x ∷ v) (y ∷ w) = ≡.cong (f x ⊕ g y ∷_) (zipWith-map-map f g _⊕_ v w)
+
+zipWith-cong
+    : {f g : A → B → C}
+    → (∀ x y → f x y ≡ g x y)
+    → (xs : Vec A n)
+      (ys : Vec B n)
+    → zipWith f xs ys
+    ≡ zipWith g xs ys
+zipWith-cong f≗g xs ys =
+    Pointwise-≡⇒≡
+      (R-zipWith {R = _≡_} {S = _≡_} (λ { ≡.refl ≡.refl → f≗g _ _})
+      (PW.refl ≡.refl)
+      (PW.refl ≡.refl))

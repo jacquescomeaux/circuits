@@ -12,19 +12,25 @@ import Relation.Binary.Reasoning.Setoid as ≈-Reasoning
 import Data.Vec.Relation.Binary.Pointwise.Inductive as PW
 
 open import Data.Nat using (ℕ)
-open import Data.Vec using (Vec; map; replicate; zipWith)
+open import Data.Vec using (Vec; map; replicate; zipWith; _++_)
 open import Data.Vec.Properties using (map-id; map-const; map-∘; zipWith-replicate; zipWith-replicate₁; map-replicate; map-cong)
 open import Relation.Binary.PropositionalEquality as ≡ using (_≗_; _≡_; module ≡-Reasoning)
 open import Function using (id; _∘_)
 
-open import Data.Matrix.Core R.setoid
+open import Data.Matrix.Raw
   using
-    ( Matrix; Matrixₛ; _≋_; ≋-isEquiv; _ᵀ; _∷ₕ_; []ᵥ; []ₕ; []ᵥ-ᵀ; mapRows
-    ; _ᵀᵀ; []ᵥ-!; ∷ₕ-ᵀ; ∷ₕ-cong; module ≋; -ᵀ-cong; _∥_; []ᵥ-∥; headₕ; tailₕ; head-∷-tailₕ; ∷ₕ-∥
+    ( _ᵀ; _∷ₕ_; []ᵥ; []ₕ; []ᵥ-ᵀ; mapRows
+    ; _ᵀᵀ; []ᵥ-!; ∷ₕ-ᵀ; _∥_; []ᵥ-∥; headₕ; tailₕ; head-∷-tailₕ; ∷ₕ-∥
     ; _≑_; []ᵥ-≑; ∷ₕ-≑
     )
+open import Data.Matrix.Core R.setoid
+  using
+    ( Matrix; Matrixₛ; _≋_; ≋-isEquiv
+    ; ∷ₕ-cong; module ≋; ᵀ-cong
+    )
 open import Data.Matrix.Monoid R.+-monoid using (𝟎; 𝟎ᵀ; _[+]_)
-open import Data.Vector.Core R.setoid using (Vector; Vectorₛ; ⟨⟩; module ≊; _≊_; _++_; ⟨⟩-++)
+open import Data.Vector.Raw using (⟨⟩; ⟨⟩-++)
+open import Data.Vector.Core R.setoid using (Vector; Vectorₛ; module ≊; _≊_)
 open import Data.Vector.Vec using (zipWith-map; map-zipWith; zipWith-map-map)
 open import Data.Vector.Monoid R.+-monoid using (_⊕_; ⊕-cong; ⊕-identityˡ; ⊕-identityʳ) renaming (⟨ε⟩ to ⟨0⟩)
 open import Data.Vector.Bisemimodule R using (_∙_; ∙-cong; ∙-zeroˡ; ∙-zeroʳ; _⟨_⟩; *-∙ˡ; *-∙ʳ; ∙-distribˡ; ∙-distribʳ)
@@ -40,11 +46,11 @@ private
 
 opaque
 
-  unfolding Matrix
+  unfolding _≋_
 
   opaque
 
-    unfolding Vector
+    -- unfolding Vector
 
     _[_] : Matrix n m → Vector n → Vector m
     _[_] M V = map (_∙ V) M
@@ -59,7 +65,7 @@ opaque
     -[-]-cong₁ {n} {m} {M} {M′} ≋M V = PW.map⁺ (λ ≊V → ∙-cong ≊V ≊.refl) ≋M
 
     [-]--cong : {x y : Vector m} {A B : Matrix n m} → x ≊ y → A ≋ B → [ x ] A ≊ [ y ] B
-    [-]--cong ≋V A≋B = PW.map⁺ (∙-cong ≋V) (-ᵀ-cong A≋B)
+    [-]--cong ≋V A≋B = PW.map⁺ (∙-cong ≋V) (ᵀ-cong A≋B)
 
     opaque
 
@@ -85,7 +91,7 @@ opaque
 
 opaque
 
-  unfolding Matrix Vector
+  unfolding _≋_
 
   -- The identity matrix
   I : Matrix n n
@@ -137,7 +143,7 @@ opaque
       open ≈-Reasoning setoid
 
 opaque
-  unfolding Vector [_]_ I _∙_ ⟨0⟩ mapRows _ᵀ []ᵥ
+  unfolding [_]_ I _∙_ ⟨0⟩ mapRows _ᵀ []ᵥ
   [-]I : {n : ℕ} (V : Vector n) → [ V ] I ≊ V
   [-]I {zero} [] = ≊.refl
   [-]I {suc n} (x ∷ V) = begin
@@ -155,7 +161,7 @@ opaque
       open ≈-Reasoning (Vectorₛ (suc n))
 
 opaque
-  unfolding _≊_ I _[_] _∙_ _≋_ _∷ₕ_ ⟨0⟩
+  unfolding I _[_] _∙_ _≋_ _∷ₕ_ ⟨0⟩
   I[-] : {n : ℕ} (V : Vector n) → I [ V ] ≊ V
   I[-] {zero} [] = PW.[]
   I[-] {suc n} (x ∷ V) = hd PW.∷ tl
@@ -223,7 +229,7 @@ opaque
 
 opaque
 
-  unfolding _++_ _∙_
+  unfolding _∙_
 
   ∙-++ : (W Y : Vector A) (X Z : Vector B) → (W ++ X) ∙ (Y ++ Z) ≈ W ∙ Y + X ∙ Z
   ∙-++ [] [] X Z = sym (+-identityˡ (X ∙ Z))
@@ -236,7 +242,7 @@ opaque
 
 opaque
 
-  unfolding _⊕_ ⟨⟩ [_]_
+  unfolding _⊕_ [_]_
 
   [++]-≑
       : (V : Vector B)
@@ -248,10 +254,10 @@ opaque
   [++]-≑ {B} {C} {zero} V W M N
     rewrite []ᵥ-! M
     rewrite []ᵥ-! N = begin
-      [ V ++ W ] ([]ᵥ {B} ≑ []ᵥ)  ≡⟨ ≡.cong ([ V ++ W ]_) []ᵥ-≑ ⟩
-      [ V ++ W ] []ᵥ              ≡⟨ [-]-[]ᵥ (V ++ W) ⟩
-      ⟨⟩ ⊕ ⟨⟩                     ≡⟨ ≡.cong₂ _⊕_ ([-]-[]ᵥ V) ([-]-[]ᵥ W) ⟨
-      [ V ] []ᵥ ⊕ [ W ] []ᵥ       ∎
+      [ V ++ W ] ([]ᵥ {m = B} ≑ []ᵥ)  ≡⟨ ≡.cong ([ V ++ W ]_) ([]ᵥ-≑ {B}) ⟩
+      [ V ++ W ] []ᵥ                  ≡⟨ [-]-[]ᵥ (V ++ W) ⟩
+      ⟨⟩ ⊕ ⟨⟩                         ≡⟨ ≡.cong₂ _⊕_ ([-]-[]ᵥ V) ([-]-[]ᵥ W) ⟨
+      [ V ] []ᵥ ⊕ [ W ] []ᵥ           ∎
     where
       open ≈-Reasoning (Vectorₛ 0)
   [++]-≑ {B} {C} {suc A} V W M N
@@ -272,13 +278,13 @@ opaque
 
   unfolding []ₕ []ᵥ [_]_ ⟨0⟩ _∙_ _ᵀ
 
-  [⟨⟩]-[]ₕ : [ ⟨⟩ ] ([]ₕ {A}) ≡ ⟨0⟩ {A}
+  [⟨⟩]-[]ₕ : [ ⟨⟩ ] ([]ₕ {n = A}) ≡ ⟨0⟩ {A}
   [⟨⟩]-[]ₕ {zero} = ≡.refl
   [⟨⟩]-[]ₕ {suc A} = ≡.cong (0# ∷_) [⟨⟩]-[]ₕ
 
 opaque
 
-  unfolding Vector ⟨⟩ ⟨0⟩ []ᵥ [_]_ _ᵀ _∷ₕ_ 𝟎 _≊_
+  unfolding ⟨0⟩ []ᵥ [_]_ _ᵀ _∷ₕ_ 𝟎
 
   [-]-𝟎 : (V : Vector A) →  [ V ] (𝟎 {B}) ≊ ⟨0⟩
   [-]-𝟎 {A} {zero} V = ≊.reflexive (≡.cong (map (V ∙_)) 𝟎ᵀ)
@@ -292,7 +298,7 @@ opaque
 
 opaque
 
-  unfolding ⟨0⟩ ⟨⟩ [_]_
+  unfolding ⟨0⟩ [_]_
 
   [⟨0⟩]- : (M : Matrix A B) → [ ⟨0⟩ ] M ≊ ⟨0⟩
   [⟨0⟩]- {zero} M rewrite []ᵥ-! M = ≊.reflexive ([-]-[]ᵥ ⟨0⟩)
