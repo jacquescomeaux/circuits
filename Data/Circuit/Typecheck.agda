@@ -1,12 +1,14 @@
 {-# OPTIONS --without-K --safe #-}
 
+open import Level using (0ℓ)
+
 module Data.Circuit.Typecheck where
 
 open import Data.SExp using (SExp)
-open import Data.Circuit.Gate using (GateLabel; Gate)
+open import Data.Circuit.Gate using (Gates; Gate)
 open import Data.Hypergraph.Label using (HypergraphLabel)
-open import Data.Hypergraph.Edge GateLabel using (Edge)
-open import Data.Hypergraph.Base GateLabel using (Hypergraph)
+open import Data.Hypergraph.Edge {0ℓ} Gates using (Edge)
+open import Data.Hypergraph {0ℓ} Gates using (Hypergraph)
 
 open import Data.List using (List; length) renaming (map to mapL)
 open import Data.List.Effectful using () renaming (module TraversableA to ListTraversable)
@@ -14,7 +16,7 @@ open import Data.Maybe using (Maybe) renaming (map to mapM)
 open import Data.Nat using (ℕ; _<?_; _≟_)
 open import Data.String using (String)
 open import Data.Product using (_×_; _,_; Σ)
-open import Data.Vec using (Vec; []; _∷_; fromList) renaming (map to mapV)
+open import Data.Vec using (Vec; []; _∷_; fromList; lookup) renaming (map to mapV)
 open import Data.Vec.Effectful using () renaming (module TraversableA to VecTraversable)
 open import Data.Maybe.Effectful using (applicative)
 open import Data.Fin using (Fin; #_; fromℕ<)
@@ -28,7 +30,7 @@ open Gate
 open Maybe
 
 gate : {n a : ℕ} (g : Gate a) → Vec (Fin n) a → Edge n
-gate g p = record { label = g; ports = p }
+gate g p = record { label = g; ports = lookup p }
 
 typeCheckGateLabel : SExp → Maybe (Σ ℕ Gate)
 typeCheckGateLabel (Atom "one")  = just (1 , ONE)
