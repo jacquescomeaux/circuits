@@ -1,16 +1,14 @@
 {-# OPTIONS --without-K --safe #-}
 
-open import Level using (Level; 0ℓ; suc)
+open import Level using (Level; 0ℓ; suc; _⊔_)
 
-module Data.System.Core {ℓ : Level} where
+module Data.System.Core {c ℓ : Level} where
 
 import Relation.Binary.Reasoning.Setoid as ≈-Reasoning
 
-open import Data.Circuit.Value using (monoid)
-open import Data.Nat using (ℕ)
+open import Algebra using (CommutativeMonoid)
 open import Data.Setoid using (_⇒ₛ_; ∣_∣)
 open import Data.Setoid.Unit using (⊤ₛ)
-open import Data.Values monoid using (Values; _≋_; module ≋; <ε>)
 open import Function using (Func; _⟨$⟩_)
 open import Function.Construct.Constant using () renaming (function to Const)
 open import Function.Construct.Identity using () renaming (function to Id)
@@ -22,34 +20,49 @@ open Func
 -- A dynamical system with a set of states,
 -- a state update function,
 -- and a readout function
-record System (n m : ℕ) : Set₁ where
+
+-- Really, the input type should be a cocommutative comonoid,
+-- but every setoid is a cocommutative comonoid in a unique way
+record System (I : Setoid c ℓ) (O : CommutativeMonoid c ℓ) : Set (c ⊔ suc ℓ) where
+
+  private
+    module I = Setoid I
+    module O = CommutativeMonoid O
 
   field
-    S : Setoid 0ℓ 0ℓ
-    fₛ : ∣ Values n ⇒ₛ S ⇒ₛ S ∣
-    fₒ : ∣ S ⇒ₛ Values m ∣
+    S : Setoid ℓ ℓ
+    fₛ : ∣ I ⇒ₛ S ⇒ₛ S ∣
+    fₒ : ∣ S ⇒ₛ O.setoid ∣
 
-  fₛ′ : ∣ Values n ∣ → ∣ S ∣ → ∣ S ∣
+  fₛ′ : I.Carrier → ∣ S ∣ → ∣ S ∣
   fₛ′ i = to (to fₛ i)
 
-  fₒ′ : ∣ S ∣ → ∣ Values m ∣
+  fₒ′ : ∣ S ∣ → O.Carrier
   fₒ′ = to fₒ
 
   module S = Setoid S
 
 open System
 
--- the discrete system from n nodes to m nodes
-discrete : (n m : ℕ) → System n m
-discrete _ _ .S = ⊤ₛ
-discrete n _ .fₛ = Const (Values n) (⊤ₛ ⇒ₛ ⊤ₛ) (Id ⊤ₛ)
-discrete _ m .fₒ = Const ⊤ₛ (Values m) <ε>
+module _ where
 
-module _ {n m : ℕ} where
+  open CommutativeMonoid
+
+  -- the discrete system ignores input and outputs default value
+  discrete : (I : Setoid c ℓ) (O : CommutativeMonoid c ℓ) → System I O
+  discrete _ _ .S = ⊤ₛ
+  discrete I _ .fₛ = Const I (⊤ₛ ⇒ₛ ⊤ₛ) (Id ⊤ₛ)
+  discrete _ O .fₒ = Const ⊤ₛ (setoid O) (ε O)
+
+module _ {I : Setoid c ℓ} {O : CommutativeMonoid c ℓ} where
+
+  private
+    module I = Setoid I
+    module O = CommutativeMonoid O
 
   -- Simulation of systems: a mapping of internal
   -- states which respects i/o behavior
-  record _≤_ (A B : System n m) : Set ℓ where
+  record _≤_ (A B : System I O) : Set (c ⊔ ℓ) where
 
     private
       module A = System A
@@ -57,8 +70,8 @@ module _ {n m : ℕ} where
 
     field
       ⇒S : ∣ A.S ⇒ₛ B.S ∣
-      ≗-fₛ : (i : ∣ Values n ∣) (s : ∣ A.S ∣) → ⇒S ⟨$⟩ (A.fₛ′ i s) B.S.≈ B.fₛ′ i (⇒S ⟨$⟩ s)
-      ≗-fₒ : (s : ∣ A.S ∣) → A.fₒ′ s ≋ B.fₒ′ (⇒S ⟨$⟩ s)
+      ≗-fₛ : (i : I.Carrier) (s : ∣ A.S ∣) → ⇒S ⟨$⟩ (A.fₛ′ i s) B.S.≈ B.fₛ′ i (⇒S ⟨$⟩ s)
+      ≗-fₒ : (s : ∣ A.S ∣) → A.fₒ′ s O.≈ B.fₒ′ (⇒S ⟨$⟩ s)
 
   infix 4 _≤_
 
@@ -69,7 +82,7 @@ module _ {n m : ℕ} where
   ≤-refl : Reflexive _≤_
   ⇒S ≤-refl = Id _
   ≗-fₛ (≤-refl {x}) _ _ = S.refl x
-  ≗-fₒ ≤-refl _ = ≋.refl
+  ≗-fₒ ≤-refl _ = O.refl
 
   -- ≤ is transitive: if B simulates A, and C simulates B, then C simulates A
   ≤-trans : Transitive _≤_
@@ -78,7 +91,7 @@ module _ {n m : ℕ} where
       ⇒S b ⟨$⟩ (⇒S a ⟨$⟩ (fₛ′ x i s)) ≈⟨ cong (⇒S b) (≗-fₛ a i s) ⟩
       ⇒S b ⟨$⟩ (fₛ′ y i (⇒S a ⟨$⟩ s)) ≈⟨ ≗-fₛ b i (⇒S a ⟨$⟩ s) ⟩
       fₛ′ z i (⇒S b ⟨$⟩ (⇒S a ⟨$⟩ s)) ∎
-  ≗-fₒ (≤-trans {x} {y} {z} a b) s = let open ≈-Reasoning (Values m) in begin
+  ≗-fₒ (≤-trans {x} {y} {z} a b) s = let open ≈-Reasoning O.setoid in begin
       fₒ′ x s                       ≈⟨ ≗-fₒ a s ⟩
       fₒ′ y (⇒S a ⟨$⟩ s)            ≈⟨ ≗-fₒ b (⇒S a ⟨$⟩ s) ⟩
       fₒ′ z (⇒S b ⟨$⟩ (⇒S a ⟨$⟩ s)) ∎

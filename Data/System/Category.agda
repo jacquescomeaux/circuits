@@ -1,15 +1,15 @@
 {-# OPTIONS --without-K --safe #-}
 
-open import Level using (Level; 0ℓ; suc)
+open import Level using (Level; suc; _⊔_)
 
-module Data.System.Category {ℓ : Level} where
+module Data.System.Category {c ℓ : Level} where
 
 import Relation.Binary.Reasoning.Setoid as ≈-Reasoning
 
+open import Algebra using (CommutativeMonoid)
 open import Categories.Category using (Category)
-open import Data.Nat using (ℕ)
-open import Data.System.Core {ℓ} using (System; _≤_; ≤-trans; ≤-refl)
 open import Data.Setoid using (_⇒ₛ_)
+open import Data.System.Core using (System; _≤_; ≤-trans; ≤-refl)
 open import Function using (Func; _⟨$⟩_; flip)
 open import Relation.Binary as Rel using (Setoid; Rel)
 
@@ -17,13 +17,13 @@ open Func
 open System
 open _≤_
 
-private module ≈ {n m : ℕ} where
+private module ≈ {I : Setoid c ℓ} {O : CommutativeMonoid c ℓ} where
 
   private
     variable
-      A B C : System n m
+      A B C : System I O
 
-  _≈_ : Rel (A ≤ B) 0ℓ
+  _≈_ : Rel (A ≤ B) ℓ
   _≈_ {A} {B} ≤₁ ≤₂ = ⇒S ≤₁ A⇒B.≈ ⇒S ≤₂
     where
       module A⇒B = Setoid (S A ⇒ₛ S B)
@@ -46,9 +46,9 @@ private module ≈ {n m : ℕ} where
 open ≈ using (_≈_) public
 open ≈ using (≈-isEquiv; ≤-resp-≈)
 
-Systems[_,_] : ℕ → ℕ → Category (suc 0ℓ) ℓ 0ℓ
-Systems[ n , m ] = record
-    { Obj = System n m
+Systems[_,_] : Setoid c ℓ → CommutativeMonoid c ℓ → Category (c ⊔ suc ℓ) (c ⊔ ℓ) ℓ
+Systems[ I , O ] = record
+    { Obj = System I O
     ; _⇒_ = _≤_
     ; _≈_ = _≈_
     ; id = ≤-refl

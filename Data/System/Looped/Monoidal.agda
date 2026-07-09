@@ -1,28 +1,30 @@
 {-# OPTIONS --without-K --safe #-}
 
-open import Level using (Level; 0ℓ; suc)
+open import Level using (Level; suc; _⊔_)
 
-module Data.System.Looped.Monoidal {ℓ : Level} where
+module Data.System.Looped.Monoidal {c ℓ : Level} where
 
 import Categories.Morphism as Morphism
-import Data.System.Monoidal {ℓ} as Unlooped
+import Data.System.Monoidal as Unlooped
 
+open import Algebra using (CommutativeMonoid)
 open import Categories.Category.Monoidal using (Monoidal)
 open import Categories.Category.Monoidal.Symmetric using (Symmetric)
 open import Categories.NaturalTransformation.NaturalIsomorphism using (_≃_)
 open import Categories.Category.Monoidal.Bundle using (MonoidalCategory; SymmetricMonoidalCategory)
 open import Categories.Functor.Bifunctor using (Bifunctor; flip-bifunctor)
-open import Data.Nat using (ℕ)
-open import Data.System.Core {ℓ} using (System)
-open import Data.System.Looped {ℓ} using (Systems[_])
+open import Data.System.Core using (System)
+open import Data.System.Looped using (Systems[_])
 
-module _ (n : ℕ) where
+module _ (V : CommutativeMonoid c ℓ) where
 
   private
 
-    module Systems-MC = MonoidalCategory (Unlooped.Systems-MC n n)
+    module V = CommutativeMonoid V
 
-    ⊗ : Bifunctor Systems[ n ] Systems[ n ] Systems[ n ]
+    module Systems-MC = MonoidalCategory (Unlooped.Systems-MC V.setoid V)
+
+    ⊗ : Bifunctor Systems[ V ] Systems[ V ] Systems[ V ]
     ⊗ = record
         { F₀ = Systems-MC.⊗.₀
         ; F₁ = Systems-MC.⊗.₁
@@ -31,9 +33,9 @@ module _ (n : ℕ) where
         ; F-resp-≈ = λ {f = f} {g} → Systems-MC.⊗.F-resp-≈ {f = f} {g}
         }
 
-    module _ {X : System n n} where
+    module _ {X : System V.setoid V} where
 
-      open Morphism Systems[ n ] using (_≅_; module Iso)
+      open Morphism Systems[ V ] using (_≅_; module Iso)
       open Systems-MC using (_⊗₀_)
 
       unitorˡ : Systems-MC.unit ⊗₀ X ≅ X
@@ -56,13 +58,13 @@ module _ (n : ℕ) where
               }
           }
 
-    module _ {X Y Z : System n n} where
+    module _ {X Y Z : System V.setoid V} where
 
       module X = System X
       module Y = System Y
       module Z = System Z
 
-      open Morphism Systems[ n ] using (_≅_; module Iso)
+      open Morphism Systems[ V ] using (_≅_; module Iso)
       open Systems-MC using (_⊗₀_)
 
       associator : (X ⊗₀ Y) ⊗₀ Z ≅ X ⊗₀ (Y ⊗₀ Z)
@@ -75,7 +77,7 @@ module _ (n : ℕ) where
               }
           }
 
-  Systems-Monoidal : Monoidal Systems[ n ]
+  Systems-Monoidal : Monoidal Systems[ V ]
   Systems-Monoidal = record
       { ⊗ = ⊗
       ; unit = Systems-MC.unit
@@ -94,7 +96,7 @@ module _ (n : ℕ) where
 
   private
 
-    module Systems-SMC = SymmetricMonoidalCategory (Unlooped.Systems-SMC n n)
+    module Systems-SMC = SymmetricMonoidalCategory (Unlooped.Systems-SMC V.setoid V)
 
     braiding : ⊗ ≃ flip-bifunctor ⊗
     braiding = record
@@ -113,8 +115,8 @@ module _ (n : ℕ) where
       ; commutative = λ {X Y} → Systems-SMC.commutative {X} {Y}
       }
 
-  Systems-MC : MonoidalCategory (suc 0ℓ) ℓ 0ℓ
+  Systems-MC : MonoidalCategory (c ⊔ suc ℓ) (c ⊔ ℓ) ℓ
   Systems-MC = record { monoidal = Systems-Monoidal }
 
-  Systems-SMC : SymmetricMonoidalCategory (suc 0ℓ) ℓ 0ℓ
+  Systems-SMC : SymmetricMonoidalCategory (c ⊔ suc ℓ) (c ⊔ ℓ) ℓ
   Systems-SMC = record { symmetric = Systems-Symmetric }

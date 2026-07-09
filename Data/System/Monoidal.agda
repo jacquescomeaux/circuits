@@ -1,46 +1,48 @@
 {-# OPTIONS --without-K --safe #-}
 
-open import Data.Nat using (ℕ)
-open import Level using (Level; suc; 0ℓ)
+open import Algebra using (CommutativeMonoid)
+open import Level using (Level; suc; _⊔_)
+open import Relation.Binary using (Setoid)
 
-module Data.System.Monoidal {ℓ : Level} (n m : ℕ) where
+module Data.System.Monoidal {c ℓ : Level} (I : Setoid c ℓ) (O : CommutativeMonoid c ℓ) where
 
-open import Data.System.Core {ℓ} using (System; _≤_; ≤-refl; ≤-trans; discrete)
-open import Data.System.Category {ℓ} using (Systems[_,_])
+open import Data.System.Core using (System; _≤_; ≤-refl; ≤-trans; discrete)
+open import Data.System.Category using (Systems[_,_])
 
 open import Categories.Category.Monoidal using (Monoidal)
-open import Categories.Category.Monoidal.Symmetric using (Symmetric)
 open import Categories.Category.Monoidal.Bundle using (MonoidalCategory; SymmetricMonoidalCategory)
+open import Categories.Category.Monoidal.Symmetric using (Symmetric)
 open import Categories.Functor using (Functor)
 open import Categories.Functor.Bifunctor using (Bifunctor; flip-bifunctor)
-open import Categories.Morphism (Systems[ n , m ]) using (_≅_; Iso)
+open import Categories.Morphism (Systems[ I , O ]) using (_≅_; Iso)
 open import Categories.NaturalTransformation.NaturalIsomorphism using (_≃_; niHelper)
-open import Data.Circuit.Value using (monoid)
 open import Data.Product using (_,_; _×_; uncurry′)
 open import Data.Product.Function.NonDependent.Setoid using (_×-function_; proj₁ₛ; proj₂ₛ; swapₛ)
 open import Data.Product.Relation.Binary.Pointwise.NonDependent using (_×ₛ_)
 open import Data.Setoid using (_⇒ₛ_; _×-⇒_; assocₛ⇒; assocₛ⇐)
-open import Data.Values monoid using (Values; _⊕_; ⊕-cong; ⊕-identityˡ; ⊕-identityʳ; ⊕-assoc; ⊕-comm; module ≋)
 open import Function using (Func; _⟶ₛ_)
 open import Function.Construct.Setoid using (_∙_)
-open import Relation.Binary using (Setoid)
 
 open _≤_
 open Setoid
+
+private
+  module I = Setoid I
+  module O = CommutativeMonoid O
 
 module _ where
 
   open Func
 
-  δₛ : Values n ⟶ₛ Values n ×ₛ Values n
+  δₛ : I ⟶ₛ I ×ₛ I
   δₛ .to v = v , v
   δₛ .cong v≋w = v≋w , v≋w
 
-  ⊕ₛ : Values m ×ₛ Values m ⟶ₛ Values m
-  ⊕ₛ .to (v , w) = v ⊕ w
-  ⊕ₛ .cong (v₁≋v₂ , w₁≋w₂) = ⊕-cong v₁≋v₂ w₁≋w₂
+  ⊕ₛ : O.setoid ×ₛ O.setoid ⟶ₛ O.setoid
+  ⊕ₛ .to (v , w) = v O.∙ w
+  ⊕ₛ .cong (v₁≈v₂ , w₁≈w₂) = O.∙-cong v₁≈v₂ w₁≈w₂
 
-_⊗₀_ : System n m → System n m → System n m
+_⊗₀_ : System I O → System I O → System I O
 _⊗₀_ X Y = let open System in record
     { S = S X ×ₛ S Y
     ; fₛ = fₛ X ×-⇒ fₛ Y ∙ δₛ
@@ -48,60 +50,60 @@ _⊗₀_ X Y = let open System in record
     }
 
 _⊗₁_
-    : {A A′ B B′ : System n m}
+    : {A A′ B B′ : System I O}
       (f : A ≤ A′)
       (g : B ≤ B′)
     → A ⊗₀ B ≤ A′ ⊗₀ B′
 _⊗₁_ f g .⇒S = ⇒S f ×-function ⇒S g
 _⊗₁_ f g .≗-fₛ i (s₁ , s₂) = ≗-fₛ f i s₁ , ≗-fₛ g i s₂
-_⊗₁_ f g .≗-fₒ (s₁ , s₂) = ⊕-cong (≗-fₒ f s₁) (≗-fₒ g s₂)
+_⊗₁_ f g .≗-fₒ (s₁ , s₂) = O.∙-cong (≗-fₒ f s₁) (≗-fₒ g s₂)
 
 module _ where
 
   open Functor
   open System
 
-  ⊗ : Bifunctor Systems[ n , m ] Systems[ n , m ] Systems[ n , m ]
+  ⊗ : Bifunctor Systems[ I , O ] Systems[ I , O ] Systems[ I , O ]
   ⊗ .F₀ = uncurry′ _⊗₀_
   ⊗ .F₁ = uncurry′ _⊗₁_
   ⊗ .identity {X , Y} = refl (S X) , refl (S Y)
   ⊗ .homomorphism {_} {_} {X″ , Y″} = refl (S X″) , refl (S Y″)
   ⊗ .F-resp-≈ (f≈f′ , g≈g′) = f≈f′ , g≈g′
 
-module Unitors {X : System n m} where
+module Unitors {X : System I O} where
 
   open System X
 
-  ⊗-discreteˡ-≤ : discrete n m ⊗₀ X ≤ X
+  ⊗-discreteˡ-≤ : discrete I O ⊗₀ X ≤ X
   ⊗-discreteˡ-≤ .⇒S = proj₂ₛ
   ⊗-discreteˡ-≤ .≗-fₛ i s = S.refl
-  ⊗-discreteˡ-≤ .≗-fₒ (_ , s) = ⊕-identityˡ (fₒ′ s)
+  ⊗-discreteˡ-≤ .≗-fₒ (_ , s) = O.identityˡ (fₒ′ s)
 
-  ⊗-discreteˡ-≥ : X ≤ discrete n m ⊗₀ X
+  ⊗-discreteˡ-≥ : X ≤ discrete I O ⊗₀ X
   ⊗-discreteˡ-≥ .⇒S = record { to = λ s → _ , s ; cong = λ s≈s′ → _ , s≈s′ }
   ⊗-discreteˡ-≥ .≗-fₛ i s = _ , S.refl
-  ⊗-discreteˡ-≥ .≗-fₒ s = ≋.sym (⊕-identityˡ (fₒ′ s))
+  ⊗-discreteˡ-≥ .≗-fₒ s = O.sym (O.identityˡ (fₒ′ s))
 
-  ⊗-discreteʳ-≤ : X ⊗₀ discrete n m ≤ X
+  ⊗-discreteʳ-≤ : X ⊗₀ discrete I O ≤ X
   ⊗-discreteʳ-≤ .⇒S = proj₁ₛ
   ⊗-discreteʳ-≤ .≗-fₛ i s = S.refl
-  ⊗-discreteʳ-≤ .≗-fₒ (s , _) = ⊕-identityʳ (fₒ′ s)
+  ⊗-discreteʳ-≤ .≗-fₒ (s , _) = O.identityʳ (fₒ′ s)
 
-  ⊗-discreteʳ-≥ : X ≤ X ⊗₀ discrete n m
+  ⊗-discreteʳ-≥ : X ≤ X ⊗₀ discrete I O
   ⊗-discreteʳ-≥ .⇒S = record { to = λ s → s , _ ; cong = λ s≈s′ → s≈s′ , _ }
   ⊗-discreteʳ-≥ .≗-fₛ i s = S.refl , _
-  ⊗-discreteʳ-≥ .≗-fₒ s = ≋.sym (⊕-identityʳ (fₒ′ s))
+  ⊗-discreteʳ-≥ .≗-fₒ s = O.sym (O.identityʳ (fₒ′ s))
 
   open _≅_
   open Iso
 
-  unitorˡ : discrete n m ⊗₀ X ≅ X
+  unitorˡ : discrete I O ⊗₀ X ≅ X
   unitorˡ .from = ⊗-discreteˡ-≤
   unitorˡ .to = ⊗-discreteˡ-≥
   unitorˡ .iso .isoˡ = _ , S.refl
   unitorˡ .iso .isoʳ = S.refl
 
-  unitorʳ : X ⊗₀ discrete n m ≅ X
+  unitorʳ : X ⊗₀ discrete I O ≅ X
   unitorʳ .from = ⊗-discreteʳ-≤
   unitorʳ .to = ⊗-discreteʳ-≥
   unitorʳ .iso .isoˡ = S.refl , _
@@ -109,7 +111,7 @@ module Unitors {X : System n m} where
 
 open Unitors using (unitorˡ; unitorʳ) public
 
-module Associator {X Y Z : System n m} where
+module Associator {X Y Z : System I O} where
 
   module X = System X
   module Y = System Y
@@ -118,12 +120,12 @@ module Associator {X Y Z : System n m} where
   assoc-≤ : (X ⊗₀ Y) ⊗₀ Z ≤ X ⊗₀ (Y ⊗₀ Z)
   assoc-≤ .⇒S = assocₛ⇒
   assoc-≤ .≗-fₛ i ((s₁ , s₂) , s₃) = X.S.refl , Y.S.refl , Z.S.refl
-  assoc-≤ .≗-fₒ ((s₁ , s₂) , s₃) = ⊕-assoc (X.fₒ′ s₁) (Y.fₒ′ s₂) (Z.fₒ′ s₃)
+  assoc-≤ .≗-fₒ ((s₁ , s₂) , s₃) = O.assoc (X.fₒ′ s₁) (Y.fₒ′ s₂) (Z.fₒ′ s₃)
 
   assoc-≥ : X ⊗₀ (Y ⊗₀ Z) ≤ (X ⊗₀ Y) ⊗₀ Z
   assoc-≥ .⇒S = assocₛ⇐
   assoc-≥ .≗-fₛ i (s₁ , (s₂ , s₃)) = (X.S.refl , Y.S.refl) , Z.S.refl
-  assoc-≥ .≗-fₒ (s₁ , (s₂ , s₃)) = ≋.sym (⊕-assoc (X.fₒ′ s₁) (Y.fₒ′ s₂) (Z.fₒ′ s₃) )
+  assoc-≥ .≗-fₒ (s₁ , (s₂ , s₃)) = O.sym (O.assoc (X.fₒ′ s₁) (Y.fₒ′ s₂) (Z.fₒ′ s₃) )
 
   open _≅_
   open Iso
@@ -136,10 +138,10 @@ module Associator {X Y Z : System n m} where
 
 open Associator using (associator) public
 
-Systems-Monoidal : Monoidal Systems[ n , m ]
+Systems-Monoidal : Monoidal Systems[ I , O ]
 Systems-Monoidal = let open System in record
     { ⊗ = ⊗
-    ; unit = discrete n m
+    ; unit = discrete I O
     ; unitorˡ = unitorˡ
     ; unitorʳ = unitorʳ
     ; associator = associator
@@ -155,10 +157,10 @@ Systems-Monoidal = let open System in record
 
 open System
 
-⊗-swap-≤ : {X Y : System n m} → Y ⊗₀ X ≤ X ⊗₀ Y
+⊗-swap-≤ : {X Y : System I O} → Y ⊗₀ X ≤ X ⊗₀ Y
 ⊗-swap-≤ .⇒S = swapₛ
 ⊗-swap-≤ {X} {Y} .≗-fₛ i (s₁ , s₂) = refl (S X) , refl (S Y)
-⊗-swap-≤ {X} {Y} .≗-fₒ (s₁ , s₂) = ⊕-comm (fₒ′ Y s₁) (fₒ′ X s₂)
+⊗-swap-≤ {X} {Y} .≗-fₒ (s₁ , s₂) = O.comm (fₒ′ Y s₁) (fₒ′ X s₂)
 
 braiding : ⊗ ≃ flip-bifunctor ⊗
 braiding = niHelper record
@@ -181,8 +183,8 @@ Systems-Symmetric = record
     ; commutative = λ {X} {Y} → refl (S Y) , refl (S X)
     }
 
-Systems-MC : MonoidalCategory (suc 0ℓ) ℓ 0ℓ
+Systems-MC : MonoidalCategory (c ⊔ suc ℓ) (c ⊔ ℓ) ℓ
 Systems-MC = record { monoidal = Systems-Monoidal }
 
-Systems-SMC : SymmetricMonoidalCategory (suc 0ℓ) ℓ 0ℓ
+Systems-SMC : SymmetricMonoidalCategory (c ⊔ suc ℓ) (c ⊔ ℓ) ℓ
 Systems-SMC = record { symmetric = Systems-Symmetric }
