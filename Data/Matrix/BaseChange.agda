@@ -1,14 +1,13 @@
 {-# OPTIONS --without-K --safe #-}
 
-open import Algebra.Bundles using (Semiring)
-open import Algebra.Morphism.Bundles using (SemiringHomomorphism)
+open import Algebra using (Semiring)
+open import Category.Instance.Rigs using (RigHomomorphism)
 open import Level using (Level)
 
 module Data.Matrix.BaseChange
     {c ℓ : Level}
     (R S : Semiring c ℓ)
-    (open Semiring using (rawSemiring))
-    (f : SemiringHomomorphism (rawSemiring R) (rawSemiring S))
+    (f : RigHomomorphism R S)
   where
 
 module R = Semiring R
@@ -47,7 +46,7 @@ open import Level using (0ℓ)
 open Func
 open Functor
 open MC using (Matrix)
-open SemiringHomomorphism f
+open RigHomomorphism f
 open ℕ
 private module Mat {A B : ℕ} = Functor (Endo.Mat A B {c} {ℓ})
 
@@ -74,10 +73,6 @@ module VecS where
   open VC S.setoid public
   open VM S.+-monoid public
   open VB S public
-
-func : R.setoid ⟶ₛ S.setoid
-func .to = ⟦_⟧
-func .cong = ⟦⟧-cong
 
 change
     : {A B : ℕ}
