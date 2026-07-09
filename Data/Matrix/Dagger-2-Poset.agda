@@ -45,21 +45,28 @@ opaque
   [+]-idem [] = PW.[]
   [+]-idem (M₀ ∷ M) = ⊕-idem M₀ PW.∷ [+]-idem M
 
++-[+] : (M N : Matrix A B) → (I ∥ I) · (((I ≑ 𝟎) · M) ∥ ((𝟎 ≑ I) · N)) · (I ∥ I) ᵀ ≋ M [+] N
++-[+] M N = begin
+    (I ∥ I) · (((I ≑ 𝟎) · M) ∥ ((𝟎 ≑ I) · N)) · (I ∥ I) ᵀ     ≡⟨ ≡.cong₂ (λ h₁ h₂ → (I ∥ I) · (h₁ ∥ h₂) · (I ∥ I) ᵀ) (≑-· I 𝟎 M) (≑-· 𝟎 I N) ⟩
+    (I ∥ I) · ((I · M ≑ 𝟎 · M) ∥ (𝟎 · N ≑ I · N)) · (I ∥ I) ᵀ ≈⟨ ·-resp-≋ ≋.refl (·-resp-≋ (∥-cong (≑-cong ·-Iˡ (·-𝟎ˡ M)) (≑-cong (·-𝟎ˡ N) ·-Iˡ)) ≋.refl) ⟩
+    (I ∥ I) · ((M ≑ 𝟎) ∥ (𝟎 ≑ N)) · (I ∥ I) ᵀ                 ≡⟨ ≡.cong (λ h → (I ∥ I) · ((M ≑ 𝟎) ∥ (𝟎 ≑ N)) · h) (∥-ᵀ I I) ⟩
+    (I ∥ I) · ((M ≑ 𝟎) ∥ (𝟎 ≑ N)) · (I ᵀ ≑ I ᵀ)               ≡⟨ ≡.cong₂ (λ h₁ h₂ → (I ∥ I) · ((M ≑ 𝟎) ∥ (𝟎 ≑ N)) · (h₁ ≑ h₂)) Iᵀ Iᵀ ⟩
+    (I ∥ I) · ((M ≑ 𝟎) ∥ (𝟎 ≑ N)) · (I ≑ I)                   ≈⟨ ·-assoc ⟨
+    ((I ∥ I) · ((M ≑ 𝟎) ∥ (𝟎 ≑ N))) · (I ≑ I)                 ≡⟨ ≡.cong (_· (I ≑ I)) (·-∥ (I ∥ I) (M ≑ 𝟎) (𝟎 ≑ N)) ⟩
+    (((I ∥ I) · (M ≑ 𝟎)) ∥ ((I ∥ I) · (𝟎 ≑ N))) · (I ≑ I)     ≈⟨ ∥-·-≑ ((I ∥ I) · (M ≑ 𝟎)) ((I ∥ I) · (𝟎 ≑ N)) I I ⟩
+    (((I ∥ I) · (M ≑ 𝟎)) · I) [+] (((I ∥ I) · (𝟎 ≑ N)) · I)   ≈⟨ [+]-cong ·-Iʳ ·-Iʳ ⟩
+    ((I ∥ I) · (M ≑ 𝟎)) [+] ((I ∥ I) · (𝟎 ≑ N))               ≈⟨ [+]-cong (∥-·-≑ I I M 𝟎) (∥-·-≑ I I 𝟎 N) ⟩
+    ((I · M) [+] (I · 𝟎)) [+] ((I · 𝟎) [+] (I · N))           ≈⟨ [+]-cong ([+]-cong ·-Iˡ ·-Iˡ) ([+]-cong ·-Iˡ ·-Iˡ) ⟩
+    (M [+] 𝟎) [+] (𝟎 [+] N)                                   ≈⟨ [+]-cong ([+]-𝟎ʳ M) ([+]-𝟎ˡ N) ⟩
+    M [+] N                                                   ∎
+  where
+    open ≈-Reasoning (Matrixₛ _ _)
+
 idem : (M : Matrix A B) → (I ∥ I) · (((I ≑ 𝟎) · M) ∥ ((𝟎 ≑ I) · M)) · (I ∥ I) ᵀ ≋ M
 idem M = begin
-    (I ∥ I) · (((I ≑ 𝟎) · M) ∥ ((𝟎 ≑ I) · M)) · (I ∥ I) ᵀ     ≡⟨ ≡.cong₂ (λ h₁ h₂ → (I ∥ I) · (h₁ ∥ h₂) · (I ∥ I) ᵀ) (≑-· I 𝟎 M) (≑-· 𝟎 I M) ⟩
-    (I ∥ I) · ((I · M ≑ 𝟎 · M) ∥ (𝟎 · M ≑ I · M)) · (I ∥ I) ᵀ ≈⟨ ·-resp-≋ ≋.refl (·-resp-≋ (∥-cong (≑-cong ·-Iˡ (·-𝟎ˡ M)) (≑-cong (·-𝟎ˡ M) ·-Iˡ)) ≋.refl) ⟩
-    (I ∥ I) · ((M ≑ 𝟎) ∥ (𝟎 ≑ M)) · (I ∥ I) ᵀ                 ≡⟨ ≡.cong (λ h → (I ∥ I) · ((M ≑ 𝟎) ∥ (𝟎 ≑ M)) · h) (∥-ᵀ I I) ⟩
-    (I ∥ I) · ((M ≑ 𝟎) ∥ (𝟎 ≑ M)) · (I ᵀ ≑ I ᵀ)               ≡⟨ ≡.cong₂ (λ h₁ h₂ → (I ∥ I) · ((M ≑ 𝟎) ∥ (𝟎 ≑ M)) · (h₁ ≑ h₂)) Iᵀ Iᵀ ⟩
-    (I ∥ I) · ((M ≑ 𝟎) ∥ (𝟎 ≑ M)) · (I ≑ I)                   ≈⟨ ·-assoc ⟨
-    ((I ∥ I) · ((M ≑ 𝟎) ∥ (𝟎 ≑ M))) · (I ≑ I)                 ≡⟨ ≡.cong (_· (I ≑ I)) (·-∥ (I ∥ I) (M ≑ 𝟎) (𝟎 ≑ M)) ⟩
-    (((I ∥ I) · (M ≑ 𝟎)) ∥ ((I ∥ I) · (𝟎 ≑ M))) · (I ≑ I)     ≈⟨ ∥-·-≑ ((I ∥ I) · (M ≑ 𝟎)) ((I ∥ I) · (𝟎 ≑ M)) I I ⟩
-    (((I ∥ I) · (M ≑ 𝟎)) · I) [+] (((I ∥ I) · (𝟎 ≑ M)) · I)   ≈⟨ [+]-cong ·-Iʳ ·-Iʳ ⟩
-    ((I ∥ I) · (M ≑ 𝟎)) [+] ((I ∥ I) · (𝟎 ≑ M))               ≈⟨ [+]-cong (∥-·-≑ I I M 𝟎) (∥-·-≑ I I 𝟎 M) ⟩
-    ((I · M) [+] (I · 𝟎)) [+] ((I · 𝟎) [+] (I · M))           ≈⟨ [+]-cong ([+]-cong ·-Iˡ ·-Iˡ) ([+]-cong ·-Iˡ ·-Iˡ) ⟩
-    (M [+] 𝟎) [+] (𝟎 [+] M)                                   ≈⟨ [+]-cong ([+]-𝟎ʳ M) ([+]-𝟎ˡ M) ⟩
-    M [+] M                                                   ≈⟨ [+]-idem M ⟩
-    M ∎
+    (I ∥ I) · (((I ≑ 𝟎) · M) ∥ ((𝟎 ≑ I) · M)) · (I ∥ I) ᵀ ≈⟨ +-[+] M M ⟩
+    M [+] M                                               ≈⟨ [+]-idem M ⟩
+    M                                                     ∎
   where
     open ≈-Reasoning (Matrixₛ _ _)
 

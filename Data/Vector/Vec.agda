@@ -27,8 +27,9 @@ private
 
 zipWith-tabulate
     : {n : ℕ}
-      (_⊕_ : A → A → A)
-      (f g : Fin n → A)
+      (_⊕_ : A → B → C)
+      (f : Fin n → A)
+      (g : Fin n → B)
     → zipWith _⊕_ (tabulate f) (tabulate g) ≡ tabulate (λ i → f i ⊕ g i)
 zipWith-tabulate {n = zero} _⊕_ f g = ≡.refl
 zipWith-tabulate {n = suc n} _⊕_ f g = ≡.cong (f zero ⊕ g zero ∷_) (zipWith-tabulate _⊕_ (f ∘ suc) (g ∘ suc))

@@ -10,6 +10,7 @@ open import Data.Fin using (Fin; _≟_)
 open import Data.Nat using (ℕ)
 open import Data.Vec.Functional using (Vector; head; tail)
 open import Function using (flip)
+open import Relation.Binary.PropositionalEquality as ≡ using (_≡_; _≗_)
 open import Relation.Nullary.Decidable using (⌊_⌋)
 
 open Semiring R
@@ -21,6 +22,10 @@ Matrix n m = Vector (Vector Carrier m) n
 sum : {n : ℕ} → Vector Carrier n → Carrier
 sum {zero} _ = 0#
 sum {suc n} v = head v + sum (tail v)
+
+sum-cong : {n : ℕ} {V W : Vector Carrier n} → V ≗ W → sum V ≡ sum W
+sum-cong {zero} V≗W = ≡.refl
+sum-cong {suc n} {V} {W} V≗W = ≡.cong₂ _+_ (V≗W Fin.zero) (sum-cong (λ i → V≗W (Fin.suc i)))
 
 _⟨*⟩_ : {n : ℕ} → Vector Carrier n → Vector Carrier n → Vector Carrier n
 _⟨*⟩_ v w i = v i * w i
