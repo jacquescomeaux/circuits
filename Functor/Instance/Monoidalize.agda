@@ -12,7 +12,7 @@ module Functor.Instance.Monoidalize
     (D : MonoidalCategory o′ ℓ′ e′)
   where
 
-open import Categories.Category.Cocartesian using (module CocartesianMonoidal)
+open import Categories.Category.Cocartesian.Monoidal using (module CocartesianMonoidal)
 
 open import Categories.Functor using (Functor)
 open import Categories.Functor.Monoidal using (MonoidalFunctor)
@@ -25,7 +25,7 @@ open import NaturalTransformation.Monoidal.Construction.MonoidValued cocartesian
 C-MC : MonoidalCategory o ℓ e
 C-MC = record { monoidal = +-monoidal }
   where
-    open CocartesianMonoidal C cocartesian
+    open CocartesianMonoidal cocartesian
 
 module C = MonoidalCategory C-MC
 module D = MonoidalCategory D

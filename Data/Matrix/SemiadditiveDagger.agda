@@ -286,15 +286,15 @@ coproduct {A} {B} = record
 
 opaque
   unfolding _≋_
-  !-unique : (E : Matrix 0 B) → []ᵥ ≋ E
-  !-unique E = ≋.reflexive (≡.sym ([]ᵥ-! E))
+  ¡-unique : (E : Matrix 0 B) → []ᵥ ≋ E
+  ¡-unique E = ≋.reflexive (≡.sym ([]ᵥ-! E))
 
 initial : Initial Mat
 initial = record
     { ⊥ = 0
     ; ⊥-is-initial = record
-        { ! = []ᵥ
-        ; !-unique = !-unique
+        { ¡ = []ᵥ
+        ; ¡-unique = ¡-unique
         }
     }
 

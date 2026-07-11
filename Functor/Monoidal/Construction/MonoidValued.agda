@@ -26,7 +26,7 @@ import Categories.Morphism.Reasoning as ⇒-Reasoning
 import Categories.Object.Monoid as MonoidObject
 
 open import Categories.Category using (module Definitions)
-open import Categories.Category.Cocartesian using (module CocartesianMonoidal)
+open import Categories.Category.Cocartesian.Monoidal using (module CocartesianMonoidal)
 open import Categories.Category.Product using (_⁂_)
 open import Categories.Functor.Monoidal using (MonoidalFunctor; IsMonoidalFunctor)
 open import Categories.Functor.Properties using ([_]-resp-square; [_]-resp-∘)
@@ -41,7 +41,7 @@ private
   G = Forget ∙ M
 
   module 𝒞 = CocartesianCategory (record { cocartesian = 𝒞-+ })
-  module 𝒞-M = CocartesianMonoidal 𝒞 𝒞-+
+  module 𝒞-M = CocartesianMonoidal 𝒞-+
 
   𝒞-MC : MonoidalCategory o ℓ e
   𝒞-MC = record { monoidal = 𝒞-M.+-monoidal }

@@ -32,7 +32,8 @@ import Categories.Diagram.Pushout as DiagramPushout
 import Categories.Diagram.Pushout.Properties as PushoutProperties
 import Categories.Morphism as Morphism
 
-open import Categories.Category.Cocartesian using (module CocartesianMonoidal)
+open import Categories.Category.Monoidal using (module Monoidal)
+open import Categories.Category.Cocartesian.Monoidal using (module CocartesianMonoidal)
 open import Categories.Category.Monoidal.Utilities using (module Shorthands)
 open import Categories.Functor using (Functor; _∘F_)
 open import Data.Product using (_,_)
@@ -44,7 +45,7 @@ module 𝒟 = SymmetricMonoidalCategory 𝒟
 module F = SymmetricMonoidalFunctor F
 module Cospans = Category Cospans
 module DecoratedCospans = Category DecoratedCospans
-module mc𝒞 = CocartesianMonoidal 𝒞.U 𝒞.cocartesian
+module mc𝒞 = CocartesianMonoidal 𝒞.cocartesian
 
 open import Functor.Instance.Decorate 𝒞 F using (Decorate; Decorate-resp-⊗)
 
@@ -74,7 +75,8 @@ module _ where
 
   module Codiagonal where
 
-    open mc𝒞 using (unitorˡ; unitorʳ; +-monoidal) public
+    open mc𝒞 using (+-monoidal) public
+    open Monoidal +-monoidal using (unitorˡ; unitorʳ) public
     open unitorˡ using () renaming (to to λ⇐′) public
     open unitorʳ using () renaming (to to ρ⇐′) public
     open 𝒞 using (U; _+_; []-cong₂; []∘+₁; ∘-distribˡ-[]; inject₁; inject₂; ¡)
@@ -122,7 +124,8 @@ module _ where
         open 𝒞 using (¡; ⊥; ¡-unique; pushout) renaming ([_,_] to [_,_]′; _+₁_ to infixr 10 _+₁_ )
         open 𝒞 using (U)
         open Category U
-        open mc𝒞 using (unitorˡ; unitorˡ-commute-to; +-monoidal) public
+        open mc𝒞 using (+-monoidal) public
+        open Monoidal +-monoidal using (unitorˡ; unitorˡ-commute-to) public
         open unitorˡ using () renaming (to to λ⇐′) public
         open ⊗-Reasoning +-monoidal
         open ⇒-Reasoning 𝒞.U
@@ -198,7 +201,8 @@ module _ where
         open 𝒞 using (¡; ⊥; ¡-unique; pushout) renaming ([_,_] to [_,_]′; _+₁_ to infixr 10 _+₁_ )
         open 𝒞 using (U)
         open Category U
-        open mc𝒞 using (unitorʳ; unitorˡ; unitorˡ-commute-to; +-monoidal) public
+        open mc𝒞 using (+-monoidal) public
+        open Monoidal +-monoidal using (unitorʳ; unitorˡ; unitorˡ-commute-to) public
         open unitorˡ using () renaming (to to λ⇐′) public
         open unitorʳ using () renaming (to to ρ⇐′) public
         open ⊗-Reasoning +-monoidal

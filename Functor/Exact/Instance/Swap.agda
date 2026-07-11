@@ -6,28 +6,26 @@ open import Category.Cocomplete.Finitely.Bundle using (FinitelyCocompleteCategor
 module Functor.Exact.Instance.Swap {o ℓ e : Level} (𝒞 𝒟 : FinitelyCocompleteCategory o ℓ e) where
 
 open import Categories.Category using (_[_,_])
-open import Categories.Category.BinaryProducts using (BinaryProducts)
 open import Categories.Category.Product using (Product) renaming (Swap to Swap′)
 open import Categories.Category.Cartesian using (Cartesian)
 open import Categories.Diagram.Coequalizer using (IsCoequalizer)
 open import Categories.Object.Initial using (IsInitial)
 open import Categories.Object.Coproduct using (IsCoproduct)
-open import Data.Product.Base using (_,_; proj₁; proj₂; swap)
+open import Data.Product using (_,_; proj₁; proj₂; swap)
 
 open import Category.Instance.FinitelyCocompletes {o} {ℓ} {e} using (FinitelyCocompletes-Cartesian)
 open import Functor.Exact using (RightExactFunctor)
 
 module FCC = Cartesian FinitelyCocompletes-Cartesian
-open BinaryProducts (FCC.products) using (_×_) -- ; π₁; π₂; _⁂_; assocˡ)
-
+open FCC using (_×_)
 
 module 𝒞 = FinitelyCocompleteCategory 𝒞
 module 𝒟 = FinitelyCocompleteCategory 𝒟
 
 swap-resp-⊥ : {A : 𝒞.Obj} {B : 𝒟.Obj} → IsInitial (Product 𝒞.U 𝒟.U) (A , B) → IsInitial (Product 𝒟.U 𝒞.U) (B , A)
 swap-resp-⊥ {A} {B} isInitial = record
-    { ! = swap !
-    ; !-unique = λ { (f , g) → swap (!-unique (g , f)) }
+    { ¡ = swap ¡
+    ; ¡-unique = λ { (f , g) → swap (¡-unique (g , f)) }
     }
   where
     open IsInitial isInitial

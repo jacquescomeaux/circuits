@@ -23,7 +23,7 @@ import Category.Instance.Cospans 𝒞 as Cospans
 import Category.Diagram.Cospan 𝒞 as Cospan
 
 open import Categories.Category using (Category; _[_∘_])
-open import Categories.Category.Cocartesian using (module CocartesianMonoidal)
+open import Categories.Category.Cocartesian.Monoidal using (module CocartesianMonoidal)
 open import Categories.Diagram.Pushout using (Pushout)
 open import Categories.Diagram.Pushout.Properties 𝒞.U using (up-to-iso)
 open import Categories.Functor.Properties using ([_]-resp-≅; [_]-resp-square)
@@ -71,7 +71,7 @@ compose c₁ c₂ = record
 identity : DecoratedCospan A A
 identity = record
     { cospan = Cospan.identity
-    ; decoration = 𝒟.U [ F₁ 𝒞.initial.! ∘ ε ]
+    ; decoration = 𝒟.U [ F₁ 𝒞.¡ ∘ ε ]
     }
 
 record _≈_ (C₁ C₂ : DecoratedCospan A B) : Set (ℓ ⊔ e ⊔ e′) where
@@ -222,10 +222,7 @@ compose-assoc {A} {B} {C} {D} {c₁} {c₂} {c₃} = record
 
     module _ where
 
-      open 𝒞 using (∘[]; []-congʳ; []-congˡ; []∘+₁)
-      open 𝒞.Dual.op-binaryProducts 𝒞.cocartesian
-          using ()
-          renaming (⟨⟩-cong₂ to []-cong₂; assocˡ∘⟨⟩ to []∘assocˡ)
+      open 𝒞 using (∘[]; []-congʳ; []-congˡ; []∘+₁; []∘+-assocˡ; []-cong₂)
 
       open ⇒-Reasoning 𝒞.U
       open 𝒞 using (id; _∘_; _≈_; assoc; identityʳ)
@@ -241,7 +238,7 @@ compose-assoc {A} {B} {C} {D} {c₁} {c₂} {c₃} = record
           [ (y ∘ f) ∘ id , (l ∘ k) ∘ [ h , i ] ]            ≈⟨ []-cong₂ identityʳ ∘[] ⟩
           [ y ∘ f , [ (l ∘ k) ∘ h , (l ∘ k) ∘ i ] ]         ≈⟨ []-congˡ ([]-cong₂ (pullʳ (sym P₃.commute)) (assoc ○ P₂₃.universal∘i₂≈h₂)) ⟩
           [ y ∘ f , [ l ∘ j ∘ g , z ] ]                     ≈⟨ []-congˡ ([]-congʳ (pullˡ P₂₃.universal∘i₁≈h₁)) ⟩
-          [ y ∘ f , [ y ∘ g , z ] ]                         ≈⟨ []∘assocˡ ⟨
+          [ y ∘ f , [ y ∘ g , z ] ]                         ≈⟨ []∘+-assocˡ ⟨
           [ [ y ∘ f , y ∘ g ] , z ] ∘ +-assoc.from          ≈⟨ []-cong₂ ∘[] identityʳ ⟩∘⟨refl ⟨
           [ y ∘ [ f ,  g ] , z ∘ id ] ∘ +-assoc.from        ≈⟨ pullˡ []∘+₁ ⟨
           [ y , z ] ∘ ([ f , g ] +₁ id) ∘ +-assoc.from      ∎
@@ -404,7 +401,7 @@ compose-idʳ {A} {_} {C} = record
     open 𝒞
       using (cocartesian)
       renaming (id to id′; _∘_ to _∘′_)
-    open CocartesianMonoidal 𝒞.U cocartesian using (⊥+A≅A)
+    open CocartesianMonoidal cocartesian using (⊥+A≅A)
     module ⊥+A≅A {a} = _≅_ (⊥+A≅A {a})
     module _ where
       open 𝒞
@@ -412,13 +409,10 @@ compose-idʳ {A} {_} {C} = record
           ( _⇒_ ; _∘_ ; _≈_ ; id ; U
           ; identity²
           ; cocartesian ; initial ; ¡-unique
-          ; ∘[] ; []∘+₁ ; inject₂ ; assoc
-          ; module HomReasoning ; module Dual ; module Equiv
+          ; ∘[] ; []∘+₁ ; inject₂ ; assoc ; []-cong₂
+          ; module HomReasoning ; module Equiv
           )
       open Equiv
-      open Dual.op-binaryProducts cocartesian
-        using ()
-        renaming (⟨⟩-cong₂ to []-cong₂)
       open ⇒-Reasoning U
       open HomReasoning
       copairing-id : ((≅P.from ∘ [ i₁ , i₂ ]) ∘ (¡ +₁ id)) ∘ ⊥+A≅A.to 𝒞.≈ id
@@ -502,7 +496,7 @@ compose-idˡ {_} {B} {C} = record
       using (cocartesian)
       renaming (id to id′; _∘_ to _∘′_)
 
-    open CocartesianMonoidal 𝒞.U cocartesian using (A+⊥≅A)
+    open CocartesianMonoidal cocartesian using (A+⊥≅A)
 
     module A+⊥≅A {a} = _≅_ (A+⊥≅A {a})
 
@@ -513,15 +507,11 @@ compose-idˡ {_} {B} {C} = record
           ( _⇒_ ; _∘_ ; _≈_ ; id ; U
           ; identity²
           ; cocartesian ; initial ; ¡-unique
-          ; ∘[] ; []∘+₁ ; inject₁ ; assoc
-          ; module HomReasoning ; module Dual ; module Equiv
+          ; ∘[] ; []∘+₁ ; inject₁ ; assoc ; []-cong₂
+          ; module HomReasoning ; module Equiv
           )
 
       open Equiv
-
-      open Dual.op-binaryProducts cocartesian
-        using ()
-        renaming (⟨⟩-cong₂ to []-cong₂)
 
       open ⇒-Reasoning U
       open HomReasoning
@@ -652,11 +642,7 @@ compose-equiv {_} {_} {_} {c₂} {c₂′} {c₁} {c₁′} ≅C₂ ≅C₁ = re
       open ⊗-Util 𝒟.monoidal using (module Shorthands)
       open Shorthands using (ρ⇒; ρ⇐)
 
-      open 𝒞 using ([_,_]; ∘[]; _+_; _+₁_; []∘+₁) renaming (_∘_ to _∘′_)
-      open 𝒞.Dual.op-binaryProducts 𝒞.cocartesian
-          using ()
-          renaming (⟨⟩-cong₂ to []-cong₂)
-
+      open 𝒞 using ([_,_]; ∘[]; _+_; _+₁_; []∘+₁; []-cong₂) renaming (_∘_ to _∘′_)
       open 𝒟
 
       φ[N,M] : F₀ N ⊗₀ F₀ M 𝒟.⇒ F₀ (N + M)

@@ -74,17 +74,17 @@ F₁ {A} {B} F = record
       open B.HomReasoning
       open B.Equiv
       open B using (_∘_; _≈_)
-      open B′ using (_+₁_; []-congˡ; []-congʳ; []-cong₂)
+      open B′ using (_+₁_; []-congˡ; []-congʳ; []-cong₂; ∘-distribˡ-[])
       open A′ using (_+_; i₁; i₂)
       ⊗-homo : NaturalTransformation (B.⊗ ∘F (F.F ⁂ F.F)) (F.F ∘F A.⊗)
       ⊗-homo = ntHelper record
           { η = λ { (X , Y) → +-iso.from {X} {Y} }
           ; commute = λ { {X , Y} {X′ , Y′} (f , g) →
-              B′.coproduct.∘-distribˡ-[]
-              ○ B′.coproduct.[]-cong₂
-                  (pullˡ B′.coproduct.inject₁ ○ [ F.F ]-resp-square (A.Equiv.sym A′.coproduct.inject₁))
-                  (pullˡ B′.coproduct.inject₂ ○ [ F.F ]-resp-square (A.Equiv.sym A′.coproduct.inject₂))
-              ○ sym B′.coproduct.∘-distribˡ-[] }
+              ∘-distribˡ-[]
+              ○ []-cong₂
+                  (pullˡ B′.inject₁ ○ [ F.F ]-resp-square (A.Equiv.sym A′.inject₁))
+                  (pullˡ B′.inject₂ ○ [ F.F ]-resp-square (A.Equiv.sym A′.inject₂))
+              ○ sym ∘-distribˡ-[] }
           }
       assoc
           : {X Y Z : A.Obj}
@@ -96,59 +96,59 @@ F₁ {A} {B} F = record
           ∘ B′.+-assocˡ
       assoc {X} {Y} {Z} = begin
           F.₁ A′.+-assocˡ ∘ +-iso.from ∘ (+-iso.from +₁ B.id)                               ≈⟨ refl⟩∘⟨ B′.[]∘+₁ ⟩
-          F.₁ A′.+-assocˡ ∘ B′.[ F.₁ i₁ ∘ +-iso.from , F.₁ i₂ ∘ B.id ]                      ≈⟨ refl⟩∘⟨ []-congʳ B′.coproduct.∘-distribˡ-[] ⟩
-          F.₁ A′.+-assocˡ ∘ B′.[ B′.[ F.₁ i₁ ∘ F.₁ i₁ , F.₁ i₁ ∘ F.₁ i₂ ] , F.₁ i₂ ∘ B.id ] ≈⟨ B′.coproduct.∘-distribˡ-[] ⟩
-          B′.[ F.₁ A′.+-assocˡ ∘ B′.[ F.₁ i₁ ∘ F.₁ i₁ , F.₁ i₁ ∘ F.₁ i₂ ] , _ ]             ≈⟨ []-congʳ B′.coproduct.∘-distribˡ-[] ⟩
-          B′.[ B′.[ F.₁ A′.+-assocˡ ∘ F.₁ i₁ ∘ F.₁ i₁ , F.₁ A′.+-assocˡ ∘ _ ] , _ ]         ≈⟨ []-congʳ ([]-congʳ (pullˡ ([ F.F ]-resp-∘ A′.coproduct.inject₁))) ⟩
-          B′.[ B′.[ F.₁ A′.[ i₁ , i₂ A′.∘ i₁ ] ∘ F.₁ i₁ , F.₁ A′.+-assocˡ ∘ _ ] , _ ]       ≈⟨ []-congʳ ([]-congʳ ([ F.F ]-resp-∘ A′.coproduct.inject₁)) ⟩
-          B′.[ B′.[ F.₁ i₁ , F.₁ A′.+-assocˡ ∘ F.₁ i₁ ∘ F.₁ i₂ ] , _ ]                      ≈⟨ []-congʳ ([]-congˡ (pullˡ ([ F.F ]-resp-∘ A′.coproduct.inject₁))) ⟩
-          B′.[ B′.[ F.₁ i₁ , F.₁ A′.[ i₁ , i₂ A′.∘ i₁ ] ∘ F.₁ i₂ ] , _ ]                    ≈⟨ []-congʳ ([]-congˡ ([ F.F ]-resp-∘ A′.coproduct.inject₂)) ⟩
-          B′.[ B′.[ F.₁ i₁ , F.₁ (i₂ A′.∘ i₁) ] , F.₁ A′.+-assocˡ ∘ F.₁ i₂ ∘ B.id ]         ≈⟨ []-congˡ (pullˡ ([ F.F ]-resp-∘ A′.coproduct.inject₂)) ⟩
+          F.₁ A′.+-assocˡ ∘ B′.[ F.₁ i₁ ∘ +-iso.from , F.₁ i₂ ∘ B.id ]                      ≈⟨ refl⟩∘⟨ []-congʳ ∘-distribˡ-[] ⟩
+          F.₁ A′.+-assocˡ ∘ B′.[ B′.[ F.₁ i₁ ∘ F.₁ i₁ , F.₁ i₁ ∘ F.₁ i₂ ] , F.₁ i₂ ∘ B.id ] ≈⟨ ∘-distribˡ-[] ⟩
+          B′.[ F.₁ A′.+-assocˡ ∘ B′.[ F.₁ i₁ ∘ F.₁ i₁ , F.₁ i₁ ∘ F.₁ i₂ ] , _ ]             ≈⟨ []-congʳ ∘-distribˡ-[] ⟩
+          B′.[ B′.[ F.₁ A′.+-assocˡ ∘ F.₁ i₁ ∘ F.₁ i₁ , F.₁ A′.+-assocˡ ∘ _ ] , _ ]         ≈⟨ []-congʳ ([]-congʳ (pullˡ ([ F.F ]-resp-∘ A′.inject₁))) ⟩
+          B′.[ B′.[ F.₁ A′.[ i₁ , i₂ A′.∘ i₁ ] ∘ F.₁ i₁ , F.₁ A′.+-assocˡ ∘ _ ] , _ ]       ≈⟨ []-congʳ ([]-congʳ ([ F.F ]-resp-∘ A′.inject₁)) ⟩
+          B′.[ B′.[ F.₁ i₁ , F.₁ A′.+-assocˡ ∘ F.₁ i₁ ∘ F.₁ i₂ ] , _ ]                      ≈⟨ []-congʳ ([]-congˡ (pullˡ ([ F.F ]-resp-∘ A′.inject₁))) ⟩
+          B′.[ B′.[ F.₁ i₁ , F.₁ A′.[ i₁ , i₂ A′.∘ i₁ ] ∘ F.₁ i₂ ] , _ ]                    ≈⟨ []-congʳ ([]-congˡ ([ F.F ]-resp-∘ A′.inject₂)) ⟩
+          B′.[ B′.[ F.₁ i₁ , F.₁ (i₂ A′.∘ i₁) ] , F.₁ A′.+-assocˡ ∘ F.₁ i₂ ∘ B.id ]         ≈⟨ []-congˡ (pullˡ ([ F.F ]-resp-∘ A′.inject₂)) ⟩
           B′.[ B′.[ F.₁ i₁ , F.₁ (i₂ A′.∘ i₁) ] , F.₁ (i₂ A′.∘ i₂) ∘ B.id ]                 ≈⟨ []-cong₂ ([]-congˡ F.homomorphism) (B.identityʳ ○ F.homomorphism) ⟩
-          B′.[ B′.[ F.₁ i₁ , F.₁ i₂ B′.∘ F.₁ i₁ ] , F.₁ i₂ ∘ F.₁ i₂ ]                       ≈⟨ []-congʳ ([]-congˡ B′.coproduct.inject₁) ⟨
-          B′.[ B′.[ F.₁ i₁ , B′.[ F.₁ i₂ B′.∘ F.₁ i₁  , _ ] ∘ B′.i₁ ] , _ ]                 ≈⟨ []-congʳ ([]-cong₂ (sym B′.coproduct.inject₁) (pushˡ (sym B′.coproduct.inject₂))) ⟩
-          B′.[ B′.[ B′.[ F.₁ i₁ , _ ] ∘ B′.i₁ , B′.[ F.₁ i₁ , _ ] ∘ B′.i₂ ∘ B′.i₁ ] , _ ]   ≈⟨ []-congʳ B′.coproduct.∘-distribˡ-[] ⟨
-          B′.[ B′.[ F.₁ i₁ , _ ] ∘ B′.[ B′.i₁ , B′.i₂ ∘ B′.i₁ ] , F.₁ i₂ ∘ F.₁ i₂ ]         ≈⟨ []-congˡ B′.coproduct.inject₂ ⟨
-          B′.[ B′.[ F.₁ i₁ , _ ] ∘ B′.[ _ , _ ] , B′.[ _ , F.₁ i₂ ∘ F.₁ i₂ ] ∘ B′.i₂ ]      ≈⟨ []-congˡ (pushˡ (sym B′.coproduct.inject₂)) ⟩
-          B′.[ B′.[ F.₁ i₁ , _ ] ∘ B′.[ _ , _ ] , B′.[ F.₁ i₁ , _ ] ∘ B′.i₂ ∘ B′.i₂ ]       ≈⟨ B′.coproduct.∘-distribˡ-[] ⟨
-          B′.[ F.₁ i₁ ,  B′.[ F.₁ i₂ ∘ F.₁ i₁ , F.₁ i₂ ∘ F.₁ i₂ ] ] ∘ B′.+-assocˡ           ≈⟨ []-cong₂ B.identityʳ (B′.coproduct.∘-distribˡ-[]) ⟩∘⟨refl ⟨
+          B′.[ B′.[ F.₁ i₁ , F.₁ i₂ B′.∘ F.₁ i₁ ] , F.₁ i₂ ∘ F.₁ i₂ ]                       ≈⟨ []-congʳ ([]-congˡ B′.inject₁) ⟨
+          B′.[ B′.[ F.₁ i₁ , B′.[ F.₁ i₂ B′.∘ F.₁ i₁  , _ ] ∘ B′.i₁ ] , _ ]                 ≈⟨ []-congʳ ([]-cong₂ (sym B′.inject₁) (pushˡ (sym B′.inject₂))) ⟩
+          B′.[ B′.[ B′.[ F.₁ i₁ , _ ] ∘ B′.i₁ , B′.[ F.₁ i₁ , _ ] ∘ B′.i₂ ∘ B′.i₁ ] , _ ]   ≈⟨ []-congʳ ∘-distribˡ-[] ⟨
+          B′.[ B′.[ F.₁ i₁ , _ ] ∘ B′.[ B′.i₁ , B′.i₂ ∘ B′.i₁ ] , F.₁ i₂ ∘ F.₁ i₂ ]         ≈⟨ []-congˡ B′.inject₂ ⟨
+          B′.[ B′.[ F.₁ i₁ , _ ] ∘ B′.[ _ , _ ] , B′.[ _ , F.₁ i₂ ∘ F.₁ i₂ ] ∘ B′.i₂ ]      ≈⟨ []-congˡ (pushˡ (sym B′.inject₂)) ⟩
+          B′.[ B′.[ F.₁ i₁ , _ ] ∘ B′.[ _ , _ ] , B′.[ F.₁ i₁ , _ ] ∘ B′.i₂ ∘ B′.i₂ ]       ≈⟨ ∘-distribˡ-[] ⟨
+          B′.[ F.₁ i₁ ,  B′.[ F.₁ i₂ ∘ F.₁ i₁ , F.₁ i₂ ∘ F.₁ i₂ ] ] ∘ B′.+-assocˡ           ≈⟨ []-cong₂ B.identityʳ (∘-distribˡ-[]) ⟩∘⟨refl ⟨
           B′.[ F.₁ i₁ B′.∘ B′.id , F.₁ i₂ ∘ B′.[ F.₁ i₁ , F.₁ i₂ ] ] ∘ B′.+-assocˡ          ≈⟨ pushˡ (sym B′.[]∘+₁) ⟩
           +-iso.from ∘ (B.id +₁ +-iso.from) ∘ B′.+-assocˡ                                   ∎
       unitaryˡ
           : {X : A.Obj}
-          → F.₁ A′.[ A′.initial.! , A.id {X} ]
+          → F.₁ A′.[ A′.¡ , A.id {X} ]
           ∘ B′.[ F.₁ i₁ , F.₁ i₂ ]
-          ∘ B′.[ B′.i₁ ∘ B′.initial.! , B′.i₂ ∘ B.id ]
-          ≈ B′.[ B′.initial.! , B.id ]
+          ∘ B′.[ B′.i₁ ∘ B′.¡ , B′.i₂ ∘ B.id ]
+          ≈ B′.[ B′.¡ , B.id ]
       unitaryˡ {X} = begin
-          F.₁ A′.[ A′.initial.! , A.id ] ∘ B′.[ F.₁ i₁ , F.₁ i₂ ] ∘ B′.[ _ , B′.i₂ ∘ B.id ]   ≈⟨ refl⟩∘⟨ B′.coproduct.∘-distribˡ-[] ⟩
-          _ ∘ B′.[ _ ∘ B′.i₁ ∘ B′.initial.! , B′.[ F.₁ i₁ , F.₁ i₂ ] ∘ B′.i₂ ∘ B.id ]         ≈⟨ refl⟩∘⟨ []-cong₂ (sym (B′.¡-unique _)) (pullˡ B′.coproduct.inject₂) ⟩
-          F.₁ A′.[ A′.initial.! , A.id ] ∘ B′.[ B′.initial.! , F.₁ i₂ ∘  B.id ]               ≈⟨ B′.coproduct.∘-distribˡ-[] ⟩
-          B′.[ _ ∘ B′.initial.! , F.₁ A′.[ A′.initial.! , A.id ] ∘ F.₁ i₂ ∘  B.id ]           ≈⟨ []-cong₂ (sym (B′.¡-unique _)) (pullˡ ([ F.F ]-resp-∘ A′.coproduct.inject₂)) ⟩
-          B′.[ B′.initial.! , F.₁ A.id ∘  B.id ]                                              ≈⟨ []-congˡ (elimˡ F.identity) ⟩
-          B′.[ B′.initial.! , B.id ]                                                          ∎
+          F.₁ A′.[ A′.¡ , A.id ] ∘ B′.[ F.₁ i₁ , F.₁ i₂ ] ∘ B′.[ _ , B′.i₂ ∘ B.id ]   ≈⟨ refl⟩∘⟨ ∘-distribˡ-[] ⟩
+          _ ∘ B′.[ _ ∘ B′.i₁ ∘ B′.¡ , B′.[ F.₁ i₁ , F.₁ i₂ ] ∘ B′.i₂ ∘ B.id ]         ≈⟨ refl⟩∘⟨ []-cong₂ (sym (B′.¡-unique _)) (pullˡ B′.inject₂) ⟩
+          F.₁ A′.[ A′.¡ , A.id ] ∘ B′.[ B′.¡ , F.₁ i₂ ∘  B.id ]                       ≈⟨ ∘-distribˡ-[] ⟩
+          B′.[ _ ∘ B′.¡ , F.₁ A′.[ A′.¡ , A.id ] ∘ F.₁ i₂ ∘  B.id ]                   ≈⟨ []-cong₂ (sym (B′.¡-unique _)) (pullˡ ([ F.F ]-resp-∘ A′.inject₂)) ⟩
+          B′.[ B′.¡ , F.₁ A.id ∘  B.id ]                                              ≈⟨ []-congˡ (elimˡ F.identity) ⟩
+          B′.[ B′.¡ , B.id ]                                                          ∎
       unitaryʳ
           : {X : A.Obj}
-          → F.₁ A′.[ A′.id {X} , A′.initial.! ]
+          → F.₁ A′.[ A′.id {X} , A′.¡ ]
           ∘ B′.[ F.₁ i₁ , F.₁ i₂ ]
-          ∘ B′.[ B′.i₁ ∘ B.id , B′.i₂ ∘ B′.initial.! ]
-          ≈ B′.[ B.id , B′.initial.! ]
+          ∘ B′.[ B′.i₁ ∘ B.id , B′.i₂ ∘ B′.¡ ]
+          ≈ B′.[ B.id , B′.¡ ]
       unitaryʳ {X} = begin
-          F.₁ A′.[ A.id , A′.initial.! ] ∘ B′.[ F.₁ i₁ , F.₁ i₂ ] ∘ B′.[ B′.i₁ ∘ B.id , _ ]   ≈⟨ refl⟩∘⟨ B′.coproduct.∘-distribˡ-[] ⟩
-          _ ∘ B′.[ B′.[ F.₁ i₁ , F.₁ i₂ ] ∘ B′.i₁ ∘ B.id , _ ∘ B′.i₂ ∘ B′.initial.! ]         ≈⟨ refl⟩∘⟨ []-cong₂ (pullˡ B′.coproduct.inject₁) (sym (B′.¡-unique _)) ⟩
-          F.₁ A′.[ A.id , A′.initial.! ] ∘ B′.[ F.₁ i₁ ∘  B.id , B′.initial.! ]               ≈⟨ B′.coproduct.∘-distribˡ-[] ⟩
-          B′.[ F.₁ A′.[ A.id , A′.initial.! ] ∘ F.₁ i₁ ∘  B.id , _ ∘ B′.initial.! ]           ≈⟨ []-cong₂ (pullˡ ([ F.F ]-resp-∘ A′.coproduct.inject₁)) (sym (B′.¡-unique _)) ⟩
-          B′.[ F.₁ A.id ∘  B.id , B′.initial.! ]                                              ≈⟨ []-congʳ (elimˡ F.identity) ⟩
-          B′.[ B.id , B′.initial.! ]                                                          ∎
+          F.₁ A′.[ A.id , A′.¡ ] ∘ B′.[ F.₁ i₁ , F.₁ i₂ ] ∘ B′.[ B′.i₁ ∘ B.id , _ ]   ≈⟨ refl⟩∘⟨ ∘-distribˡ-[] ⟩
+          _ ∘ B′.[ B′.[ F.₁ i₁ , F.₁ i₂ ] ∘ B′.i₁ ∘ B.id , _ ∘ B′.i₂ ∘ B′.¡ ]         ≈⟨ refl⟩∘⟨ []-cong₂ (pullˡ B′.inject₁) (sym (B′.¡-unique _)) ⟩
+          F.₁ A′.[ A.id , A′.¡ ] ∘ B′.[ F.₁ i₁ ∘  B.id , B′.¡ ]                       ≈⟨ ∘-distribˡ-[] ⟩
+          B′.[ F.₁ A′.[ A.id , A′.¡ ] ∘ F.₁ i₁ ∘  B.id , _ ∘ B′.¡ ]                   ≈⟨ []-cong₂ (pullˡ ([ F.F ]-resp-∘ A′.inject₁)) (sym (B′.¡-unique _)) ⟩
+          B′.[ F.₁ A.id ∘  B.id , B′.¡ ]                                              ≈⟨ []-congʳ (elimˡ F.identity) ⟩
+          B′.[ B.id , B′.¡ ]                                                          ∎
       braiding-compat
           : {X Y : A.Obj}
           → F.₁ A′.[ i₂ {X} {Y} , i₁ ] ∘ B′.[ F.₁ i₁ , F.₁ i₂ ]
           ≈ B′.[ F.F₁ i₁ , F.F₁ i₂ ] ∘ B′.[ B′.i₂ , B′.i₁ ]
       braiding-compat = begin
-          F.₁ A′.[ i₂ , i₁ ] ∘ B′.[ F.₁ i₁ , F.₁ i₂ ]                             ≈⟨ B′.coproduct.∘-distribˡ-[] ⟩
-          B′.[ F.₁ A′.[ i₂ , i₁ ] ∘ F.₁ i₁ , F.₁ A′.[ i₂ , i₁ ] ∘ F.₁ i₂ ]        ≈⟨ []-cong₂ ([ F.F ]-resp-∘ A′.coproduct.inject₁) ([ F.F ]-resp-∘ A′.coproduct.inject₂) ⟩
-          B′.[ F.₁ i₂ , F.₁ i₁ ]                                                  ≈⟨ []-cong₂ B′.coproduct.inject₂ B′.coproduct.inject₁ ⟨
-          B′.[ B′.[ F.₁ i₁ , F.₁ i₂ ] ∘ B′.i₂ , B′.[ F.₁ i₁ , F.₁ i₂ ] ∘ B′.i₁ ]  ≈⟨ B′.coproduct.∘-distribˡ-[] ⟨
+          F.₁ A′.[ i₂ , i₁ ] ∘ B′.[ F.₁ i₁ , F.₁ i₂ ]                             ≈⟨ ∘-distribˡ-[] ⟩
+          B′.[ F.₁ A′.[ i₂ , i₁ ] ∘ F.₁ i₁ , F.₁ A′.[ i₂ , i₁ ] ∘ F.₁ i₂ ]        ≈⟨ []-cong₂ ([ F.F ]-resp-∘ A′.inject₁) ([ F.F ]-resp-∘ A′.inject₂) ⟩
+          B′.[ F.₁ i₂ , F.₁ i₁ ]                                                  ≈⟨ []-cong₂ B′.inject₂ B′.inject₁ ⟨
+          B′.[ B′.[ F.₁ i₁ , F.₁ i₂ ] ∘ B′.i₂ , B′.[ F.₁ i₁ , F.₁ i₂ ] ∘ B′.i₁ ]  ≈⟨ ∘-distribˡ-[] ⟨
           B′.[ F.₁ i₁ , F.₁ i₂ ] ∘ B′.[ B′.i₂ , B′.i₁ ]   ∎
     open B-proofs
 
@@ -179,8 +179,8 @@ homomorphism {A} {B} {C} {F} {G} = record
             identityˡ
             ○ sym
                 ([]-cong₂
-                    ([ G.F ]-resp-∘ B.coproducts.inject₁)
-                    ([ G.F ]-resp-∘ B.coproducts.inject₂))
+                    ([ G.F ]-resp-∘ B.inject₁)
+                    ([ G.F ]-resp-∘ B.inject₂))
             ○ sym ∘-distribˡ-[]
             ○ pushʳ (introʳ C.⊗.identity)
         }

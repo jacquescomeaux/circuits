@@ -24,7 +24,7 @@ import Categories.Morphism.Reasoning as ⇒-Reasoning
 import Object.Monoid.Commutative as CommutativeMonoidObject
 import Functor.Monoidal.Construction.MonoidValued as MonoidValued
 
-open import Categories.Category.Cocartesian using (module CocartesianSymmetricMonoidal)
+open import Categories.Category.Cocartesian.SymmetricMonoidal using (module CocartesianSymmetricMonoidal)
 open import Categories.Category.Cocartesian.Bundle using (CocartesianCategory)
 open import Categories.Category.Construction.Monoids using (Monoids)
 open import Categories.Category.Monoidal.Symmetric.Properties using (module Shorthands)

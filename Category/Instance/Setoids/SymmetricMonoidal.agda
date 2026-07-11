@@ -12,7 +12,9 @@ open import Categories.Category.Cartesian.SymmetricMonoidal (Setoids c ℓ) Seto
     using ()
     renaming (symmetric to ×-symmetric)
 open import Categories.Category.Cocartesian (Setoids c (c ⊔ ℓ))
-    using (module CocartesianMonoidal; module CocartesianSymmetricMonoidal)
+open import Categories.Category.Cocartesian.Monoidal using (module CocartesianMonoidal)
+open import Categories.Category.Cocartesian.SymmetricMonoidal (Setoids c (c ⊔ ℓ))
+    using (module CocartesianSymmetricMonoidal)
 
 open CocartesianMonoidal (Setoids-Cocartesian {c} {ℓ}) using (+-monoidal)
 open CocartesianSymmetricMonoidal (Setoids-Cocartesian {c} {ℓ}) using (+-symmetric)

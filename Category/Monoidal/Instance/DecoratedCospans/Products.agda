@@ -21,7 +21,6 @@ import Categories.Morphism.Reasoning as ⇒-Reasoning
 
 open import Categories.Category using (_[_,_]; _[_≈_]; _[_∘_]; Category)
 open import Categories.Category.Core using (Category)
-open import Categories.Category.BinaryProducts using (BinaryProducts)
 open import Categories.Category.Cartesian using (Cartesian)
 open import Categories.Category.Cartesian.Bundle using (CartesianCategory)
 open import Categories.Functor using (Functor; _∘F_) renaming (id to idF)
@@ -44,8 +43,7 @@ module 𝒟 = SymmetricMonoidalCategory 𝒟
 
 module _ where
 
-  open CartesianCategory FinitelyCocompletes-CC using (products)
-  open BinaryProducts products using (_×_)
+  open CartesianCategory FinitelyCocompletes-CC using (_×_)
 
   𝒞×𝒞 : FinitelyCocompleteCategory o ℓ e
   𝒞×𝒞 = 𝒞 × 𝒞
@@ -57,8 +55,7 @@ module _ where
 
   module _ where
 
-    open Cartesian SymMonCat-Cartesian′ using (products)
-    open BinaryProducts products using (_×_; _⁂_)
+    open Cartesian SymMonCat-Cartesian′ using (_×_)
 
     𝒟×𝒟 : SymmetricMonoidalCategory o′ ℓ′ e′
     𝒟×𝒟 = 𝒟 × 𝒟
@@ -70,8 +67,7 @@ module _ where
 
   module _ where
 
-    open Cartesian SymMonCat-Cartesian using (products)
-    open BinaryProducts products using (_×_; _⁂_)
+    open Cartesian SymMonCat-Cartesian using (_×_)
 
     smc𝒞×𝒞 : SymmetricMonoidalCategory o ℓ e
     smc𝒞×𝒞 = smc 𝒞 × smc 𝒞

@@ -7,7 +7,6 @@ module Category.Cartesian.Instance.FinitelyCocompletes {o ℓ e : Level} where
 import Categories.Morphism as Morphism
 import Categories.Morphism.Reasoning as ⇒-Reasoning
 
-open import Categories.Category.BinaryProducts using (BinaryProducts)
 open import Categories.Category.Cartesian.Bundle using (CartesianCategory)
 open import Categories.Diagram.Coequalizer using (IsCoequalizer)
 open import Categories.Functor.Bifunctor using (flip-bifunctor)
@@ -30,7 +29,7 @@ FinitelyCocompletes-CC = record
     }
 
 module FinCoCom = CartesianCategory FinitelyCocompletes-CC
-open BinaryProducts (FinCoCom.products) using (_×_; π₁; π₂; _⁂_; assocˡ) --  hiding (unique)
+open FinCoCom using (_×_; π₁; π₂; assocˡ)
 
 module _ (𝒞 : FinitelyCocompleteCategory o ℓ e) where
 
@@ -49,8 +48,8 @@ module _ (𝒞 : FinitelyCocompleteCategory o ℓ e) where
       → IsInitial 𝒞×𝒞.U (A , B)
       → IsInitial 𝒞×𝒞.U (B , A)
   flip-IsInitial isInitial = let open IsInitial isInitial in record
-      { ! = swap !
-      ; !-unique = swap ∘′ !-unique ∘′ swap
+      { ¡ = swap ¡
+      ; ¡-unique = swap ∘′ ¡-unique ∘′ swap
       }
 
   flip-IsCoproduct
@@ -84,8 +83,8 @@ module _ (𝒞 : FinitelyCocompleteCategory o ℓ e) where
       → IsInitial 𝒞×𝒞.U (A , B)
       → IsInitial 𝒞.U (A + B)
   +-resp-⊥ {A , B} A,B-isInitial = record
-      { ! = [ A-isInitial.! , B-isInitial.! ]
-      ; !-unique = λ f → +-unique (sym (A-isInitial.!-unique (f ∘ i₁))) (sym (B-isInitial.!-unique (f ∘ i₂)))
+      { ¡ = [ A-isInitial.¡ , B-isInitial.¡ ]
+      ; ¡-unique = λ f → +-unique (sym (A-isInitial.¡-unique (f ∘ i₁))) (sym (B-isInitial.¡-unique (f ∘ i₂)))
       }
     where
       open IsRightExact
@@ -269,10 +268,6 @@ module _ {𝒞 : FinitelyCocompleteCategory o ℓ e} where
       module 𝒞×𝒞×𝒞 = FinitelyCocompleteCategory ((𝒞 × 𝒞) × 𝒞)
       open Morphism U using (_≅_; module ≅)
       module +-assoc {X} {Y} {Z} = _≅_ (≅.sym (+-assoc {X} {Y} {Z}))
-      open import Categories.Object.Duality 𝒞.U using (Coproduct⇒coProduct)
-      op-binaryProducts : BinaryProducts op
-      op-binaryProducts = record { product = Coproduct⇒coProduct coproduct }
-      open BinaryProducts op-binaryProducts using () renaming (assocʳ∘⁂ to +₁∘assocˡ)
       open Equiv
       commute
           : {((X , Y) , Z) : 𝒞×𝒞×𝒞.Obj}
@@ -280,4 +275,4 @@ module _ {𝒞 : FinitelyCocompleteCategory o ℓ e} where
           → (F : ((X , Y) , Z) 𝒞×𝒞×𝒞.⇒ ((X′ , Y′) , Z′))
           → (+-assoc.from 𝒞.∘ [x+y]+z.₁ F)
           ≈ (x+[y+z].₁ F 𝒞.∘ +-assoc.from)
-      commute {(X , Y) , Z} {(X′ , Y′) , Z′} ((F , G) , H) = sym +₁∘assocˡ
+      commute {(X , Y) , Z} {(X′ , Y′) , Z′} ((F , G) , H) = sym +₁∘+-assocʳ

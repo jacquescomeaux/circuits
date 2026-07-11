@@ -12,7 +12,7 @@ module Functor.Instance.CMonoidalize
     (D : SymmetricMonoidalCategory o′ ℓ′ e′)
   where
 
-open import Categories.Category.Cocartesian using (module CocartesianSymmetricMonoidal)
+open import Categories.Category.Cocartesian.SymmetricMonoidal using (module CocartesianSymmetricMonoidal)
 open import Categories.Functor using (Functor)
 open import Category.Construction.CMonoids using (CMonoids)
 open import Categories.Category.Construction.Functors using (Functors)

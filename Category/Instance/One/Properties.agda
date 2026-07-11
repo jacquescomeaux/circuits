@@ -13,7 +13,7 @@ One = One′ {o} {ℓ} {e}
 open import Categories.Category.Cocartesian One using (Cocartesian)
 open import Categories.Category.Cocomplete.Finitely One using (FinitelyCocomplete)
 open import Categories.Object.Initial One using (Initial)
-open import Categories.Category.Cocartesian One using (BinaryCoproducts)
+open import Categories.Category.BinaryCoproducts One using (BinaryCoproducts)
 
 
 initial : Initial

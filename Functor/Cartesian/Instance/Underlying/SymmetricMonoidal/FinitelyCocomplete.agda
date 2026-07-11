@@ -26,16 +26,8 @@ open import Category.Cocomplete.Finitely.Bundle using (FinitelyCocompleteCategor
 open import Category.Cartesian.Instance.SymMonCat {o} {ℓ} {e} using (SymMonCat-CC)
 open import Functor.Instance.Underlying.SymmetricMonoidal.FinitelyCocomplete {o} {ℓ} {e} using () renaming (Underlying to U)
 
-module CartesianCategory′ {o ℓ e : Level} (C : CartesianCategory o ℓ e) where
-  module CC = CartesianCategory C
-  open import Categories.Object.Terminal using (Terminal)
-  open Terminal CC.terminal public
-  open import Categories.Category.BinaryProducts using (BinaryProducts)
-  open BinaryProducts CC.products public
-  open CC public
-
-module FC = CartesianCategory′ FinitelyCocompletes-CC
-module SMC = CartesianCategory′ SymMonCat-CC
+module FC = CartesianCategory FinitelyCocompletes-CC
+module SMC = CartesianCategory SymMonCat-CC
 module U = Functor U
 
 F-resp-⊤ : IsTerminal SMC.U (U.₀ FC.⊤)

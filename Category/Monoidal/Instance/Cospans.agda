@@ -9,9 +9,9 @@ import Categories.Morphism as Morphism
 import Categories.Morphism.Reasoning.Iso as IsoReasoning
 
 open import Categories.Category using (_[_,_]; _[_≈_]; _[_∘_]; Category)
-open import Categories.Category.BinaryProducts using (BinaryProducts)
 open import Categories.Category.Cartesian.Bundle using (CartesianCategory)
-open import Categories.Category.Cocartesian using (module CocartesianMonoidal; module CocartesianSymmetricMonoidal)
+open import Categories.Category.Cocartesian.Monoidal using (module CocartesianMonoidal)
+open import Categories.Category.Cocartesian.SymmetricMonoidal using (module CocartesianSymmetricMonoidal)
 open import Categories.Category.Monoidal.Symmetric using (Symmetric)
 open import Categories.Category.Monoidal.Braided using (Braided)
 open import Categories.Category.Monoidal.Core using (Monoidal)
@@ -27,7 +27,7 @@ open import Functor.Instance.Cospan.Stack 𝒞 using (⊗)
 open import Functor.Instance.Cospan.Embed 𝒞 using (L; L-resp-⊗)
 
 module 𝒞 = FinitelyCocompleteCategory 𝒞
-open CocartesianMonoidal 𝒞.U 𝒞.cocartesian using (⊥+--id; -+⊥-id; ⊥+A≅A; A+⊥≅A; +-monoidal)
+open CocartesianMonoidal 𝒞.cocartesian using (⊥+--id; -+⊥-id; ⊥+A≅A; A+⊥≅A; +-monoidal)
 open CocartesianSymmetricMonoidal 𝒞.U 𝒞.cocartesian using (+-symmetric)
 
 open Monoidal +-monoidal using () renaming (triangle to tri; pentagon to pent)
@@ -36,8 +36,7 @@ open import Categories.Category.Monoidal.Utilities +-monoidal using (associator-
 
 module _ where
 
-  open CartesianCategory FinitelyCocompletes-CC using (products)
-  open BinaryProducts products using (_×_)
+  open CartesianCategory FinitelyCocompletes-CC using (_×_)
 
   𝒞×𝒞 : FinitelyCocompleteCategory o ℓ e
   𝒞×𝒞 = 𝒞 × 𝒞

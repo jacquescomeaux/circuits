@@ -6,7 +6,9 @@ open import Level using (0ℓ)
 open import Categories.Category.Monoidal.Bundle using (MonoidalCategory; SymmetricMonoidalCategory)
 open import Categories.Category.Instance.Nat using (Nat; Nat-Cartesian; Nat-Cocartesian; Natop)
 open import Categories.Category.Cartesian using (Cartesian)
-open import Categories.Category.Cocartesian using (Cocartesian; module CocartesianMonoidal; module CocartesianSymmetricMonoidal)
+open import Categories.Category.Cocartesian using (Cocartesian)
+open import Categories.Category.Cocartesian.Monoidal using (module CocartesianMonoidal)
+open import Categories.Category.Cocartesian.SymmetricMonoidal using (module CocartesianSymmetricMonoidal)
 open import Categories.Category.Cartesian.Monoidal using (module CartesianMonoidal)
 open import Categories.Category.Duality using (coCartesian⇒Cocartesian; Cocartesian⇒coCartesian)
 
@@ -26,7 +28,7 @@ module Monoidal where
 
   Nat,+,0 : MonoidalCategory 0ℓ 0ℓ 0ℓ
   Nat,+,0 .U = Nat
-  Nat,+,0 .monoidal = +-monoidal Nat Nat-Cocartesian
+  Nat,+,0 .monoidal = +-monoidal Nat-Cocartesian
 
   Nat,×,1 : MonoidalCategory 0ℓ 0ℓ 0ℓ
   Nat,×,1 .U = Nat
@@ -38,7 +40,7 @@ module Monoidal where
 
   Natop,×,1 : MonoidalCategory 0ℓ 0ℓ 0ℓ
   Natop,×,1 .U = Natop
-  Natop,×,1 .monoidal = +-monoidal Natop Natop-Cocartesian
+  Natop,×,1 .monoidal = +-monoidal Natop-Cocartesian
 
 module Symmetric where
 
@@ -50,7 +52,7 @@ module Symmetric where
 
   Nat,+,0 : SymmetricMonoidalCategory 0ℓ 0ℓ 0ℓ
   Nat,+,0 .U = Nat
-  Nat,+,0 .monoidal = +-monoidal Nat Nat-Cocartesian
+  Nat,+,0 .monoidal = +-monoidal Nat-Cocartesian
   Nat,+,0 .symmetric = +-symmetric Nat Nat-Cocartesian
 
   Nat,×,1 : SymmetricMonoidalCategory 0ℓ 0ℓ 0ℓ
@@ -65,7 +67,7 @@ module Symmetric where
 
   Natop,×,1 : SymmetricMonoidalCategory 0ℓ 0ℓ 0ℓ
   Natop,×,1 .U = Natop
-  Natop,×,1 .monoidal = +-monoidal Natop Natop-Cocartesian
+  Natop,×,1 .monoidal = +-monoidal Natop-Cocartesian
   Natop,×,1 .symmetric = +-symmetric Natop Natop-Cocartesian
 
 open Symmetric public

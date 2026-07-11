@@ -3,21 +3,20 @@
 open import Level using (Level; suc; _⊔_)
 open import Categories.Category using (Category)
 
-module Category.Dagger.Semiadditive
-    {o ℓ e : Level}
-    (𝒞 : Category o ℓ e)
-  where
+module Category.Dagger.Semiadditive {o ℓ e : Level} (𝒞 : Category o ℓ e) where
 
 import Categories.Category.Monoidal.Reasoning as ⊗-Reasoning
 import Categories.Morphism.Reasoning as ⇒-Reasoning
 
-open import Categories.Category.BinaryProducts using (BinaryProducts)
-open import Categories.Category.Cocartesian 𝒞 using (Cocartesian; module CocartesianMonoidal; module CocartesianSymmetricMonoidal)
+open import Categories.Category.Cocartesian 𝒞 using (Cocartesian)
+open import Categories.Category.Cocartesian.Monoidal using (module CocartesianMonoidal)
+open import Categories.Category.Cocartesian.SymmetricMonoidal using (module CocartesianSymmetricMonoidal)
 open import Categories.Category.Dagger using (HasDagger)
 open import Categories.Category.Monoidal using (Monoidal)
 open import Categories.Category.Monoidal.Symmetric using (module Symmetric)
 open import Categories.Category.Monoidal.Symmetric.Properties using () renaming (module Shorthands to σ-Shorthands)
 open import Categories.Category.Monoidal.Utilities using (module Shorthands)
+open import Categories.Functor using (Functor)
 open import Categories.Object.Duality using (Coproduct⇒coProduct)
 open import Relation.Binary using (Rel)
 
@@ -27,9 +26,9 @@ record DaggerCocartesianMonoidal : Set (suc (o ⊔ ℓ ⊔ e)) where
     cocartesian : Cocartesian
     dagger : HasDagger 𝒞
 
-  open Cocartesian cocartesian using (i₁; i₂)
-  open CocartesianMonoidal cocartesian using (+-monoidal; _⊗₀_; _⊗₁_)
-  open CocartesianSymmetricMonoidal cocartesian using (+-symmetric)
+  open Cocartesian cocartesian using (i₁; i₂) renaming (_+₁_ to _⊗₁_)
+  open CocartesianMonoidal cocartesian using (+-monoidal)
+  open CocartesianSymmetricMonoidal 𝒞 cocartesian using (+-symmetric)
   open HasDagger dagger using (_†; isUnitary; isSelfAdjoint)
   open Shorthands +-monoidal using (λ⇒; λ⇐; ρ⇒; ρ⇐; α⇒; α⇐)
   open σ-Shorthands +-symmetric using (σ⇒)
@@ -49,17 +48,19 @@ record SemiadditiveDagger : Set (suc (o ⊔ ℓ ⊔ e)) where
     daggerCocartesianMonoidal : DaggerCocartesianMonoidal
 
   open DaggerCocartesianMonoidal daggerCocartesianMonoidal public
-  open CocartesianMonoidal cocartesian using (+-monoidal) renaming (_⊗₀_ to _⊕₀_; _⊗₁_ to _⊕₁_; ⊗ to ⊕) public
-
+  open Cocartesian cocartesian using ([]∘+-assocʳ; []∘+-swap) renaming (_+_ to _⊕₀_; _+₁_ to infixr 10 _⊕₁_; -+- to ⊕) public
+  open CocartesianMonoidal cocartesian using (+-monoidal) public
   open Cocartesian cocartesian using (i₁; i₂; ¡) public
   open Cocartesian cocartesian using (⊥; [_,_]; ∘[]; []∘+₁; []-cong₂; coproduct; ¡-unique; inject₁; inject₂; +-unique; +-g-η)
-  open CocartesianSymmetricMonoidal cocartesian using (+-symmetric)
+  open CocartesianSymmetricMonoidal 𝒞 cocartesian using (+-symmetric)
   open HasDagger dagger using (_†; †-involutive; ⟨_⟩†; †-identity; †-homomorphism) public
   open Monoidal +-monoidal using (unitorˡ-commute-from; unitorʳ-commute-from; assoc-commute-from; module unitorˡ; module unitorʳ; module associator)
   open σ-Shorthands +-symmetric using (σ⇒)
   open Symmetric +-symmetric using (module braiding)
   open Shorthands +-monoidal using (λ⇒; λ⇐; ρ⇒; ρ⇐; α⇒; α⇐)
   open Category 𝒞
+
+  module ⊕ = Functor ⊕
 
   -- projection maps
   p₁ : {A B : Obj} → A ⊕₀ B ⇒ A
@@ -76,11 +77,6 @@ record SemiadditiveDagger : Set (suc (o ⊔ ℓ ⊔ e)) where
   △ : {A : Obj} → A ⇒ A ⊕₀ A
   △ = ▽ †
 
-  private
-    op-binaryProducts : BinaryProducts op
-    op-binaryProducts = record { product = Coproduct⇒coProduct 𝒞 coproduct }
-    open BinaryProducts op-binaryProducts using () renaming (assocʳ∘⟨⟩ to []-assoc; swap∘⟨⟩ to []∘swap)
-
   open ⊗-Reasoning +-monoidal
   open ⇒-Reasoning 𝒞
 
@@ -88,7 +84,7 @@ record SemiadditiveDagger : Set (suc (o ⊔ ℓ ⊔ e)) where
   ▽-assoc = begin
       [ id , id ] ∘ [ id , id ] ⊕₁ id       ≈⟨ []∘+₁ ⟩
       [ id ∘ [ id , id ] , id ∘ id ]        ≈⟨ []-cong₂ identityˡ identityˡ ⟩
-      [ [ id , id ] , id ]                  ≈⟨ []-assoc ⟨
+      [ [ id , id ] , id ]                  ≈⟨ []∘+-assocʳ ⟨
       [ id , [ id , id ] ] ∘ α⇒             ≈⟨ []-cong₂ identityˡ identityˡ ⟩∘⟨refl ⟨
       [ id ∘ id , id ∘ [ id , id ] ] ∘ α⇒   ≈⟨ pushˡ (Equiv.sym []∘+₁) ⟩
       [ id , id ] ∘ id ⊕₁ [ id , id ] ∘ α⇒  ∎
@@ -144,7 +140,7 @@ record SemiadditiveDagger : Set (suc (o ⊔ ℓ ⊔ e)) where
       ρ⇐                    ∎
 
   ▽-comm : {A : Obj} → ▽ {A} ∘ σ⇒ ≈ ▽
-  ▽-comm = []∘swap
+  ▽-comm = []∘+-swap
 
   △-comm : {A : Obj} → σ⇒ ∘ △ {A} ≈ △
   △-comm = begin

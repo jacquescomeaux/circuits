@@ -23,7 +23,8 @@ import Categories.Morphism.Reasoning as ⇒-Reasoning
 import Category.Diagram.Cospan 𝒞 as Cospan
 
 open import Categories.Category using (Category; _[_,_]; _[_≈_]; _[_∘_])
-open import Categories.Category.Cocartesian using (module CocartesianMonoidal)
+open import Categories.Category.Monoidal using (module Monoidal)
+open import Categories.Category.Cocartesian.Monoidal using (module CocartesianMonoidal)
 open import Categories.Category.Monoidal.Properties using (coherence-inv₃)
 open import Categories.Category.Monoidal.Utilities using (module Shorthands)
 open import Categories.Functor.Core using (Functor)
@@ -39,7 +40,7 @@ module 𝒟 = SymmetricMonoidalCategory 𝒟
 module F = SymmetricMonoidalFunctor F
 module Cospans = Category Cospans
 module DecoratedCospans = Category DecoratedCospans
-module mc𝒞 = CocartesianMonoidal 𝒞.U 𝒞.cocartesian
+module mc𝒞 = CocartesianMonoidal 𝒞.cocartesian
 
 -- For every cospan there exists a free decorated cospan
 -- i.e. the original cospan with the discrete decoration
@@ -90,7 +91,7 @@ homomorphism {g} {f} = record
 
     open DiagramPushout 𝒞.U using (Pushout)
     open Pushout (pushout f₂ g₁) using (i₁; i₂)
-    open mc𝒞 using (unitorˡ)
+    open Monoidal mc𝒞.+-monoidal using (unitorˡ)
     open unitorˡ using () renaming (to to λ⇐′)
 
     same-deco : F₁ 𝒞.id ∘ F₁ ¡ ∘ F.ε ≈ F₁ [ i₁ , i₂ ]′ ∘ φ (N , M) ∘ (F₁ ¡ ∘ ε) ⊗₁ (F₁ ¡ ∘ ε) ∘ ρ⇐
@@ -147,7 +148,7 @@ Decorate-resp-⊗ {f} {g} = record
     open F.⊗-homo using () renaming (η to φ; commute to φ-commute)
     open F using (F₁; ε)
     open Shorthands monoidal
-    open mc𝒞 using (unitorˡ)
+    open Monoidal mc𝒞.+-monoidal using (unitorˡ)
     open unitorˡ using () renaming (to to λ⇐′)
 
     same-deco : F₁ 𝒞.id ∘ F₁ ¡ ∘ ε ≈ φ (N , M) ∘ (F₁ ¡ ∘ ε) ⊗₁ (F₁ ¡ ∘ ε) ∘ ρ⇐

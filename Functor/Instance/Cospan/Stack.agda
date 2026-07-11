@@ -43,8 +43,7 @@ id⊗id≈id {A} {B} = record
   where
     open Morphism U using (module ≅)
     open HomReasoning
-    open 𝒞 using (+-η; []-cong₂)
-    open coproduct {A} {B} using (i₁; i₂)
+    open 𝒞 using (i₁; i₂; +-η; []-cong₂)
     from∘f≈f : id ∘ [ i₁ ∘ id , i₂ ∘ id ] 𝒞.≈ id
     from∘f≈f = begin
         id ∘ [ i₁ ∘ id , i₂ ∘ id ]  ≈⟨ identityˡ ⟩

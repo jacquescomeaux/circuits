@@ -23,16 +23,17 @@ import Categories.Category.Monoidal.Reasoning as ⊗-Reasoning
 import Functor.Instance.Cospan.Stack 𝒞 as Stack
 
 open import Categories.Category using (Category; _[_,_]; _[_≈_]; _[_∘_])
-open import Categories.Category.BinaryProducts using (BinaryProducts)
-open import Categories.Category.Monoidal.Utilities using (module Shorthands)
-open import Categories.Category.Monoidal.Properties using (coherence-inv₃)
+open import Categories.Category.Cocartesian.Monoidal using (module CocartesianMonoidal)
+open import Categories.Category.Cocartesian.SymmetricMonoidal using (module CocartesianSymmetricMonoidal)
+open import Categories.Category.Monoidal using (module Monoidal)
 open import Categories.Category.Monoidal.Braided.Properties using (braiding-coherence-inv)
+open import Categories.Category.Monoidal.Properties using (coherence-inv₃)
+open import Categories.Category.Monoidal.Utilities using (module Shorthands)
 open import Categories.Functor using (Functor)
 open import Categories.Functor.Bifunctor using (Bifunctor)
 open import Categories.Functor.Properties using ([_]-resp-≅)
-open import Categories.Category.Cocartesian using (module CocartesianMonoidal; module CocartesianSymmetricMonoidal)
-open import Categories.Object.Initial using (Initial)
 open import Categories.Object.Duality using (Coproduct⇒coProduct)
+open import Categories.Object.Initial using (Initial)
 open import Category.Instance.DecoratedCospans 𝒞 F using () renaming (DecoratedCospans to Cospans; _≈_ to _≈_′)
 
 import Category.Diagram.Cospan 𝒞 as Cospan
@@ -47,7 +48,7 @@ module Cospans = Category Cospans
 
 open 𝒞 using (Obj; _+_; cocartesian)
 
-module mc𝒞 = CocartesianMonoidal 𝒞.U cocartesian
+module mc𝒞 = CocartesianMonoidal cocartesian
 module smc𝒞 = CocartesianSymmetricMonoidal 𝒞.U cocartesian
 
 open DiagramPushout 𝒞.U using (Pushout)
@@ -73,9 +74,9 @@ id⊗id≈id {A} {B} = record
     ; same-deco = F.identity ⟩∘⟨refl
         ○ identityˡ
         ○ refl⟩∘⟨ ⊗-distrib-over-∘ ⟩∘⟨refl
-        ○ extendʳ (extendʳ (⊗-homo.commute (! , !)))
+        ○ extendʳ (extendʳ (⊗-homo.commute (¡ , ¡)))
         ○ refl⟩∘⟨ pullʳ (pushˡ serialize₂₁ ○ refl⟩∘⟨ sym unitorʳ-commute-to)
-        ○ pushˡ (F-resp-≈ !+!≈! ○ homomorphism)
+        ○ pushˡ (F-resp-≈ ¡+¡≈¡ ○ homomorphism)
         ○ refl⟩∘⟨ (refl⟩∘⟨ sym-assoc ○ pullˡ unitaryʳ ○ cancelˡ unitorʳ.isoʳ)
     }
   where
@@ -87,12 +88,12 @@ id⊗id≈id {A} {B} = record
     open ⊗-Reasoning monoidal
     open F using (module ⊗-homo; F-resp-≈; homomorphism; unitaryʳ)
     open 𝒞 using (initial)
-    open Initial initial using (!; !-unique₂)
+    open Initial initial using (¡; ¡-unique₂)
     open Morphism using (_≅_; module ≅)
     open mc𝒞 using (A+⊥≅A)
     module A+⊥≅A = _≅_ A+⊥≅A
-    !+!≈! : 𝒞.U [ (! {A} +₁ ! {B}) ≈ ! {A + B} 𝒞.∘ A+⊥≅A.from  ]
-    !+!≈! = 𝒞.Equiv.sym (flip-iso′ (≅.sym 𝒞.U A+⊥≅A) (¡-unique ((! +₁ !) 𝒞.∘ A+⊥≅A.to)))
+    ¡+¡≈¡ : 𝒞.U [ (¡ {A} +₁ ¡ {B}) ≈ ¡ {A + B} 𝒞.∘ A+⊥≅A.from  ]
+    ¡+¡≈¡ = 𝒞.Equiv.sym (flip-iso′ (≅.sym 𝒞.U A+⊥≅A) (¡-unique ((¡ +₁ ¡) 𝒞.∘ A+⊥≅A.to)))
 
 homomorphism
     : (A⇒B : Cospans [ A , B ])
@@ -148,12 +149,12 @@ homomorphism {A} {B} {C} {A′} {B′} {C′} f g f′ g′ = record
         open Shorthands mc𝒞.+-monoidal
         open ⊗-Reasoning mc𝒞.+-monoidal
         open ⇒-Reasoning U
-        open mc𝒞 using (assoc-commute-from; assoc-commute-to; module ⊗; associator)
+        open Monoidal mc𝒞.+-monoidal using (assoc-commute-from; assoc-commute-to; module ⊗; associator)
         open smc𝒞 using () renaming (module braiding to σ)
 
         module Codiagonal where
 
-          open 𝒞 using (coproduct; +-unique; []-cong₂; []∘+₁; ∘-distribˡ-[])
+          open 𝒞 using (coproduct; +-unique; []-cong₂; []∘+₁; ∘-distribˡ-[]; []∘+-assocʳ)
           μ : {X : Obj} → X + X ⇒ X
           μ = [ id , id ]′
 
@@ -163,16 +164,10 @@ homomorphism {A} {B} {C} {A′} {B′} {C′} f g f′ g′ = record
           μ∘σ : {X : Obj} → μ ∘ +-swap ≈ μ {X}
           μ∘σ = sym (+-unique (pullʳ inject₁ ○ inject₂) (pullʳ inject₂ ○ inject₁) )
 
-          op-binaryProducts : BinaryProducts op
-          op-binaryProducts = record { product = Coproduct⇒coProduct U coproduct }
-
-          module op-binaryProducts = BinaryProducts op-binaryProducts
-          open op-binaryProducts using () renaming (assocʳ∘⟨⟩ to []∘assocˡ)
-
           μ-assoc : {X : Obj} → μ {X} ∘ μ +₁ (id {X}) ≈ μ ∘ (id {X}) +₁ μ ∘ α⇒
           μ-assoc = begin
               μ ∘ μ +₁ id                   ≈⟨ μ∘+ ⟨
-              [ [ id , id ]′ , id ]′        ≈⟨ []∘assocˡ ⟨
+              [ [ id , id ]′ , id ]′        ≈⟨ []∘+-assocʳ ⟨
               [ id , [ id , id ]′ ]′ ∘ α⇒   ≈⟨ pushˡ μ∘+ ⟩
               μ ∘ id +₁ μ  ∘ α⇒             ∎
 

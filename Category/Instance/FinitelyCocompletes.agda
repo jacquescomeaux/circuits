@@ -84,8 +84,8 @@ module _ (𝒞 𝒟 : FinitelyCocompleteCategory o ℓ e) where
           → IsInitial 𝒞×𝒟.U (A , B)
           → IsInitial 𝒞.U A
       F-resp-⊥ {A , B} initial = record
-          { ! = λ { {C} → proj₁ (! {C , B}) }
-          ; !-unique = λ { f → proj₁ (!-unique (f , 𝒟.id)) }
+          { ¡ = λ { {C} → proj₁ (¡ {C , B}) }
+          ; ¡-unique = λ { f → proj₁ (¡-unique (f , 𝒟.id)) }
           }
         where
           open IsInitial initial
@@ -130,8 +130,8 @@ module _ (𝒞 𝒟 : FinitelyCocompleteCategory o ℓ e) where
           → IsInitial 𝒞×𝒟.U (A , B)
           → IsInitial 𝒟.U B
       F-resp-⊥ {A , B} initial = record
-          { ! = λ { {C} → proj₂ (! {A , C}) }
-          ; !-unique = λ { f → proj₂ (!-unique (𝒞.id , f)) }
+          { ¡ = λ { {C} → proj₂ (¡ {A , C}) }
+          ; ¡-unique = λ { f → proj₂ (¡-unique (𝒞.id , f)) }
           }
         where
           open IsInitial initial
@@ -193,8 +193,8 @@ module _ where
           → IsInitial 𝒞.U A
           → IsInitial (ProductCat 𝒟.U ℰ.U) (F.₀ A , G.₀ A)
       F-resp-⊥′ A-isInitial = record
-          { ! = F[A]-isInitial.! , G[A]-isInitial.!
-          ; !-unique = dmap F[A]-isInitial.!-unique G[A]-isInitial.!-unique
+          { ¡ = F[A]-isInitial.¡ , G[A]-isInitial.¡
+          ; ¡-unique = dmap F[A]-isInitial.¡-unique G[A]-isInitial.¡-unique
           }
         where
           module F[A]-isInitial = IsInitial (F-resp-⊥ A-isInitial)
@@ -254,20 +254,20 @@ module _ where
           → IsInitial 𝒜×ℬ.U (A , B)
           → IsInitial 𝒞×𝒟.U (F.₀ A , G.₀ B)
       F-resp-⊥′ {A , B} A,B-isInitial = record
-          { ! = F[A]-isInitial.! , G[B]-isInitial.!
-          ; !-unique = dmap F[A]-isInitial.!-unique G[B]-isInitial.!-unique
+          { ¡ = F[A]-isInitial.¡ , G[B]-isInitial.¡
+          ; ¡-unique = dmap F[A]-isInitial.¡-unique G[B]-isInitial.¡-unique
           }
         where
           module A,B-isInitial = IsInitial A,B-isInitial
           A-isInitial : IsInitial 𝒜.U A
           A-isInitial = record
-              { ! = λ { {X} → proj₁ (A,B-isInitial.! {X , B}) }
-              ; !-unique = λ { f → proj₁ (A,B-isInitial.!-unique (f , ℬ.id)) }
+              { ¡ = λ { {X} → proj₁ (A,B-isInitial.¡ {X , B}) }
+              ; ¡-unique = λ { f → proj₁ (A,B-isInitial.¡-unique (f , ℬ.id)) }
               }
           B-isInitial : IsInitial ℬ.U B
           B-isInitial = record
-              { ! = λ { {X} → proj₂ (A,B-isInitial.! {A , X}) }
-              ; !-unique = λ { f → proj₂ (A,B-isInitial.!-unique (𝒜.id , f)) }
+              { ¡ = λ { {X} → proj₂ (A,B-isInitial.¡ {A , X}) }
+              ; ¡-unique = λ { f → proj₂ (A,B-isInitial.¡-unique (𝒜.id , f)) }
               }
           module F[A]-isInitial = IsInitial (F-resp-⊥ A-isInitial)
           module G[B]-isInitial = IsInitial (G-resp-⊥ B-isInitial)

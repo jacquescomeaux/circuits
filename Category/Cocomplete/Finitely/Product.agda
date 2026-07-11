@@ -6,20 +6,21 @@ open import Level using (Level)
 module Category.Cocomplete.Finitely.Product {o ℓ e : Level} {𝒞 𝒟 : Category o ℓ e} where
 
 open import Categories.Category using (_[_,_])
+open import Categories.Category.BinaryCoproducts using (BinaryCoproducts)
+open import Categories.Category.Cocartesian using (Cocartesian)
 open import Categories.Category.Cocomplete.Finitely using (FinitelyCocomplete)
-open import Categories.Category.Cocartesian using (Cocartesian; BinaryCoproducts)
 open import Categories.Category.Product using (Product)
 open import Categories.Diagram.Coequalizer using (Coequalizer)
 open import Categories.Object.Coproduct using (Coproduct)
 open import Categories.Object.Initial using (IsInitial; Initial)
-open import Data.Product.Base using (_,_; _×_; dmap; zip; map)
+open import Data.Product using (_,_; _×_; dmap; zip; map)
 
 Initial-× : Initial 𝒞 → Initial 𝒟 → Initial (Product 𝒞 𝒟)
 Initial-× initial-𝒞 initial-𝒟 = record
     { ⊥ = 𝒞.⊥ , 𝒟.⊥
     ; ⊥-is-initial = record
-        { ! = 𝒞.! , 𝒟.!
-        ; !-unique = dmap 𝒞.!-unique 𝒟.!-unique
+        { ¡ = 𝒞.¡ , 𝒟.¡
+        ; ¡-unique = dmap 𝒞.¡-unique 𝒟.¡-unique
         }
     }
   where
@@ -31,20 +32,17 @@ Coproducts-× coproducts-𝒞 coproducts-𝒟 = record { coproduct = coproduct }
   where
     coproduct : ∀ {(A₁ , B₁) (A₂ , B₂) : _ × _} → Coproduct (Product 𝒞 𝒟) (A₁ , B₁) (A₂ , B₂)
     coproduct = record
-        { A+B = 𝒞.A+B , 𝒟.A+B
+        { A+B = _ 𝒞.+  _ , _ 𝒟.+ _
         ; i₁ = 𝒞.i₁ , 𝒟.i₁
         ; i₂ = 𝒞.i₂ , 𝒟.i₂
         ; [_,_] = zip 𝒞.[_,_] 𝒟.[_,_]
         ; inject₁ = 𝒞.inject₁ , 𝒟.inject₁
         ; inject₂ = 𝒞.inject₂ , 𝒟.inject₂
-        ; unique = zip 𝒞.unique 𝒟.unique
+        ; unique = zip 𝒞.+-unique 𝒟.+-unique
         }
       where
-        module Coprod {𝒞} (coprods : BinaryCoproducts 𝒞) where
-          open BinaryCoproducts coprods using (coproduct)
-          open coproduct public
-        module 𝒞 = Coprod coproducts-𝒞
-        module 𝒟 = Coprod coproducts-𝒟
+        module 𝒞 = BinaryCoproducts coproducts-𝒞
+        module 𝒟 = BinaryCoproducts coproducts-𝒟
 
 Coequalizer-×
     : (∀ {A} {B} (f g : 𝒞 [ A , B ]) → Coequalizer 𝒞 f g)
