@@ -10,6 +10,7 @@ import Categories.Morphism.Reasoning as ⇒-Reasoning
 
 open import Categories.Category.BinaryProducts 𝒞 using (BinaryProducts)
 open import Categories.Category.Cartesian 𝒞 using (Cartesian)
+open import Categories.Category.Cartesian.Monoidal using (module CartesianMonoidal)
 open import Categories.Category.Cocartesian 𝒞 using (Cocartesian)
 open import Categories.Category.Cocartesian.Monoidal using (module CocartesianMonoidal)
 open import Categories.Category.Cocartesian.SymmetricMonoidal using (module CocartesianSymmetricMonoidal)
@@ -54,7 +55,7 @@ record SemiadditiveDagger : Set (suc (o ⊔ ℓ ⊔ e)) where
   open Cocartesian cocartesian using ([]∘+-assocʳ; []∘+-swap) renaming (_+_ to _⊕₀_; _+₁_ to infixr 10 _⊕₁_; -+- to ⊕) public
   open CocartesianMonoidal cocartesian using (+-monoidal) public
   open Cocartesian cocartesian using (i₁; i₂; ¡) public
-  open Cocartesian cocartesian using (⊥; [_,_]; ∘[]; []∘+₁; []-cong₂; coproduct; ¡-unique; inject₁; inject₂; +-unique; +-η)
+  open Cocartesian cocartesian using (⊥; [_,_]; ∘[]; []∘+₁; []-congˡ; []-cong₂; coproduct; ¡-unique; inject₁; inject₂; +-unique; +-η) renaming (∇∘+₁ to ▽∘+₁)
   open CocartesianSymmetricMonoidal 𝒞 cocartesian using (+-symmetric)
   open HasDagger dagger using (_†; †-involutive; ⟨_⟩†; †-identity; †-homomorphism) public
   open Monoidal +-monoidal using (unitorˡ-commute-from; unitorʳ-commute-from; assoc-commute-from; module unitorˡ; module unitorʳ; module associator)
@@ -420,6 +421,30 @@ record SemiadditiveDagger : Set (suc (o ⊔ ℓ ⊔ e)) where
       { terminal = terminal
       ; products = products
       }
+
+  open Cartesian cartesian using (_×₁_)
+  open CartesianMonoidal cartesian using (monoidal)
+  open Shorthands monoidal using () renaming (α⇒ to α⇒′)
+
+  ×₁-⊕₁ : {A B C D : Obj} (f : A ⇒ B) (g : C ⇒ D) → f ×₁ g ≈ f ⊕₁ g
+  ×₁-⊕₁ f g = begin
+    (f ∘ p₁) ⊕₁ (g ∘ p₂) ∘ △  ≈⟨ pushˡ ⊗-distrib-over-∘ ⟩
+    f ⊕₁ g ∘ p₁ ⊕₁ p₂ ∘ △     ≈⟨ elimʳ p₁⊕p₂∘△ ⟩
+    f ⊕₁ g                    ∎
+
+  ≈α⇒ : {A B C : Obj} → α⇒′ {A} {B} {C} ≈ α⇒ {A} {B} {C}
+  ≈α⇒ {A} {B} {C} = begin
+      (p₁ ∘ p₁) ⊕₁ ((p₂ ∘ p₁) ⊕₁ p₂ ∘ △) ∘ △          ≈⟨ refl⟩⊗⟨ pushˡ split₁ˡ ⟩∘⟨refl ⟩
+      (p₁ ∘ p₁) ⊕₁ ((p₂ ⊕₁ id) ∘ (p₁ ⊕₁ p₂) ∘ △) ∘ △  ≈⟨ refl⟩⊗⟨ elimʳ p₁⊕p₂∘△ ⟩∘⟨refl ⟩
+      (p₁ ∘ p₁) ⊕₁ (p₂ ⊕₁ id) ∘ △                     ≈⟨ †-homomorphism ⟩⊗⟨ (refl⟩⊗⟨ †-identity ) ⟩∘⟨refl ⟨
+      ((i₁ ∘ i₁) †) ⊕₁ (p₂ ⊕₁ (id †)) ∘ △             ≈⟨ refl⟩⊗⟨ †-resp-⊗ ⟩∘⟨refl ⟨
+      ((i₁ ∘ i₁) †) ⊕₁ ((i₂ ⊕₁ id) †) ∘ △             ≈⟨ †-resp-⊗ ⟩∘⟨refl ⟨
+      ((i₁ ∘ i₁) ⊕₁ (i₂ ⊕₁ id)) † ∘ △                 ≈⟨ †-homomorphism ⟨
+      (▽ ∘ ((i₁ ∘ i₁) ⊕₁ (i₂ ⊕₁ id))) †               ≈⟨ ⟨ ▽∘+₁ ⟩† ⟩
+      [ i₁ ∘ i₁ , i₂ ⊕₁ id ] †                        ≈⟨ ⟨ []-congˡ ([]-congˡ identityʳ) ⟩† ⟩
+      α⇐ †                                            ≈⟨ ⟨ α≅† ⟩† ⟨
+      α⇒ † †                                          ≈⟨ †-involutive α⇒ ⟩
+      α⇒                                              ∎
 
 record IdempotentSemiadditiveDagger : Set (suc (o ⊔ ℓ ⊔ e)) where
 

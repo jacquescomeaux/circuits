@@ -2,9 +2,9 @@
 
 open import Level using (Level)
 
-module Data.System {ℓ : Level} where
+module Data.System {c ℓ : Level} where
 
-open import Data.System.Core {ℓ} public
-open import Data.System.Category {ℓ} public
-open import Data.System.Looped {ℓ} public
-open import Data.System.Monoidal {ℓ} public using (Systems-MC; Systems-SMC)
+open import Data.System.Core {c} {ℓ} public
+open import Data.System.Category {c} {ℓ} public
+open import Data.System.Looped {c} {ℓ} public
+open import Data.System.Monoidal {c} {ℓ} public using (Systems-MC; Systems-SMC)
