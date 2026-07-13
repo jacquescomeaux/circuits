@@ -8,6 +8,8 @@ module Category.Dagger.Semiadditive {o ℓ e : Level} (𝒞 : Category o ℓ e) 
 import Categories.Category.Monoidal.Reasoning as ⊗-Reasoning
 import Categories.Morphism.Reasoning as ⇒-Reasoning
 
+open import Categories.Category.BinaryProducts 𝒞 using (BinaryProducts)
+open import Categories.Category.Cartesian 𝒞 using (Cartesian)
 open import Categories.Category.Cocartesian 𝒞 using (Cocartesian)
 open import Categories.Category.Cocartesian.Monoidal using (module CocartesianMonoidal)
 open import Categories.Category.Cocartesian.SymmetricMonoidal using (module CocartesianSymmetricMonoidal)
@@ -18,6 +20,7 @@ open import Categories.Category.Monoidal.Symmetric.Properties using () renaming 
 open import Categories.Category.Monoidal.Utilities using (module Shorthands)
 open import Categories.Functor using (Functor)
 open import Categories.Object.Duality using (Coproduct⇒coProduct)
+open import Categories.Object.Terminal 𝒞 using (Terminal)
 open import Relation.Binary using (Rel)
 
 record DaggerCocartesianMonoidal : Set (suc (o ⊔ ℓ ⊔ e)) where
@@ -51,7 +54,7 @@ record SemiadditiveDagger : Set (suc (o ⊔ ℓ ⊔ e)) where
   open Cocartesian cocartesian using ([]∘+-assocʳ; []∘+-swap) renaming (_+_ to _⊕₀_; _+₁_ to infixr 10 _⊕₁_; -+- to ⊕) public
   open CocartesianMonoidal cocartesian using (+-monoidal) public
   open Cocartesian cocartesian using (i₁; i₂; ¡) public
-  open Cocartesian cocartesian using (⊥; [_,_]; ∘[]; []∘+₁; []-cong₂; coproduct; ¡-unique; inject₁; inject₂; +-unique; +-g-η)
+  open Cocartesian cocartesian using (⊥; [_,_]; ∘[]; []∘+₁; []-cong₂; coproduct; ¡-unique; inject₁; inject₂; +-unique; +-η)
   open CocartesianSymmetricMonoidal 𝒞 cocartesian using (+-symmetric)
   open HasDagger dagger using (_†; †-involutive; ⟨_⟩†; †-identity; †-homomorphism) public
   open Monoidal +-monoidal using (unitorˡ-commute-from; unitorʳ-commute-from; assoc-commute-from; module unitorˡ; module unitorʳ; module associator)
@@ -343,6 +346,80 @@ record SemiadditiveDagger : Set (suc (o ⊔ ℓ ⊔ e)) where
       (▽ ∘ f ⊕₁ g ∘ △) ∘ h        ≈⟨ pullʳ (pullʳ ⇒△) ⟩
       ▽ ∘ f ⊕₁ g ∘ h ⊕₁ h ∘ △     ≈⟨ refl⟩∘⟨ pullˡ (Equiv.sym ⊗-distrib-over-∘) ⟩
       ▽ ∘ (f ∘ h) ⊕₁ (g ∘ h) ∘ △  ∎
+
+  terminal : Terminal
+  terminal = record
+      { ⊤ = ⊥
+      ; ⊤-is-terminal = record
+          { ! = !
+          ; !-unique = λ f → ⟨ ¡-unique (f †) ⟩† ○ †-involutive f
+          }
+      }
+
+  ▽∘i₁⊕i₂ : {A B : Obj} → ▽ ∘ i₁ ⊕₁ i₂ ≈ id {A ⊕₀ B}
+  ▽∘i₁⊕i₂ = begin
+      ▽ ∘ i₁ ⊕₁ i₂          ≈⟨ []∘+₁ ⟩
+      [ id ∘ i₁ , id ∘ i₂ ] ≈⟨ []-cong₂ identityˡ identityˡ ⟩
+      [ i₁ , i₂ ]           ≈⟨ +-η ⟩
+      id                    ∎
+
+  p₁⊕p₂∘△ : {A B : Obj} → p₁ ⊕₁ p₂ ∘ △ ≈ id {A ⊕₀ B}
+  p₁⊕p₂∘△ = begin
+      (i₁ †) ⊕₁ (i₂ †) ∘ ▽ †  ≈⟨ †-resp-⊗ ⟩∘⟨refl ⟨
+      (i₁ ⊕₁ i₂) † ∘ ▽ †      ≈⟨ †-homomorphism ⟨
+      (▽ ∘ i₁ ⊕₁ i₂) †        ≈⟨ ⟨ ▽∘i₁⊕i₂ ⟩† ⟩
+      id †                    ≈⟨ †-identity ⟩
+      id                      ∎
+
+  products : BinaryProducts
+  products = record
+      { product = λ {A B} → record
+          { A×B = A ⊕₀ B
+          ; π₁ = p₁
+          ; π₂ = p₂
+          ; ⟨_,_⟩ = λ f g → f ⊕₁ g ∘ △
+          ; project₁ = proj₁
+          ; project₂ = proj₂
+          ; unique = uniq
+          }
+      }
+    where
+      module _ {A B X : Obj} where
+        module _ {h : X ⇒ A} {i : X ⇒ B} where
+          proj₁ : p₁ ∘ h ⊕₁ i ∘ △ ≈ h
+          proj₁ = begin
+              p₁ ∘ h ⊕₁ i ∘ △             ≈⟨ pushˡ p₁-⊕ ⟩
+              ρ⇒ ∘ id ⊕₁ ! ∘ h ⊕₁ i ∘ △   ≈⟨ refl⟩∘⟨ pullˡ merge₂ˡ ⟩
+              ρ⇒ ∘ h ⊕₁ (! ∘ i) ∘ △       ≈⟨ refl⟩∘⟨ refl⟩⊗⟨ ⇒! ⟩∘⟨refl ⟩
+              ρ⇒ ∘ h ⊕₁ ! ∘ △             ≈⟨ refl⟩∘⟨ pushˡ serialize₁₂ ⟩
+              ρ⇒ ∘ h ⊕₁ id ∘ id ⊕₁ ! ∘ △  ≈⟨ refl⟩∘⟨ refl⟩∘⟨ △-identityʳ ⟩
+              ρ⇒ ∘ h ⊕₁ id ∘ ρ⇐           ≈⟨ extendʳ unitorʳ-commute-from ⟩
+              h ∘ ρ⇒ ∘ ρ⇐                 ≈⟨ elimʳ unitorʳ.isoʳ ⟩
+              h                           ∎
+          proj₂ : p₂ ∘ h ⊕₁ i ∘ △ ≈ i
+          proj₂ = begin
+              p₂ ∘ h ⊕₁ i ∘ △             ≈⟨ pushˡ p₂-⊕ ⟩
+              λ⇒ ∘ ! ⊕₁ id ∘ h ⊕₁ i ∘ △   ≈⟨ refl⟩∘⟨ pullˡ merge₁ˡ ⟩
+              λ⇒ ∘ (! ∘ h) ⊕₁ i ∘ △       ≈⟨ refl⟩∘⟨ ⇒! ⟩⊗⟨refl ⟩∘⟨refl ⟩
+              λ⇒ ∘ ! ⊕₁ i ∘ △             ≈⟨ refl⟩∘⟨ pushˡ serialize₂₁ ⟩
+              λ⇒ ∘ id ⊕₁ i ∘ ! ⊕₁ id ∘ △  ≈⟨ refl⟩∘⟨ refl⟩∘⟨ △-identityˡ ⟩
+              λ⇒ ∘ id ⊕₁ i ∘ λ⇐           ≈⟨ extendʳ unitorˡ-commute-from ⟩
+              i ∘ λ⇒ ∘ λ⇐                 ≈⟨ elimʳ unitorˡ.isoʳ ⟩
+              i                           ∎
+        module _ {h : X ⇒ A ⊕₀ B} {i : X ⇒ A} {j : X ⇒ B} where
+          uniq : p₁ ∘ h ≈ i → p₂ ∘ h ≈ j → i ⊕₁ j ∘ △ ≈ h
+          uniq p₁∘h≈i p₂∘h≈j = begin
+              i ⊕₁ j ∘ △                ≈⟨ p₁∘h≈i ⟩⊗⟨ p₂∘h≈j ⟩∘⟨refl ⟨
+              (p₁ ∘ h) ⊕₁ (p₂ ∘ h) ∘ △  ≈⟨ pushˡ ⊗-distrib-over-∘ ⟩
+              p₁ ⊕₁ p₂ ∘ h ⊕₁ h ∘ △     ≈⟨ pushʳ (Equiv.sym ⇒△) ⟩
+              (p₁ ⊕₁ p₂ ∘ △) ∘ h        ≈⟨ elimˡ p₁⊕p₂∘△ ⟩
+              h                         ∎
+
+  cartesian : Cartesian
+  cartesian = record
+      { terminal = terminal
+      ; products = products
+      }
 
 record IdempotentSemiadditiveDagger : Set (suc (o ⊔ ℓ ⊔ e)) where
 
