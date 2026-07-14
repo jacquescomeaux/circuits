@@ -32,7 +32,7 @@ open import Data.Vec using (Vec)
 open import Data.Vec.Functional using (tail)
 open import Function using (Func; _⟨$⟩_; flip; _∘_; _⇔_; mk⇔) renaming (id to idf)
 open import Relation.Binary.PropositionalEquality as ≡ using (_≡_; _≗_; module ≡-Reasoning)
-open import Relation.Nullary.Decidable using (⌊_⌋; Dec; yes; no; _×-dec_; isYes≗does; dec-true; dec-false; does-⇔)
+open import Relation.Nullary.Decidable using (⌊_⌋; Dec; yes; no; _×?_; isYes≗does; dec-true; dec-false; does-⇔)
 open import Relation.Unary using (Pred; Decidable)
 
 module 𝔹-rig = Semiring 𝔹.semiring
@@ -83,7 +83,7 @@ open Dec
         where
           open ≡-Reasoning
 
-⌊A×B⌋ : {A B : Set} (A? : Dec A) (B? : Dec B) → ⌊ A? ⌋ ∧ ⌊ B? ⌋ ≡ ⌊ A? ×-dec B? ⌋
+⌊A×B⌋ : {A B : Set} (A? : Dec A) (B? : Dec B) → ⌊ A? ⌋ ∧ ⌊ B? ⌋ ≡ ⌊ A? ×? B? ⌋
 ⌊A×B⌋ (yes a) (yes b) = ≡.refl
 ⌊A×B⌋ (yes a) (no ¬b) = ≡.refl
 ⌊A×B⌋ (no ¬a) B? = ≡.refl
@@ -119,8 +119,8 @@ functional-index
 functional-index f i j = begin
     sum (λ k → ⌊ f k ≟ j ⌋ ∧ ⌊ f k ≟ i ⌋) ∨ identity i j  ≡⟨ ≡.cong (_∨ identity i j) (sum-cong (λ k → ∧-comm (⌊ f k ≟ j ⌋) (⌊ f k ≟ i ⌋))) ⟩
     sum (λ k → ⌊ f k ≟ i ⌋ ∧ ⌊ f k ≟ j ⌋) ∨ identity i j  ≡⟨ ≡.cong₂ _∨_ (sum-cong (λ k → ⌊A×B⌋ (f k ≟ i) (f k ≟ j))) (≡.sym (graph-id i j)) ⟩
-    sum (λ k → ⌊ f k ≟ i ×-dec f k ≟ j ⌋) ∨ ⌊ i ≟ j ⌋     ≡⟨ ≡.cong (_∨ ⌊ i ≟ j ⌋) (⌊Σ?⌋ (λ k → f k ≟ i ×-dec f k ≟ j)) ⟨
-    ⌊ Σ? (λ k → f k ≟ i ×-dec f k ≟ j) ⌋ ∨ ⌊ i ≟ j ⌋      ≡⟨ A→B⇒A∨B≡B (func f) ⟩
+    sum (λ k → ⌊ f k ≟ i ×? f k ≟ j ⌋) ∨ ⌊ i ≟ j ⌋        ≡⟨ ≡.cong (_∨ ⌊ i ≟ j ⌋) (⌊Σ?⌋ (λ k → f k ≟ i ×? f k ≟ j)) ⟨
+    ⌊ Σ? (λ k → f k ≟ i ×? f k ≟ j) ⌋ ∨ ⌊ i ≟ j ⌋         ≡⟨ A→B⇒A∨B≡B (func f) ⟩
     ⌊ i ≟ j ⌋                                             ≡⟨ graph-id i j ⟩
     identity i j                                          ∎
   where
@@ -135,10 +135,10 @@ entire-index {n} {m} f i j = begin
     identity i j ∨ sum (λ k → ⌊ f j ≟ k ⌋ ∧ ⌊ f i ≟ k ⌋)  ≡⟨ ≡.cong (identity i j ∨_) (sum-cong (λ k → ∧-comm (⌊ f j ≟ k ⌋) (⌊ f i ≟ k ⌋))) ⟩
     identity i j ∨ sum (λ k → ⌊ f i ≟ k ⌋ ∧ ⌊ f j ≟ k ⌋)  ≡⟨ ≡.cong (_∨ sum (λ k → ⌊ f i ≟ k ⌋ ∧ ⌊ f j ≟ k ⌋)) (graph-id i j) ⟨
     ⌊ i ≟ j ⌋ ∨ sum (λ k → ⌊ f i ≟ k ⌋ ∧ ⌊ f j ≟ k ⌋)     ≡⟨ ≡.cong (⌊ i ≟ j ⌋ ∨_) (sum-cong (λ k → ⌊A×B⌋ (f i ≟ k) (f j ≟ k))) ⟩
-    ⌊ i ≟ j ⌋ ∨ sum (λ k → ⌊ f i ≟ k ×-dec f j ≟ k ⌋)     ≡⟨ ≡.cong (⌊ i ≟ j ⌋ ∨_) (⌊Σ?⌋ (λ k → f i ≟ k ×-dec f j ≟ k)) ⟨
-    ⌊ i ≟ j ⌋ ∨ ⌊ Σ? (λ k → f i ≟ k ×-dec f j ≟ k) ⌋      ≡⟨ A→B⇒A∨B≡B (enti f) ⟩
-    ⌊ Σ? (λ k → f i ≟ k ×-dec f j ≟ k) ⌋                  ≡⟨ ⌊Σ?⌋ (λ k → f i ≟ k ×-dec f j ≟ k) ⟩
-    sum (λ k → ⌊ f i ≟ k ×-dec f j ≟ k ⌋)                 ≡⟨ sum-cong (λ k → ⌊A×B⌋ (f i ≟ k) (f j ≟ k)) ⟨
+    ⌊ i ≟ j ⌋ ∨ sum (λ k → ⌊ f i ≟ k ×? f j ≟ k ⌋)        ≡⟨ ≡.cong (⌊ i ≟ j ⌋ ∨_) (⌊Σ?⌋ (λ k → f i ≟ k ×? f j ≟ k)) ⟨
+    ⌊ i ≟ j ⌋ ∨ ⌊ Σ? (λ k → f i ≟ k ×? f j ≟ k) ⌋         ≡⟨ A→B⇒A∨B≡B (enti f) ⟩
+    ⌊ Σ? (λ k → f i ≟ k ×? f j ≟ k) ⌋                     ≡⟨ ⌊Σ?⌋ (λ k → f i ≟ k ×? f j ≟ k) ⟩
+    sum (λ k → ⌊ f i ≟ k ×? f j ≟ k ⌋)                    ≡⟨ sum-cong (λ k → ⌊A×B⌋ (f i ≟ k) (f j ≟ k)) ⟨
     sum (λ k → ⌊ f i ≟ k ⌋ ∧ ⌊ f j ≟ k ⌋)                 ≡⟨ sum-cong (λ k → ∧-comm (⌊ f i ≟ k ⌋) (⌊ f j ≟ k ⌋)) ⟩
     sum (λ k → ⌊ f j ≟ k ⌋ ∧ ⌊ f i ≟ k ⌋)                 ∎
   where
@@ -209,12 +209,12 @@ homomorphism-index
       (j : Fin Z)
     → ⌊ (g (f i) ≟ j) ⌋ ≡ sum (λ k → ⌊ g k ≟ j ⌋ ∧ ⌊ f i ≟ k ⌋)
 homomorphism-index f g i j = begin
-    ⌊ g (f i) ≟ j ⌋                         ≡⟨ isYes≗does (g (f i) ≟ j) ⟩
-    does (g (f i) ≟ j)                      ≡⟨ does-⇔ (homo f g i j) (g (f i) ≟ j) (Σ? (λ k → g k ≟ j ×-dec f i ≟ k)) ⟩
-    does (Σ? (λ k → g k ≟ j ×-dec f i ≟ k)) ≡⟨ isYes≗does (Σ? (λ k → g k ≟ j ×-dec f i ≟ k)) ⟨
-    ⌊ Σ? (λ k → g k ≟ j ×-dec f i ≟ k) ⌋    ≡⟨ ⌊Σ?⌋ (λ k → g k ≟ j ×-dec f i ≟ k) ⟩
-    sum (λ k → ⌊ g k ≟ j ×-dec f i ≟ k ⌋)   ≡⟨ sum-cong (λ k → ⌊A×B⌋ (g k ≟ j) (f i ≟ k)) ⟨
-    sum (λ k → ⌊ g k ≟ j ⌋ ∧ ⌊ f i ≟ k ⌋)   ∎
+    ⌊ g (f i) ≟ j ⌋                       ≡⟨ isYes≗does (g (f i) ≟ j) ⟩
+    does (g (f i) ≟ j)                    ≡⟨ does-⇔ (homo f g i j) (g (f i) ≟ j) (Σ? (λ k → g k ≟ j ×? f i ≟ k)) ⟩
+    does (Σ? (λ k → g k ≟ j ×? f i ≟ k))  ≡⟨ isYes≗does (Σ? (λ k → g k ≟ j ×? f i ≟ k)) ⟨
+    ⌊ Σ? (λ k → g k ≟ j ×? f i ≟ k) ⌋     ≡⟨ ⌊Σ?⌋ (λ k → g k ≟ j ×? f i ≟ k) ⟩
+    sum (λ k → ⌊ g k ≟ j ×? f i ≟ k ⌋)    ≡⟨ sum-cong (λ k → ⌊A×B⌋ (g k ≟ j) (f i ≟ k)) ⟨
+    sum (λ k → ⌊ g k ≟ j ⌋ ∧ ⌊ f i ≟ k ⌋) ∎
   where
     open ≡-Reasoning
 
