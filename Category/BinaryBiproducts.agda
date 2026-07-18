@@ -10,6 +10,7 @@ import Categories.Morphism.Reasoning as ⇒-Reasoning
 
 open import Categories.Category.BinaryCoproducts 𝒞 using (BinaryCoproducts)
 open import Categories.Category.BinaryProducts 𝒞 using (BinaryProducts)
+open import Categories.Morphism.IsoEquiv 𝒞 using (_≃_; ⌞_⌟)
 open import Morphism.Zero using (IsZero⇒)
 open import Object.Biproduct 𝒞 using (Biproduct; Biproduct⇒Product; Biproduct⇒Coproduct)
 
@@ -30,19 +31,21 @@ record BinaryBiproducts : Set (levelOfTerm 𝒞) where
   _⊕_ : Obj → Obj → Obj
   A ⊕ B = Biproduct.A⊕B (biproduct {A} {B})
 
-  module _ where
+  private
+
     binaryProducts : BinaryProducts
     binaryProducts = record { product = Biproduct⇒Product biproduct }
-    open BinaryProducts binaryProducts public
-      hiding (_×_)
-      renaming (_×₁_ to infixr 10 _×₁_; ×-comm to ⊕-comm; ×-assoc to ⊕-assoc)
 
-  module _ where
     binaryCoproducts : BinaryCoproducts
     binaryCoproducts = record { coproduct = Biproduct⇒Coproduct biproduct }
-    open BinaryCoproducts binaryCoproducts public
-      hiding (_+_)
-      renaming (_+₁_ to infixr 10 _+₁_; +-comm to ⊕-comm′; +-assoc to ⊕-assoc′)
+
+  open BinaryProducts binaryProducts public
+    hiding (_×_)
+    renaming (_×₁_ to infixr 10 _×₁_; ×-comm to ⊕-comm; ×-assoc to ⊕-assoc)
+
+  open BinaryCoproducts binaryCoproducts public
+    hiding (_+_)
+    renaming (_+₁_ to infixr 10 _+₁_; +-comm to ⊕-comm′; +-assoc to ⊕-assoc′)
 
   private
     module π₂i₁ {A} {B} = IsZero⇒ (π₂∘i₁-isZero {A} {B})
@@ -94,7 +97,7 @@ record BinaryBiproducts : Set (levelOfTerm 𝒞) where
         id ∘ 𝟎⇒         ≈⟨ identityˡ ⟩
         𝟎⇒              ∎
 
-  module _ {A B : Obj} (f g : A ⇒ B) where
+  module _ {A B C D : Obj} (f : A ⇒ B) (g : C ⇒ D) where
 
     π₁∘+₁ : π₁ ∘ f +₁ g ≈ f ∘ π₁
     π₁∘+₁ = begin
@@ -118,6 +121,95 @@ record BinaryBiproducts : Set (levelOfTerm 𝒞) where
 
     ×₁-+₁ : f ×₁ g ≈ f +₁ g
     ×₁-+₁ = ⟨⟩-unique π₁∘+₁ π₂∘+₁
+
+  module _ {A B : Obj} where
+
+    π₁∘+-swap : π₁ ∘ +-swap ≈ π₂
+    π₁∘+-swap = begin
+        π₁ ∘ [ i₂ , i₁ ]      ≈⟨ ∘[] ⟩
+        [ π₁ ∘ i₂ , π₁ ∘ i₁ ] ≈⟨ []-cong₂ π₁i₂≈π₂i₁ (π₁∘i₁≈id ○ Equiv.sym π₂∘i₂≈id) ⟩
+        [ π₂ ∘ i₁ , π₂ ∘ i₂ ] ≈⟨ +-g-η ⟩
+        π₂ ∎
+
+    π₂∘+-swap : π₂ ∘ +-swap ≈ π₁
+    π₂∘+-swap = begin
+        π₂ ∘ [ i₂ , i₁ ]      ≈⟨ ∘[] ⟩
+        [ π₂ ∘ i₂ , π₂ ∘ i₁ ] ≈⟨ []-cong₂ (π₁∘i₁≈id ○ Equiv.sym π₂∘i₂≈id) π₁i₂≈π₂i₁ ⟨
+        [ π₁ ∘ i₁ , π₁ ∘ i₂ ] ≈⟨ +-g-η ⟩
+        π₁ ∎
+
+    swap≈+-swap : swap {A} {B} ≈ +-swap
+    swap≈+-swap = begin
+        ⟨ π₂ , π₁ ⟩ ≈⟨ ⟨⟩-unique π₁∘+-swap π₂∘+-swap ⟩
+        [ i₂ , i₁ ] ∎
+
+    ⊕-comm≃ : ⊕-comm {A} {B} ≃ ⊕-comm′
+    ⊕-comm≃ = ⌞ swap≈+-swap ⌟
+
+  module _ {A B C : Obj} where
+
+    private
+
+      lem₁ : π₁ ∘ [ i₂ , π₁ ∘ i₂ ] ≈ π₁ ∘ i₂
+      lem₁ = begin
+          π₁ ∘ [ i₂ , π₁ ∘ i₂ ]       ≈⟨ ∘[] ⟩
+          [ π₁ ∘ i₂ , π₁ ∘ π₁ ∘ i₂ ]  ≈⟨ []-congˡ (π₁i₂-absorbˡ π₁) ⟩
+          [ π₁ ∘ i₂ , π₁ ∘ i₂ ]       ≈⟨ []-unique (π₁i₂-absorbʳ i₁) (π₁i₂-absorbʳ i₂) ⟩
+          π₁ ∘ i₂ ∎
+
+      lem₂ : π₂ ∘ [ i₂ , π₁ ∘ i₂ ] ≈ π₁
+      lem₂ = begin
+          π₂ ∘ [ i₂ , π₁ ∘ i₂ ]       ≈⟨ ∘[] ⟩
+          [ π₂ ∘ i₂ , π₂ ∘ π₁ ∘ i₂ ]  ≈⟨ []-cong₂ π₂∘i₂≈id (π₁i₂-absorbˡ π₂) ⟩
+          [ id , π₁ ∘ i₂ ]            ≈⟨ []-congʳ π₁∘i₁≈id ⟨
+          [ π₁ ∘ i₁ , π₁ ∘ i₂ ]       ≈⟨ +-g-η ⟩
+          π₁                          ∎
+
+      lem₃ : ⟨ π₁ , π₁ ∘ π₂ ⟩ ∘ i₁ ≈ i₁
+      lem₃ = begin
+          ⟨ π₁ , π₁ ∘ π₂ ⟩ ∘ i₁         ≈⟨ ⟨⟩∘ ⟩
+          ⟨ π₁ ∘ i₁ , (π₁ ∘ π₂) ∘ i₁ ⟩  ≈⟨ ⟨⟩-cong₂ π₁∘i₁≈id assoc ⟩
+          ⟨ id , π₁ ∘ π₂ ∘ i₁ ⟩         ≈⟨ ⟨⟩-cong₂ (Equiv.sym π₁∘i₁≈id) (π₂i₁-absorbˡ π₁) ⟩
+          ⟨ π₁ ∘ i₁ , π₂ ∘ i₁ ⟩         ≈⟨ g-η ⟩
+          i₁                            ∎
+
+      lem₄ : ⟨ π₁ , π₁ ∘ π₂ ⟩ ∘ i₂ ≈ [ i₂ , π₁ ∘ i₂ ]
+      lem₄ = begin
+          ⟨ π₁ , π₁ ∘ π₂ ⟩ ∘ i₂         ≈⟨ ⟨⟩∘ ⟩
+          ⟨ π₁ ∘ i₂ , (π₁ ∘ π₂) ∘ i₂ ⟩  ≈⟨ ⟨⟩-congˡ (cancelʳ π₂∘i₂≈id) ⟩
+          ⟨ π₁ ∘ i₂ , π₁ ⟩              ≈⟨ ⟨⟩-unique lem₁ lem₂ ⟩
+          [ i₂ , π₁ ∘ i₂ ]              ∎
+
+      lem₅ : π₁ ∘ [ i₁ ∘ i₁ , [ i₁ ∘ i₂ , i₂ ] ] ≈ ⟨ π₁ , π₁ ∘ π₂ ⟩
+      lem₅ = begin
+          π₁ ∘ [ i₁ ∘ i₁ , [ i₁ ∘ i₂ , i₂ ] ]           ≈⟨ ∘[] ⟩
+          [ π₁ ∘ i₁ ∘ i₁ , π₁ ∘ [ i₁ ∘ i₂ , i₂ ] ]      ≈⟨ []-congˡ ∘[] ⟩
+          [ π₁ ∘ i₁ ∘ i₁ , [ π₁ ∘ i₁ ∘ i₂ , π₁ ∘ i₂ ] ] ≈⟨ []-cong₂ (cancelˡ π₁∘i₁≈id) ([]-congʳ (cancelˡ π₁∘i₁≈id)) ⟩
+          [ i₁ , [ i₂ , π₁ ∘ i₂ ] ]                     ≈⟨ []-unique lem₃ lem₄ ⟩
+          ⟨ π₁ , π₁ ∘ π₂ ⟩                              ∎
+
+      lem₆ : π₂ ∘ [ i₁ ∘ i₁ , [ i₁ ∘ i₂ , i₂ ] ] ≈ π₂ ∘ π₂
+      lem₆ = begin
+          π₂ ∘ [ i₁ ∘ i₁ , [ i₁ ∘ i₂ , i₂ ] ]             ≈⟨ ∘[] ⟩
+          [ π₂ ∘ i₁ ∘ i₁ , π₂ ∘ [ i₁ ∘ i₂ , i₂ ] ]        ≈⟨ []-cong₂ sym-assoc ∘[] ⟩
+          [ (π₂ ∘ i₁) ∘ i₁ , [ π₂ ∘ i₁ ∘ i₂ , π₂ ∘ i₂ ] ] ≈⟨ []-cong₂ (π₂i₁-absorbʳ i₁) ([]-congʳ (sym-assoc ○ π₂i₁-absorbʳ i₂)) ⟩
+          [ π₂ ∘ i₁ , [ π₂ ∘ i₁ , π₂ ∘ i₂ ] ]             ≈⟨ []-congˡ ([]-congˡ (π₂∘i₂≈id ○ Equiv.sym π₂∘i₂≈id)) ⟩
+          [ π₂ ∘ i₁ , [ π₂ ∘ i₁ , π₂ ∘ i₂ ] ]             ≈⟨ []-congˡ +-g-η ⟩
+          [ π₂ ∘ i₁ , π₂ ]                                ≈⟨ []-unique (assoc ○ π₂i₁-absorbˡ π₂) (cancelʳ π₂∘i₂≈id) ⟩
+          π₂ ∘ π₂                                         ∎
+
+    assocʳ≈+-assocʳ : assocʳ ≈ +-assocʳ
+    assocʳ≈+-assocʳ = begin
+        ⟨ ⟨ π₁ , π₁ ∘ π₂ ⟩ , π₂ ∘ π₂ ⟩  ≈⟨ ⟨⟩-unique lem₅ lem₆ ⟩
+        [ i₁ ∘ i₁ , [ i₁ ∘ i₂ , i₂ ] ]  ∎
+
+    ⊕-assoc≃ : ⊕-assoc {A} {B} {C} ≃ ⊕-assoc′
+    ⊕-assoc≃ = ⌞ assocʳ≈+-assocʳ ⌟
+
+    assocˡ≈+-assocˡ : assocˡ ≈ +-assocˡ
+    assocˡ≈+-assocˡ = to-≈ ⊕-assoc≃
+      where
+        open _≃_
 
   ∇-assoc : {A : Obj} → ∇ {A} ∘ ∇ +₁ id ≈ ∇ ∘ id +₁ ∇ ∘ +-assocˡ
   ∇-assoc = begin
