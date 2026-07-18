@@ -54,6 +54,12 @@ record BinaryBiproducts : Set (levelOfTerm 𝒞) where
   open ⇒-Reasoning 𝒞
   open HomReasoning
 
+  ×₁-congˡ : {A B C D : Obj} → {f : A ⇒ B} {g h : C ⇒ D} → g ≈ h → f ×₁ g ≈ f ×₁ h
+  ×₁-congˡ g≈h = ×₁-cong₂ Equiv.refl g≈h
+
+  ×₁-congʳ : {A B C D : Obj} → {f g : A ⇒ B} {h : C ⇒ D} → f ≈ g → f ×₁ h ≈ g ×₁ h
+  ×₁-congʳ f≈g = ×₁-cong₂ f≈g Equiv.refl
+
   π₁i₂≈π₂i₁ : {A B : Obj} → π₁ ∘ i₂ ≈ π₂ {A} {B} ∘ i₁
   π₁i₂≈π₂i₁ {A} {B} = begin
       π₁ ∘ i₂                             ≈⟨ identityʳ ⟨

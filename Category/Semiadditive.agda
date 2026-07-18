@@ -32,6 +32,20 @@ record Semiadditive : Set (levelOfTerm 𝒞) where
 
   module _ {A B : Obj} where
 
+    π₁∘i₂≈0 : π₁ {A} {B} ∘ i₂ ≈ zero⇒
+    π₁∘i₂≈0 = begin
+        π₁ ∘ i₂             ≈⟨ π₁i₂-absorbˡ zero⇒ ⟨
+        zero⇒ {A} ∘ π₁ ∘ i₂ ≈⟨ zero-∘ʳ (π₁ ∘ i₂) ⟩
+        zero⇒               ∎
+
+    π₂∘i₁≈0 : π₂ {A} {B} ∘ i₁ ≈ zero⇒
+    π₂∘i₁≈0 = begin
+        π₂ ∘ i₁             ≈⟨ π₂i₁-absorbˡ zero⇒ ⟨
+        zero⇒ {A} ∘ π₂ ∘ i₁ ≈⟨ zero-∘ʳ (π₂ ∘ i₁) ⟩
+        zero⇒               ∎
+
+  module _ {A B : Obj} where
+
     _+_ _+′_ : A ⇒ B → A ⇒ B → A ⇒ B
     f + g = ∇ ∘ f ×₁ g ∘ Δ
     f +′ g = ∇ ∘ f +₁ g ∘ Δ
@@ -61,8 +75,7 @@ record Semiadditive : Set (levelOfTerm 𝒞) where
         ∇ ∘ zero⇒ ×₁ x ∘ Δ              ≈⟨ refl⟩∘⟨ ×₁∘Δ ⟩
         ∇ ∘ ⟨ zero⇒ , x ⟩               ≈⟨ refl⟩∘⟨ ⟨⟩-cong₂ (zero-∘ʳ x) identityˡ ⟨
         ∇ ∘ ⟨ zero⇒ ∘ x , id ∘ x ⟩      ≈⟨ refl⟩∘⟨ ⟨⟩∘ ⟨
-        ∇ ∘ ⟨ zero⇒ , id ⟩ ∘ x          ≈⟨ refl⟩∘⟨ ⟨⟩-congʳ (zero-∘ʳ 𝟎⇐) ⟩∘⟨refl ⟨
-        ∇ ∘ ⟨ zero⇒ {A} ∘ 𝟎⇐ , id ⟩ ∘ x ≈⟨ refl⟩∘⟨ ⟨⟩-cong₂ (π₁i₂-absorbˡ zero⇒) (Equiv.sym π₂∘i₂≈id) ⟩∘⟨refl ⟩
+        ∇ ∘ ⟨ zero⇒ , id ⟩ ∘ x          ≈⟨ refl⟩∘⟨ ⟨⟩-cong₂ π₁∘i₂≈0 π₂∘i₂≈id ⟩∘⟨refl ⟨
         ∇ ∘ ⟨ π₁ ∘ i₂ , π₂ ∘ i₂ ⟩ ∘ x   ≈⟨ refl⟩∘⟨ g-η ⟩∘⟨refl ⟩
         ∇ ∘ i₂ ∘ x                      ≈⟨ cancelˡ ∇-identityˡ ⟩
         x                               ∎
@@ -72,8 +85,7 @@ record Semiadditive : Set (levelOfTerm 𝒞) where
         ∇ ∘ x ×₁ zero⇒ ∘ Δ              ≈⟨ refl⟩∘⟨ ×₁∘Δ ⟩
         ∇ ∘ ⟨ x , zero⇒ ⟩               ≈⟨ refl⟩∘⟨ ⟨⟩-cong₂ identityˡ (zero-∘ʳ x) ⟨
         ∇ ∘ ⟨ id ∘ x , zero⇒ ∘ x ⟩      ≈⟨ refl⟩∘⟨ ⟨⟩∘ ⟨
-        ∇ ∘ ⟨ id , zero⇒ ⟩ ∘ x          ≈⟨ refl⟩∘⟨ ⟨⟩-congˡ (zero-∘ʳ 𝟎⇒) ⟩∘⟨refl ⟨
-        ∇ ∘ ⟨ id , zero⇒ {A} ∘ 𝟎⇒ ⟩ ∘ x ≈⟨ refl⟩∘⟨ ⟨⟩-cong₂ (Equiv.sym π₁∘i₁≈id) (π₂i₁-absorbˡ zero⇒) ⟩∘⟨refl ⟩
+        ∇ ∘ ⟨ id , zero⇒ ⟩ ∘ x          ≈⟨ refl⟩∘⟨ ⟨⟩-cong₂ π₁∘i₁≈id π₂∘i₁≈0 ⟩∘⟨refl ⟨
         ∇ ∘ ⟨ π₁ ∘ i₁ , π₂ ∘ i₁ ⟩ ∘ x   ≈⟨ refl⟩∘⟨ g-η ⟩∘⟨refl ⟩
         ∇ ∘ i₁ ∘ x                      ≈⟨ cancelˡ ∇-identityʳ ⟩
         x                               ∎

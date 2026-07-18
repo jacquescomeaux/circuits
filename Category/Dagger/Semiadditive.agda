@@ -5,446 +5,77 @@ open import Categories.Category using (Category)
 
 module Category.Dagger.Semiadditive {o ℓ e : Level} (𝒞 : Category o ℓ e) where
 
-import Categories.Category.Monoidal.Reasoning as ⊗-Reasoning
-import Categories.Morphism.Reasoning as ⇒-Reasoning
+import Categories.Morphism.Reasoning 𝒞 as ⇒-Reasoning
 
-open import Categories.Category.BinaryProducts 𝒞 using (BinaryProducts)
-open import Categories.Category.Cartesian 𝒞 using (Cartesian)
-open import Categories.Category.Cartesian.Monoidal using (module CartesianMonoidal)
-open import Categories.Category.Cocartesian 𝒞 using (Cocartesian)
-open import Categories.Category.Cocartesian.Monoidal using (module CocartesianMonoidal)
-open import Categories.Category.Cocartesian.SymmetricMonoidal using (module CocartesianSymmetricMonoidal)
 open import Categories.Category.Dagger using (HasDagger)
-open import Categories.Category.Monoidal using (Monoidal)
-open import Categories.Category.Monoidal.Symmetric using (module Symmetric)
-open import Categories.Category.Monoidal.Symmetric.Properties using () renaming (module Shorthands to σ-Shorthands)
-open import Categories.Category.Monoidal.Utilities using (module Shorthands)
-open import Categories.Functor using (Functor)
-open import Categories.Object.Duality using (Coproduct⇒coProduct)
-open import Categories.Object.Terminal 𝒞 using (Terminal)
+open import Category.Semiadditive using (Semiadditive)
 open import Relation.Binary using (Rel)
-
-record DaggerCocartesianMonoidal : Set (suc (o ⊔ ℓ ⊔ e)) where
-
-  field
-    cocartesian : Cocartesian
-    dagger : HasDagger 𝒞
-
-  open Cocartesian cocartesian using (i₁; i₂) renaming (_+₁_ to _⊗₁_)
-  open CocartesianMonoidal cocartesian using (+-monoidal)
-  open CocartesianSymmetricMonoidal 𝒞 cocartesian using (+-symmetric)
-  open HasDagger dagger using (_†; isUnitary; isSelfAdjoint)
-  open Shorthands +-monoidal using (λ⇒; λ⇐; ρ⇒; ρ⇐; α⇒; α⇐)
-  open σ-Shorthands +-symmetric using (σ⇒)
-  open Category 𝒞
-
-  -- dagger and cocartesian monoidal structure are compatible
-  field
-    λ≅† : {A : Obj} → λ⇒ {A} † ≈ λ⇐
-    ρ≅† : {A : Obj} → ρ⇒ {A} † ≈ ρ⇐
-    α≅† : {A B C : Obj} → α⇒ {A} {B} {C} † ≈ α⇐
-    σ≅† : {A B : Obj} → σ⇒ {A} {B} † ≈ σ⇒
-    †-resp-⊗ : {A B C D : Obj} {f : A ⇒ B} {g : C ⇒ D} → (f ⊗₁ g) † ≈ (f †) ⊗₁ (g †)
 
 record SemiadditiveDagger : Set (suc (o ⊔ ℓ ⊔ e)) where
 
   field
-    daggerCocartesianMonoidal : DaggerCocartesianMonoidal
+    semiadditive : Semiadditive 𝒞
+    dagger : HasDagger 𝒞
 
-  open DaggerCocartesianMonoidal daggerCocartesianMonoidal public
-  open Cocartesian cocartesian using ([]∘+-assocʳ; []∘+-swap) renaming (_+_ to _⊕₀_; _+₁_ to infixr 10 _⊕₁_; -+- to ⊕) public
-  open CocartesianMonoidal cocartesian using (+-monoidal) public
-  open Cocartesian cocartesian using (i₁; i₂; ¡) public
-  open Cocartesian cocartesian using (⊥; [_,_]; ∘[]; []∘+₁; []-congˡ; []-cong₂; coproduct; ¡-unique; inject₁; inject₂; +-unique; +-η) renaming (∇∘+₁ to ▽∘+₁)
-  open CocartesianSymmetricMonoidal 𝒞 cocartesian using (+-symmetric)
-  open HasDagger dagger using (_†; †-involutive; ⟨_⟩†; †-identity; †-homomorphism) public
-  open Monoidal +-monoidal using (unitorˡ-commute-from; unitorʳ-commute-from; assoc-commute-from; module unitorˡ; module unitorʳ; module associator)
-  open σ-Shorthands +-symmetric using (σ⇒)
-  open Symmetric +-symmetric using (module braiding)
-  open Shorthands +-monoidal using (λ⇒; λ⇐; ρ⇒; ρ⇐; α⇒; α⇐)
   open Category 𝒞
-
-  module ⊕ = Functor ⊕
-
-  -- projection maps
-  p₁ : {A B : Obj} → A ⊕₀ B ⇒ A
-  p₁ = i₁ †
-
-  p₂ : {A B : Obj} → A ⊕₀ B ⇒ B
-  p₂ = i₂ †
-
-  -- codiagonal
-  ▽ : {A : Obj} → A ⊕₀ A ⇒ A
-  ▽ = [ id , id ]
-
-  -- diagonal
-  △ : {A : Obj} → A ⇒ A ⊕₀ A
-  △ = ▽ †
-
-  open ⊗-Reasoning +-monoidal
-  open ⇒-Reasoning 𝒞
-
-  ▽-assoc : {A : Obj} → ▽ {A} ∘ ▽ ⊕₁ id ≈ ▽ ∘ id ⊕₁ ▽ ∘ α⇒
-  ▽-assoc = begin
-      [ id , id ] ∘ [ id , id ] ⊕₁ id       ≈⟨ []∘+₁ ⟩
-      [ id ∘ [ id , id ] , id ∘ id ]        ≈⟨ []-cong₂ identityˡ identityˡ ⟩
-      [ [ id , id ] , id ]                  ≈⟨ []∘+-assocʳ ⟨
-      [ id , [ id , id ] ] ∘ α⇒             ≈⟨ []-cong₂ identityˡ identityˡ ⟩∘⟨refl ⟨
-      [ id ∘ id , id ∘ [ id , id ] ] ∘ α⇒   ≈⟨ pushˡ (Equiv.sym []∘+₁) ⟩
-      [ id , id ] ∘ id ⊕₁ [ id , id ] ∘ α⇒  ∎
-
-  △-assoc : {A : Obj} → id ⊕₁ △ ∘ △ {A} ≈ α⇒ ∘ △ ⊕₁ id ∘ △
-  △-assoc = begin
-      id ⊕₁ △ ∘ △                 ≈⟨ †-involutive (id ⊕₁ △ ∘ △) ⟨
-      (id ⊕₁ △ ∘ △) † †           ≈⟨ ⟨ †-homomorphism ⟩† ⟩
-      (△ † ∘ (id ⊕₁ △) †) †       ≈⟨ ⟨ (†-involutive ▽ ⟩∘⟨ †-resp-⊗) ⟩† ⟩
-      (▽ ∘ (id †) ⊕₁ (△ †)) †     ≈⟨ ⟨ refl⟩∘⟨ †-identity ⟩⊗⟨ †-involutive ▽ ⟩† ⟩
-      (▽ ∘ id ⊕₁ ▽) †             ≈⟨ ⟨ refl⟩∘⟨ introʳ associator.isoʳ ⟩† ⟩
-      (▽ ∘ id ⊕₁ ▽ ∘ α⇒ ∘ α⇐) †   ≈⟨ ⟨ refl⟩∘⟨ assoc ⟩† ⟨
-      (▽ ∘ (id ⊕₁ ▽ ∘ α⇒) ∘ α⇐) † ≈⟨ ⟨ extendʳ ▽-assoc ⟩† ⟨
-      (▽ ∘ ▽ ⊕₁ id ∘ α⇐) †        ≈⟨ †-homomorphism ⟩
-      (▽ ⊕₁ id ∘ α⇐) † ∘ ▽ †      ≈⟨ pushˡ †-homomorphism ⟩
-      α⇐ † ∘ (▽ ⊕₁ id) † ∘ △      ≈⟨ ⟨ α≅† ⟩† ⟩∘⟨refl ⟨
-      α⇒ † † ∘ (▽ ⊕₁ id) † ∘ △    ≈⟨ †-involutive α⇒ ⟩∘⟨refl ⟩
-      α⇒ ∘ (▽ ⊕₁ id) † ∘ △        ≈⟨ refl⟩∘⟨ †-resp-⊗ ⟩∘⟨refl ⟩
-      α⇒ ∘ (▽ †) ⊕₁ (id †) ∘ △    ≈⟨ refl⟩∘⟨ refl⟩⊗⟨ †-identity ⟩∘⟨refl ⟩
-      α⇒ ∘ △ ⊕₁ id ∘ △            ∎
-
-  ! : {A : Obj} → A ⇒ ⊥
-  ! = ¡ †
-
-  ▽-identityˡ : {A : Obj} → ▽ {A} ∘ ¡ ⊕₁ id ≈ λ⇒
-  ▽-identityˡ = begin
-      [ id , id ] ∘ ¡ ⊕₁ id ≈⟨ []∘+₁ ⟩
-      [ id ∘ ¡ , id ∘ id ]  ≈⟨ []-cong₂ identityˡ identity² ⟩
-      [ ¡ , id ]            ∎
-
-  △-identityˡ : {A : Obj} → ! {A} ⊕₁ id ∘ △ ≈ λ⇐
-  △-identityˡ = begin
-      ! ⊕₁ id ∘ △           ≈⟨ refl⟩⊗⟨ †-identity ⟩∘⟨refl ⟨
-      (¡ †) ⊕₁ (id †) ∘ ▽ † ≈⟨ †-resp-⊗ ⟩∘⟨refl ⟨
-      (¡ ⊕₁ id) † ∘ ▽ †     ≈⟨ †-homomorphism ⟨
-      (▽ ∘ ¡ ⊕₁ id) †       ≈⟨ ⟨ ▽-identityˡ ⟩† ⟩
-      λ⇒ †                  ≈⟨ λ≅† ⟩
-      λ⇐ ∎
-
-  ▽-identityʳ : {A : Obj} → ▽ {A} ∘ id ⊕₁ ¡ ≈ ρ⇒
-  ▽-identityʳ = begin
-      [ id , id ] ∘ id ⊕₁ ¡ ≈⟨ []∘+₁ ⟩
-      [ id ∘ id , id ∘ ¡ ]  ≈⟨ []-cong₂ identity² identityˡ ⟩
-      [ id , ¡ ]            ∎
-
-  △-identityʳ : {A : Obj} → id {A} ⊕₁ ! ∘ △ ≈ ρ⇐
-  △-identityʳ = begin
-      id ⊕₁ (¡ †) ∘ ▽ †     ≈⟨ †-identity ⟩⊗⟨refl ⟩∘⟨refl ⟨
-      (id †) ⊕₁ (¡ †) ∘ ▽ † ≈⟨ †-resp-⊗ ⟩∘⟨refl ⟨
-      (id ⊕₁ ¡) † ∘ ▽ †     ≈⟨ †-homomorphism ⟨
-      (▽ ∘ id ⊕₁ ¡) †       ≈⟨ ⟨ ▽-identityʳ ⟩† ⟩
-      ρ⇒ †                  ≈⟨ ρ≅† ⟩
-      ρ⇐                    ∎
-
-  ▽-comm : {A : Obj} → ▽ {A} ∘ σ⇒ ≈ ▽
-  ▽-comm = []∘+-swap
-
-  △-comm : {A : Obj} → σ⇒ ∘ △ {A} ≈ △
-  △-comm = begin
-      σ⇒ ∘ ▽ †    ≈⟨ σ≅† ⟩∘⟨refl ⟨
-      σ⇒ † ∘ ▽ †  ≈⟨ †-homomorphism ⟨
-      (▽ ∘ σ⇒) †  ≈⟨ ⟨ ▽-comm ⟩† ⟩
-      ▽ †         ∎
-
-  ⇒▽ : {A B : Obj} {f : A ⇒ B} → f ∘ ▽ ≈ ▽ ∘ f ⊕₁ f
-  ⇒▽ {A} {B} {f} = begin
-      f ∘ [ id , id ]       ≈⟨ ∘[] ⟩
-      [ f ∘ id , f ∘ id ]   ≈⟨ []-cong₂ identityʳ identityʳ ⟩
-      [ f , f ]             ≈⟨ []-cong₂ identityˡ identityˡ ⟨
-      [ id ∘ f , id ∘ f ]   ≈⟨ []∘+₁ ⟨
-      [ id , id ] ∘ f ⊕₁ f  ∎
-
-  ⇒△ : {A B : Obj} {f : A ⇒ B} → △ ∘ f ≈ f ⊕₁ f ∘ △
-  ⇒△ {A} {B} {f} = begin
-      ▽ † ∘ f                   ≈⟨ refl⟩∘⟨ †-involutive f ⟨
-      ▽ † ∘ f † †               ≈⟨ †-homomorphism ⟨
-      (f † ∘ ▽) †               ≈⟨ ⟨ ⇒▽ ⟩† ⟩
-      (▽ ∘ (f †) ⊕₁ (f †)) †    ≈⟨ †-homomorphism ⟩
-      ((f †) ⊕₁ (f †)) † ∘ ▽ †  ≈⟨ †-resp-⊗ ⟩∘⟨refl ⟩
-      (f † †) ⊕₁ (f † †) ∘ ▽ †  ≈⟨ †-involutive f ⟩⊗⟨ †-involutive f ⟩∘⟨refl ⟩
-      f ⊕₁ f ∘ ▽ †              ∎
-
-  ⇒¡ : {A B : Obj} {f : A ⇒ B} → f ∘ ¡ ≈ ¡
-  ⇒¡ {A} {B} {f} = Equiv.sym (¡-unique (f ∘ ¡))
-
-  ⇒! : {A B : Obj} {f : A ⇒ B} → ! ∘ f ≈ !
-  ⇒! {A} {B} {f} = begin
-      ¡ † ∘ f     ≈⟨ refl⟩∘⟨ †-involutive f ⟨
-      ¡ † ∘ f † † ≈⟨ †-homomorphism ⟨
-      (f † ∘ ¡) † ≈⟨ ⟨ ⇒¡ ⟩† ⟩
-      ¡ †         ∎
-
-  ρ⇐≈i₁ : {A : Obj} → ρ⇐ {A} ≈ i₁
-  ρ⇐≈i₁ = Equiv.refl
-
-  λ⇐≈i₂ : {A : Obj} → λ⇐ {A} ≈ i₂
-  λ⇐≈i₂ = Equiv.refl
-
-  λ⇒≈p₂ : {A : Obj} → λ⇒ {A} ≈ p₂
-  λ⇒≈p₂ = begin
-      λ⇒      ≈⟨ †-involutive λ⇒ ⟨
-      λ⇒ † †  ≈⟨ ⟨ λ≅† ⟩† ⟩
-      λ⇐ †    ≈⟨ ⟨ λ⇐≈i₂ ⟩† ⟩
-      i₂ †    ∎
-
-  ρ⇒≈p₁ : {A : Obj} → ρ⇒ {A} ≈ p₁
-  ρ⇒≈p₁ = begin
-      ρ⇒      ≈⟨ †-involutive ρ⇒ ⟨
-      ρ⇒ † †  ≈⟨ ⟨ ρ≅† ⟩† ⟩
-      ρ⇐ †    ≈⟨ ⟨ ρ⇐≈i₁ ⟩† ⟩
-      i₁ †    ∎
-
-  i₁-⊕ : {A B : Obj} → i₁ {A} {B} ≈ id ⊕₁ ¡ ∘ ρ⇐
-  i₁-⊕ = begin
-      i₁            ≈⟨ identityʳ ⟨
-      i₁ ∘ id       ≈⟨ inject₁ ⟨
-      id ⊕₁ ¡ ∘ i₁  ≈⟨ refl⟩∘⟨ ρ⇐≈i₁ ⟨
-      id ⊕₁ ¡ ∘ ρ⇐  ∎
-
-  i₂-⊕ : {A B : Obj} → i₂ {A} {B} ≈ ¡ ⊕₁ id ∘ λ⇐
-  i₂-⊕ = begin
-      i₂            ≈⟨ identityʳ ⟨
-      i₂ ∘ id       ≈⟨ inject₂ ⟨
-      ¡ ⊕₁ id ∘ i₂  ≈⟨ refl⟩∘⟨ λ⇐≈i₂ ⟨
-      ¡ ⊕₁ id ∘ λ⇐  ∎
-
-  p₁-⊕ : {A B : Obj} → p₁ {A} {B} ≈ ρ⇒ ∘ id ⊕₁ !
-  p₁-⊕ {A} {B} = begin
-      i₁ †                      ≈⟨ ⟨ i₁-⊕ ⟩† ⟩
-      (id ⊕₁ ¡ ∘ ρ⇐) †          ≈⟨ †-homomorphism ⟩
-      ρ⇐ † ∘ (id ⊕₁ ¡) †        ≈⟨ refl⟩∘⟨ †-resp-⊗ ⟩
-      ρ⇐ † ∘ (id †) ⊕₁ (¡ †)    ≈⟨ ⟨ ρ≅† ⟩† ⟩∘⟨refl ⟨
-      ρ⇒ † † ∘ (id †) ⊕₁ (¡ †)  ≈⟨ †-involutive ρ⇒ ⟩∘⟨ †-identity ⟩⊗⟨refl ⟩
-      ρ⇒ ∘ id ⊕₁ (¡ †)          ∎
-
-  p₂-⊕ : {A B : Obj} → p₂ {A} {B} ≈ λ⇒ ∘ ! ⊕₁ id
-  p₂-⊕ {A} {B} = begin
-      i₂ †                      ≈⟨ ⟨ i₂-⊕ ⟩† ⟩
-      (¡ ⊕₁ id ∘ λ⇐) †          ≈⟨ †-homomorphism ⟩
-      λ⇐ † ∘ (¡ ⊕₁ id) †        ≈⟨ refl⟩∘⟨ †-resp-⊗ ⟩
-      λ⇐ † ∘ (¡ †) ⊕₁ (id †)    ≈⟨ ⟨ λ≅† ⟩† ⟩∘⟨refl ⟨
-      λ⇒ † † ∘ (¡ †) ⊕₁ (id †)  ≈⟨ †-involutive λ⇒ ⟩∘⟨ refl⟩⊗⟨ †-identity ⟩
-      λ⇒ ∘ (¡ †) ⊕₁ id          ∎
-
-  ▽∘i₁ : {A : Obj} → ▽ ∘ i₁ ≈ id {A}
-  ▽∘i₁ = begin
-      ▽ ∘ i₁            ≈⟨ refl⟩∘⟨ i₁-⊕ ⟩
-      ▽ ∘ id ⊕₁ ¡ ∘ ρ⇐  ≈⟨ pullˡ ▽-identityʳ ⟩
-      ρ⇒ ∘ ρ⇐           ≈⟨ unitorʳ.isoʳ ⟩
-      id                ∎
-
-  ▽∘i₂ : {A : Obj} → ▽ ∘ i₂ ≈ id {A}
-  ▽∘i₂ = begin
-      ▽ ∘ i₂            ≈⟨ refl⟩∘⟨ i₂-⊕ ⟩
-      ▽ ∘ ¡ ⊕₁ id ∘ λ⇐  ≈⟨ pullˡ ▽-identityˡ ⟩
-      λ⇒ ∘ λ⇐           ≈⟨ unitorˡ.isoʳ ⟩
-      id                ∎
-
-  p₁∘△ : {A : Obj} → p₁ ∘ △ ≈ id {A}
-  p₁∘△ = begin
-      p₁ ∘ △            ≈⟨ pushˡ p₁-⊕ ⟩
-      ρ⇒ ∘ id ⊕₁ ! ∘ △  ≈⟨ refl⟩∘⟨ △-identityʳ ⟩
-      ρ⇒ ∘ ρ⇐           ≈⟨ unitorʳ.isoʳ ⟩
-      id                ∎
-
-  p₂∘△ : {A : Obj} → p₂ ∘ △ ≈ id {A}
-  p₂∘△ = begin
-      p₂ ∘ △            ≈⟨ pushˡ p₂-⊕ ⟩
-      λ⇒ ∘ ! ⊕₁ id ∘ △  ≈⟨ refl⟩∘⟨ △-identityˡ ⟩
-      λ⇒ ∘ λ⇐           ≈⟨ unitorˡ.isoʳ ⟩
-      id                ∎
-
-  -- zero arrows
-  z : {A B : Obj} → A ⇒ B
-  z = ¡ ∘ !
+  open HasDagger dagger public
+  open Semiadditive semiadditive public
 
   field
-    -- orthogonality conditions: pᵢiⱼ ≈ δᵢⱼ
-    p₁-i₁ : {A B : Obj} → p₁ {A} {B} ∘ i₁ ≈ id {A}
-    p₂-i₂ : {A B : Obj} → p₂ {A} {B} ∘ i₂ ≈ id {B}
-    p₂-i₁ : {A B : Obj} → p₂ {A} {B} ∘ i₁ ≈ z {A} {B}
-    p₁-i₂ : {A B : Obj} → p₁ {A} {B} ∘ i₂ ≈ z {B} {A}
+    π₁† : {A B : Obj} → π₁ {A} {B} † ≈ i₁
+    π₂† : {A B : Obj} → π₂ {A} {B} † ≈ i₂
+    ⟨⟩-† : {A B C : Obj} {f : A ⇒ B} {g : A ⇒ C} → ⟨ f , g ⟩ † ≈ [ f † , g † ]
 
-  -- commutative monoid structure on homs
-  module _ {A B : Obj} where
+  open HomReasoning
+  open ⇒-Reasoning
 
-    _+_ : A ⇒ B → A ⇒ B → A ⇒ B
-    _+_ f g = ▽ ∘ f ⊕₁ g ∘ △
+  Δ† : {A : Obj} → Δ {A} † ≈ ∇
+  Δ† = begin
+      ⟨ id , id ⟩ †   ≈⟨ ⟨⟩-† ⟩
+      [ id † , id † ] ≈⟨ []-cong₂ †-identity †-identity ⟩
+      [ id , id ]     ∎
 
-    infixl 6 _+_
+  ∇† : {A : Obj} → ∇ {A} † ≈ Δ
+  ∇† = begin
+      ∇ †   ≈⟨ ⟨ Δ† ⟩† ⟨
+      Δ † † ≈⟨ †-involutive Δ ⟩
+      Δ     ∎
 
-    +-associative : {f g h : A ⇒ B} → (f + g) + h ≈ f + (g + h)
-    +-associative {f} {g} {h} = begin
-        ▽ ∘ (▽ ∘ f ⊕₁ g ∘ △) ⊕₁ h ∘ △                     ≈⟨ refl⟩∘⟨ pushˡ split₁ˡ ⟩
-        ▽ ∘ ▽ ⊕₁ id ∘ (f ⊕₁ g ∘ △) ⊕₁ h ∘ △               ≈⟨ refl⟩∘⟨ refl⟩∘⟨ pushˡ split₁ʳ ⟩
-        ▽ ∘ ▽ ⊕₁ id ∘ (f ⊕₁ g) ⊕₁ h ∘ △ ⊕₁ id ∘ △         ≈⟨ extendʳ ▽-assoc ⟩
-        ▽ ∘ (id ⊕₁ ▽ ∘ α⇒) ∘ (f ⊕₁ g) ⊕₁ h ∘ △ ⊕₁ id ∘ △  ≈⟨ refl⟩∘⟨ pullʳ (extendʳ assoc-commute-from) ⟩
-        ▽ ∘ id ⊕₁ ▽ ∘ f ⊕₁ g ⊕₁ h ∘ α⇒ ∘ △ ⊕₁ id ∘ △      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ △-assoc ⟨
-        ▽ ∘ id ⊕₁ ▽ ∘ f ⊕₁ g ⊕₁ h ∘ id ⊕₁ △ ∘ △           ≈⟨ refl⟩∘⟨ refl⟩∘⟨ pullˡ merge₂ʳ ⟩
-        ▽ ∘ id ⊕₁ ▽ ∘ f ⊕₁ (g ⊕₁ h ∘ △) ∘ △               ≈⟨ refl⟩∘⟨ pullˡ merge₂ˡ ⟩
-        ▽ ∘ f ⊕₁ (▽ ∘ g ⊕₁ h ∘ △) ∘ △                     ∎
+  †-resp-×₁ : {A B C D : Obj} {f : A ⇒ B} {g : C ⇒ D} → (f ×₁ g) † ≈ (f †) ×₁ (g †)
+  †-resp-×₁ {f = f} {g} = begin
+      ⟨ f ∘ π₁ , g ∘ π₂ ⟩ †       ≈⟨ ⟨⟩-† ⟩
+      [ (f ∘ π₁) † , (g ∘ π₂) † ] ≈⟨ []-cong₂ †-homomorphism †-homomorphism ⟩
+      [ π₁ † ∘ f † , π₂ † ∘ g † ] ≈⟨ []-cong₂ (π₁† ⟩∘⟨refl) (π₂† ⟩∘⟨refl) ⟩
+      [ i₁ ∘ f † , i₂ ∘ g † ]     ≈⟨ ×₁-+₁ (f †) (g †) ⟨
+      ⟨ f † ∘ π₁ , g † ∘ π₂ ⟩     ∎
 
-    +-identityˡ : {f : A ⇒ B} → z + f ≈ f
-    +-identityˡ {f} = begin
-        ▽ ∘ (¡ ∘ !) ⊕₁ f ∘ △        ≈⟨ refl⟩∘⟨ pushˡ split₁ˡ ⟩
-        ▽ ∘ ¡ ⊕₁ id ∘ ! ⊕₁ f ∘ △    ≈⟨ pullˡ ▽-identityˡ ⟩
-        λ⇒ ∘ ! ⊕₁ f ∘ △             ≈⟨ refl⟩∘⟨ pushˡ serialize₂₁ ⟩
-        λ⇒ ∘ id ⊕₁ f ∘ ! ⊕₁ id ∘ △  ≈⟨ extendʳ unitorˡ-commute-from ⟩
-        f ∘ λ⇒ ∘ ! ⊕₁ id ∘ △        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ △-identityˡ ⟩
-        f ∘ λ⇒ ∘ λ⇐                 ≈⟨ elimʳ unitorˡ.isoʳ ⟩
-        f                           ∎
+  +-congˡ : {A B : Obj} {f g h : A ⇒ B} → g ≈ h → f + g ≈ f + h
+  +-congˡ g≈h = +-cong Equiv.refl g≈h
 
-    +-identityʳ : {f : A ⇒ B} → f + z ≈ f
-    +-identityʳ {f} = begin
-        ▽ ∘ f ⊕₁ (¡ ∘ !) ∘ △        ≈⟨ refl⟩∘⟨ pushˡ split₂ˡ ⟩
-        ▽ ∘ id ⊕₁ ¡ ∘ (f ⊕₁ !) ∘ △  ≈⟨ pullˡ ▽-identityʳ ⟩
-        ρ⇒ ∘ f ⊕₁ ! ∘ △             ≈⟨ refl⟩∘⟨ pushˡ serialize₁₂ ⟩
-        ρ⇒ ∘ f ⊕₁ id ∘ id ⊕₁ ! ∘ △  ≈⟨ extendʳ unitorʳ-commute-from ⟩
-        f ∘ ρ⇒ ∘ id ⊕₁ ! ∘ △        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ △-identityʳ ⟩
-        f ∘ ρ⇒ ∘ ρ⇐                 ≈⟨ elimʳ unitorʳ.isoʳ ⟩
-        f ∎
-
-    +-commutative : {f g : A ⇒ B} → f + g ≈ g + f
-    +-commutative {f} {g} = begin
-        ▽ ∘ f ⊕₁ g ∘ △      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ △-comm ⟨
-        ▽ ∘ f ⊕₁ g ∘ σ⇒ ∘ △ ≈⟨ refl⟩∘⟨ extendʳ (braiding.⇒.sym-commute _) ⟩
-        ▽ ∘ σ⇒ ∘ g ⊕₁ f ∘ △ ≈⟨ pullˡ ▽-comm ⟩
-        ▽ ∘ g ⊕₁ f ∘ △      ∎
-
-    +-cong : {f g h i : A ⇒ B} → f ≈ h → g ≈ i → f + g ≈ h + i
-    +-cong f≈h g≈i = refl⟩∘⟨ f≈h ⟩⊗⟨ g≈i ⟩∘⟨refl
-
-    +-congˡ : {f g i : A ⇒ B} → g ≈ i → f + g ≈ f + i
-    +-congˡ g≈i = +-cong Equiv.refl g≈i
-
-    +-congʳ : {f g h : A ⇒ B} → f ≈ h → f + g ≈ h + g
-    +-congʳ f≈h = +-cong f≈h Equiv.refl
+  +-congʳ : {A B : Obj} {f g h : A ⇒ B} → f ≈ g → f + h ≈ g + h
+  +-congʳ f≈g = +-cong f≈g Equiv.refl
 
   +-† : {A B : Obj} {f g : A ⇒ B} → (f + g) † ≈ (f †) + (g †)
   +-† {f = f} {g} = begin
-      (▽ ∘ f ⊕₁ g ∘ △) †     ≈⟨ †-homomorphism ⟩
-      (f ⊕₁ g ∘ △) † ∘ ▽ †   ≈⟨ pushˡ †-homomorphism ⟩
-      △ † ∘ (f ⊕₁ g) † ∘ ▽ † ≈⟨ †-involutive ▽ ⟩∘⟨refl ⟩
-      ▽ ∘ (f ⊕₁ g) † ∘ △     ≈⟨ refl⟩∘⟨ †-resp-⊗ ⟩∘⟨refl ⟩
-      ▽ ∘ (f †) ⊕₁ (g †) ∘ △ ∎
+      (∇ ∘ f ×₁ g ∘ Δ) †     ≈⟨ †-homomorphism ⟩
+      (f ×₁ g ∘ Δ) † ∘ ∇ †   ≈⟨ pushˡ †-homomorphism ⟩
+      Δ † ∘ (f ×₁ g) † ∘ ∇ † ≈⟨ Δ† ⟩∘⟨ †-resp-×₁ ⟩∘⟨ ∇† ⟩
+      ∇ ∘ (f †) ×₁ (g †) ∘ Δ ∎
 
   -- bilinearity of composition
   ∘-distribˡ : {A B C : Obj} {f : B ⇒ C} {g h : A ⇒ B} → f ∘ (g + h) ≈ f ∘ g + f ∘ h
   ∘-distribˡ {f = f} {g} {h} = begin
-      f ∘ ▽ ∘ g ⊕₁ h ∘ △          ≈⟨ extendʳ ⇒▽ ⟩
-      ▽ ∘ f ⊕₁ f ∘ g ⊕₁ h ∘ △     ≈⟨ refl⟩∘⟨ pullˡ (Equiv.sym ⊗-distrib-over-∘) ⟩
-      ▽ ∘ (f ∘ g) ⊕₁ (f ∘ h) ∘ △  ∎
+      f ∘ (g + h)             ≈⟨ refl⟩∘⟨ identityʳ ⟨
+      f ∘ (g + h) ∘ id        ≈⟨ +-resp-∘ ⟩
+      f ∘ g ∘ id + f ∘ h ∘ id ≈⟨ +-cong (refl⟩∘⟨ identityʳ) (refl⟩∘⟨ identityʳ) ⟩
+      f ∘ g + f ∘ h           ∎
 
   ∘-distribʳ : {A B C : Obj} {f g : B ⇒ C} {h : A ⇒ B} → (f + g) ∘ h ≈ f ∘ h + g ∘ h
   ∘-distribʳ {f = f} {g} {h} = begin
-      (▽ ∘ f ⊕₁ g ∘ △) ∘ h        ≈⟨ pullʳ (pullʳ ⇒△) ⟩
-      ▽ ∘ f ⊕₁ g ∘ h ⊕₁ h ∘ △     ≈⟨ refl⟩∘⟨ pullˡ (Equiv.sym ⊗-distrib-over-∘) ⟩
-      ▽ ∘ (f ∘ h) ⊕₁ (g ∘ h) ∘ △  ∎
-
-  terminal : Terminal
-  terminal = record
-      { ⊤ = ⊥
-      ; ⊤-is-terminal = record
-          { ! = !
-          ; !-unique = λ f → ⟨ ¡-unique (f †) ⟩† ○ †-involutive f
-          }
-      }
-
-  ▽∘i₁⊕i₂ : {A B : Obj} → ▽ ∘ i₁ ⊕₁ i₂ ≈ id {A ⊕₀ B}
-  ▽∘i₁⊕i₂ = begin
-      ▽ ∘ i₁ ⊕₁ i₂          ≈⟨ []∘+₁ ⟩
-      [ id ∘ i₁ , id ∘ i₂ ] ≈⟨ []-cong₂ identityˡ identityˡ ⟩
-      [ i₁ , i₂ ]           ≈⟨ +-η ⟩
-      id                    ∎
-
-  p₁⊕p₂∘△ : {A B : Obj} → p₁ ⊕₁ p₂ ∘ △ ≈ id {A ⊕₀ B}
-  p₁⊕p₂∘△ = begin
-      (i₁ †) ⊕₁ (i₂ †) ∘ ▽ †  ≈⟨ †-resp-⊗ ⟩∘⟨refl ⟨
-      (i₁ ⊕₁ i₂) † ∘ ▽ †      ≈⟨ †-homomorphism ⟨
-      (▽ ∘ i₁ ⊕₁ i₂) †        ≈⟨ ⟨ ▽∘i₁⊕i₂ ⟩† ⟩
-      id †                    ≈⟨ †-identity ⟩
-      id                      ∎
-
-  products : BinaryProducts
-  products = record
-      { product = λ {A B} → record
-          { A×B = A ⊕₀ B
-          ; π₁ = p₁
-          ; π₂ = p₂
-          ; ⟨_,_⟩ = λ f g → f ⊕₁ g ∘ △
-          ; project₁ = proj₁
-          ; project₂ = proj₂
-          ; unique = uniq
-          }
-      }
-    where
-      module _ {A B X : Obj} where
-        module _ {h : X ⇒ A} {i : X ⇒ B} where
-          proj₁ : p₁ ∘ h ⊕₁ i ∘ △ ≈ h
-          proj₁ = begin
-              p₁ ∘ h ⊕₁ i ∘ △             ≈⟨ pushˡ p₁-⊕ ⟩
-              ρ⇒ ∘ id ⊕₁ ! ∘ h ⊕₁ i ∘ △   ≈⟨ refl⟩∘⟨ pullˡ merge₂ˡ ⟩
-              ρ⇒ ∘ h ⊕₁ (! ∘ i) ∘ △       ≈⟨ refl⟩∘⟨ refl⟩⊗⟨ ⇒! ⟩∘⟨refl ⟩
-              ρ⇒ ∘ h ⊕₁ ! ∘ △             ≈⟨ refl⟩∘⟨ pushˡ serialize₁₂ ⟩
-              ρ⇒ ∘ h ⊕₁ id ∘ id ⊕₁ ! ∘ △  ≈⟨ refl⟩∘⟨ refl⟩∘⟨ △-identityʳ ⟩
-              ρ⇒ ∘ h ⊕₁ id ∘ ρ⇐           ≈⟨ extendʳ unitorʳ-commute-from ⟩
-              h ∘ ρ⇒ ∘ ρ⇐                 ≈⟨ elimʳ unitorʳ.isoʳ ⟩
-              h                           ∎
-          proj₂ : p₂ ∘ h ⊕₁ i ∘ △ ≈ i
-          proj₂ = begin
-              p₂ ∘ h ⊕₁ i ∘ △             ≈⟨ pushˡ p₂-⊕ ⟩
-              λ⇒ ∘ ! ⊕₁ id ∘ h ⊕₁ i ∘ △   ≈⟨ refl⟩∘⟨ pullˡ merge₁ˡ ⟩
-              λ⇒ ∘ (! ∘ h) ⊕₁ i ∘ △       ≈⟨ refl⟩∘⟨ ⇒! ⟩⊗⟨refl ⟩∘⟨refl ⟩
-              λ⇒ ∘ ! ⊕₁ i ∘ △             ≈⟨ refl⟩∘⟨ pushˡ serialize₂₁ ⟩
-              λ⇒ ∘ id ⊕₁ i ∘ ! ⊕₁ id ∘ △  ≈⟨ refl⟩∘⟨ refl⟩∘⟨ △-identityˡ ⟩
-              λ⇒ ∘ id ⊕₁ i ∘ λ⇐           ≈⟨ extendʳ unitorˡ-commute-from ⟩
-              i ∘ λ⇒ ∘ λ⇐                 ≈⟨ elimʳ unitorˡ.isoʳ ⟩
-              i                           ∎
-        module _ {h : X ⇒ A ⊕₀ B} {i : X ⇒ A} {j : X ⇒ B} where
-          uniq : p₁ ∘ h ≈ i → p₂ ∘ h ≈ j → i ⊕₁ j ∘ △ ≈ h
-          uniq p₁∘h≈i p₂∘h≈j = begin
-              i ⊕₁ j ∘ △                ≈⟨ p₁∘h≈i ⟩⊗⟨ p₂∘h≈j ⟩∘⟨refl ⟨
-              (p₁ ∘ h) ⊕₁ (p₂ ∘ h) ∘ △  ≈⟨ pushˡ ⊗-distrib-over-∘ ⟩
-              p₁ ⊕₁ p₂ ∘ h ⊕₁ h ∘ △     ≈⟨ pushʳ (Equiv.sym ⇒△) ⟩
-              (p₁ ⊕₁ p₂ ∘ △) ∘ h        ≈⟨ elimˡ p₁⊕p₂∘△ ⟩
-              h                         ∎
-
-  cartesian : Cartesian
-  cartesian = record
-      { terminal = terminal
-      ; products = products
-      }
-
-  open Cartesian cartesian using (_×₁_)
-  open CartesianMonoidal cartesian using (monoidal)
-  open Shorthands monoidal using () renaming (α⇒ to α⇒′)
-
-  ×₁-⊕₁ : {A B C D : Obj} (f : A ⇒ B) (g : C ⇒ D) → f ×₁ g ≈ f ⊕₁ g
-  ×₁-⊕₁ f g = begin
-    (f ∘ p₁) ⊕₁ (g ∘ p₂) ∘ △  ≈⟨ pushˡ ⊗-distrib-over-∘ ⟩
-    f ⊕₁ g ∘ p₁ ⊕₁ p₂ ∘ △     ≈⟨ elimʳ p₁⊕p₂∘△ ⟩
-    f ⊕₁ g                    ∎
-
-  ≈α⇒ : {A B C : Obj} → α⇒′ {A} {B} {C} ≈ α⇒ {A} {B} {C}
-  ≈α⇒ {A} {B} {C} = begin
-      (p₁ ∘ p₁) ⊕₁ ((p₂ ∘ p₁) ⊕₁ p₂ ∘ △) ∘ △          ≈⟨ refl⟩⊗⟨ pushˡ split₁ˡ ⟩∘⟨refl ⟩
-      (p₁ ∘ p₁) ⊕₁ ((p₂ ⊕₁ id) ∘ (p₁ ⊕₁ p₂) ∘ △) ∘ △  ≈⟨ refl⟩⊗⟨ elimʳ p₁⊕p₂∘△ ⟩∘⟨refl ⟩
-      (p₁ ∘ p₁) ⊕₁ (p₂ ⊕₁ id) ∘ △                     ≈⟨ †-homomorphism ⟩⊗⟨ (refl⟩⊗⟨ †-identity ) ⟩∘⟨refl ⟨
-      ((i₁ ∘ i₁) †) ⊕₁ (p₂ ⊕₁ (id †)) ∘ △             ≈⟨ refl⟩⊗⟨ †-resp-⊗ ⟩∘⟨refl ⟨
-      ((i₁ ∘ i₁) †) ⊕₁ ((i₂ ⊕₁ id) †) ∘ △             ≈⟨ †-resp-⊗ ⟩∘⟨refl ⟨
-      ((i₁ ∘ i₁) ⊕₁ (i₂ ⊕₁ id)) † ∘ △                 ≈⟨ †-homomorphism ⟨
-      (▽ ∘ ((i₁ ∘ i₁) ⊕₁ (i₂ ⊕₁ id))) †               ≈⟨ ⟨ ▽∘+₁ ⟩† ⟩
-      [ i₁ ∘ i₁ , i₂ ⊕₁ id ] †                        ≈⟨ ⟨ []-congˡ ([]-congˡ identityʳ) ⟩† ⟩
-      α⇐ †                                            ≈⟨ ⟨ α≅† ⟩† ⟨
-      α⇒ † †                                          ≈⟨ †-involutive α⇒ ⟩
-      α⇒                                              ∎
+      (f + g) ∘ h             ≈⟨ pushˡ (Equiv.sym identityˡ) ⟩
+      id ∘ (f + g) ∘ h        ≈⟨ +-resp-∘ ⟩
+      id ∘ f ∘ h + id ∘ g ∘ h ≈⟨ +-cong (pullˡ identityˡ) (pullˡ identityˡ) ⟩
+      f ∘ h + g ∘ h           ∎
 
 record IdempotentSemiadditiveDagger : Set (suc (o ⊔ ℓ ⊔ e)) where
 
@@ -452,10 +83,10 @@ record IdempotentSemiadditiveDagger : Set (suc (o ⊔ ℓ ⊔ e)) where
     semiadditiveDagger : SemiadditiveDagger
 
   open SemiadditiveDagger semiadditiveDagger public
-  open Category 𝒞
 
-  open ⊗-Reasoning +-monoidal
-  open ⇒-Reasoning 𝒞
+  open Category 𝒞
+  open HomReasoning
+  open ⇒-Reasoning
 
   field
     idempotent : {A B : Obj} {f : A ⇒ B} → f + f ≈ f
@@ -469,15 +100,15 @@ record IdempotentSemiadditiveDagger : Set (suc (o ⊔ ℓ ⊔ e)) where
   ≤-antisym : {A B : Obj} {f g : A ⇒ B} → f ≤ g → g ≤ f → f ≈ g
   ≤-antisym {A} {B} {f} {g} f≤g g≤f = begin
       f     ≈⟨ g≤f ⟨
-      g + f ≈⟨ +-commutative ⟩
+      g + f ≈⟨ +-comm g f ⟩
       f + g ≈⟨ f≤g ⟩
       g ∎
 
   ≤-trans : {A B : Obj} {f g h : A ⇒ B} → f ≤ g → g ≤ h → f ≤ h
   ≤-trans {A} {B} {f} {g} {h} f≤g g≤h = begin
-      f + h       ≈⟨ refl⟩∘⟨ refl⟩⊗⟨ g≤h ⟩∘⟨refl ⟨
-      f + (g + h) ≈⟨ +-associative ⟨
-      (f + g) + h ≈⟨ refl⟩∘⟨ f≤g ⟩⊗⟨refl ⟩∘⟨refl ⟩
+      f + h       ≈⟨ refl⟩∘⟨ ×₁-congˡ g≤h ⟩∘⟨refl ⟨
+      f + (g + h) ≈⟨ +-assoc f g h ⟨
+      (f + g) + h ≈⟨ refl⟩∘⟨ ×₁-congʳ f≤g ⟩∘⟨refl ⟩
       g + h       ≈⟨ g≤h ⟩
       h           ∎
 
@@ -488,12 +119,12 @@ record IdempotentSemiadditiveDagger : Set (suc (o ⊔ ℓ ⊔ e)) where
       → g ≤ i
       → (f + g) ≤ (h + i)
   ≤-resp-+ {f = f} {g} {h} {i} f≤h g≤i = begin
-      f + g + (h + i)   ≈⟨ +-associative ⟩
-      f + (g + (h + i)) ≈⟨ +-congˡ +-associative ⟨
-      f + (g + h + i)   ≈⟨ +-congˡ (+-congʳ +-commutative) ⟩
-      f + (h + g + i)   ≈⟨ +-congˡ +-associative ⟩
-      f + (h + (g + i)) ≈⟨ +-associative ⟨
-      f + h + (g + i)   ≈⟨ +-cong f≤h g≤i ⟩
+      (f + g) + (h + i) ≈⟨ +-assoc f g (h + i) ⟩
+      f + (g + (h + i)) ≈⟨ +-congˡ (+-assoc g h i) ⟨
+      f + ((g + h) + i) ≈⟨ +-congˡ (+-congʳ (+-comm g h)) ⟩
+      f + ((h + g) + i) ≈⟨ +-congˡ (+-assoc h g i) ⟩
+      f + (h + (g + i)) ≈⟨ +-assoc f h (g + i) ⟨
+      (f + h) + (g + i) ≈⟨ +-cong f≤h g≤i ⟩
       h + i             ∎
 
   ≤-resp-∘
@@ -506,8 +137,8 @@ record IdempotentSemiadditiveDagger : Set (suc (o ⊔ ℓ ⊔ e)) where
   ≤-resp-∘ {f = f} {h} {g} {i} f≤h g≤i = begin
       f ∘ g + (h ∘ i)         ≈⟨ +-congˡ (f≤h ⟩∘⟨refl) ⟨
       f ∘ g + ((f + h) ∘ i)   ≈⟨ +-congˡ ∘-distribʳ ⟩
-      f ∘ g + (f ∘ i + h ∘ i) ≈⟨ +-associative ⟨
-      f ∘ g + f ∘ i + h ∘ i   ≈⟨ +-congʳ ∘-distribˡ ⟨
+      f ∘ g + (f ∘ i + h ∘ i) ≈⟨ +-assoc (f ∘ g) (f ∘ i) (h ∘ i) ⟨
+      (f ∘ g + f ∘ i) + h ∘ i ≈⟨ +-congʳ ∘-distribˡ ⟨
       f ∘ (g + i) + h ∘ i     ≈⟨ +-congʳ (refl⟩∘⟨ g≤i) ⟩
       f ∘ i + h ∘ i           ≈⟨ ∘-distribʳ ⟨
       (f + h) ∘ i             ≈⟨ f≤h ⟩∘⟨refl ⟩
@@ -520,8 +151,8 @@ record IdempotentSemiadditiveDagger : Set (suc (o ⊔ ℓ ⊔ e)) where
       g †           ∎
 
   -- special law
-  ▽∘△ : {A : Obj} → ▽ ∘ △ ≈ id {A}
-  ▽∘△ = begin
-      ▽ ∘ △             ≈⟨ refl⟩∘⟨ introˡ ⊕.identity ⟩
-      ▽ ∘ id ⊕₁ id ∘ △  ≈⟨ idempotent ⟩
+  ∇∘Δ : {A : Obj} → ∇ ∘ Δ ≈ id {A}
+  ∇∘Δ = begin
+      ∇ ∘ Δ             ≈⟨ refl⟩∘⟨ introˡ id×₁id ⟩
+      ∇ ∘ id ×₁ id ∘ Δ  ≈⟨ idempotent ⟩
       id                ∎
