@@ -2,7 +2,7 @@
 
 open import Categories.Category using (Category)
 open import Categories.Functor using (Functor; _∘F_)
-open import Category.Dagger.Semiadditive using (IdempotentSemiadditiveDagger)
+open import Category.Dagger.Semiadditive using (SemiadditiveDagger; IdempotentSemiadditiveDagger)
 open import Category.KaroubiComplete using (KaroubiComplete)
 open import Data.WiringDiagram.Balanced using (BWD)
 open import Level using (Level)
@@ -12,8 +12,10 @@ module Data.WiringDiagram.Looped
     {𝒞 : Category o ℓ e}
     {𝒟 : Category o′ ℓ′ e′}
     {S : IdempotentSemiadditiveDagger 𝒞}
+    (let module S = IdempotentSemiadditiveDagger S)
+    (let S′ = S.semiadditiveDagger)
     (karoubiComplete : KaroubiComplete 𝒟)
-    (F : Functor (BWD S) 𝒟)
+    (F : Functor (BWD S′) 𝒟)
   where
 
 import Categories.Morphism.Idempotent as Idempotent
@@ -22,11 +24,11 @@ import Categories.Morphism.Reasoning as ⇒-Reasoning
 open import Categories.Category using (Category)
 open import Categories.Functor.Properties using ([_]-resp-∘)
 open import Category.Dagger.2-Poset using (Dagger-2-Poset; dagger-2-poset; Maps; Map)
-open import Data.WiringDiagram.Balanced S using (Include; Push; Pull)
-open import Data.WiringDiagram.Core S using (loop; id-⧈; _□_)
+open import Data.WiringDiagram.Balanced S′ using (Include; Push; Pull)
+open import Data.WiringDiagram.Core S′ using (loop; id-⧈; _□_)
 open import Data.WiringDiagram.Equalities S using (loop∘loop; loop∘push∘loop; loop∘pull∘loop)
 
-module BWD = Category (BWD S)
+module BWD = Category (BWD S′)
 module F = Functor F
 module 𝒞 = Category 𝒞
 module 𝒟 = Category 𝒟
@@ -67,10 +69,10 @@ module _ (A : 𝒞.Obj) where
 module Push = Functor Push
 module Pull = Functor Pull
 
-S′ : Dagger-2-Poset
-S′ = dagger-2-poset S
+S-≤ : Dagger-2-Poset
+S-≤ = dagger-2-poset S
 
-Merge : Functor (Maps S′) 𝒟
+Merge : Functor (Maps S-≤) 𝒟
 Merge = record
     { F₀ = Looped
     ; F₁ = λ {A} {B} f → π B ∘ F.₁ (Push.₁ (map f)) ∘ forget A
@@ -91,8 +93,8 @@ Merge = record
         𝒟.id                                ∎
     homo
         : {X Y Z : 𝒞.Obj}
-          {f : Map S′ X Y}
-          {g : Map S′ Y Z}
+          {f : Map S-≤ X Y}
+          {g : Map S-≤ Y Z}
         → π Z ∘ F.₁ (Push.₁ (map g 𝒞.∘ map f)) ∘ forget X 𝒟.≈ (π Z ∘ F.₁ (Push.₁ (map g)) ∘ forget Y) ∘ π Y ∘ F.₁ (Push.₁ (map f)) ∘ forget X
     homo {X} {Y} {Z} {f′} {g′} = begin
         π Z ∘ F.₁ (Push.₁ (g 𝒞.∘ f)) ∘ forget X                                 ≈⟨ refl⟩∘⟨ F.F-resp-≈ Push.homomorphism ⟩∘⟨refl ⟩
@@ -113,7 +115,7 @@ Merge = record
     resp : {A B : 𝒞.Obj} {f g : A 𝒞.⇒ B} → f 𝒞.≈ g → π B ∘ F.₁ (Push.₁ f) ∘ forget A 𝒟.≈ π B ∘ F.₁ (Push.₁ g) ∘ forget A
     resp {A} {B} {f} {g} f≈g = refl⟩∘⟨ F.F-resp-≈ (Push.F-resp-≈ f≈g) ⟩∘⟨refl
 
-Split : Functor (op (Maps S′)) 𝒟
+Split : Functor (op (Maps S-≤)) 𝒟
 Split = record
     { F₀ = Looped
     ; F₁ = λ {A} {B} f → π B ∘ F.₁ (Pull.₁ (map f)) ∘ forget A
@@ -134,8 +136,8 @@ Split = record
         𝒟.id                                ∎
     homo
         : {X Y Z : 𝒞.Obj}
-          {f : Map S′ Y X}
-          {g : Map S′ Z Y}
+          {f : Map S-≤ Y X}
+          {g : Map S-≤ Z Y}
         → π Z ∘ F.₁ (Pull.₁ (map f 𝒞.∘ map g)) ∘ forget X 𝒟.≈ (π Z ∘ F.₁ (Pull.₁ (map g)) ∘ forget Y) ∘ π Y ∘ F.₁ (Pull.₁ (map f)) ∘ forget X
     homo {X} {Y} {Z} {f′} {g′} = begin
         π Z ∘ F.₁ (Pull.₁ (f 𝒞.∘ g)) ∘ forget X                                 ≈⟨ refl⟩∘⟨ F.F-resp-≈ Pull.homomorphism ⟩∘⟨refl ⟩

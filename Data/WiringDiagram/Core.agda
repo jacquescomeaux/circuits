@@ -1,21 +1,19 @@
 {-# OPTIONS --without-K --safe #-}
 
 open import Categories.Category using (Category)
+open import Category.Dagger.Semiadditive using (SemiadditiveDagger)
 open import Level using (Level)
-open import Category.Dagger.Semiadditive using (IdempotentSemiadditiveDagger)
 
 module Data.WiringDiagram.Core
     {o ℓ e : Level}
     {𝒞 : Category o ℓ e}
-    (S : IdempotentSemiadditiveDagger 𝒞)
+    (S : SemiadditiveDagger 𝒞)
   where
 
-open import Categories.Category.Monoidal.Utilities using (module Shorthands)
 open import Relation.Binary using (IsEquivalence)
 
 open Category 𝒞 using (Obj; _∘_; _⇒_; id; _≈_; module Equiv)
-open IdempotentSemiadditiveDagger S using (_⊕₀_; _⊕₁_; p₂; +-monoidal; △; ▽; _†)
-open Shorthands +-monoidal using (α⇒)
+open SemiadditiveDagger S using (_⊕_; _×₁_; π₁; π₂; Δ; ∇; _†; ⟨_,_⟩)
 
 -- A "Box" is a pair of objects from the underlying category,
 -- representing input and output ports
@@ -68,7 +66,7 @@ record WiringDiagram (A B : Box) : Set ℓ where
     module B = Box B
 
   field
-    input : A.ₒ ⊕₀ B.ᵢ ⇒ A.ᵢ
+    input : A.ₒ ⊕ B.ᵢ ⇒ A.ᵢ
     output : A.ₒ ⇒ B.ₒ
 
 infix 4 _⧈_
@@ -114,24 +112,24 @@ module _ {A B : Box} where
 
 -- The identity wiring diagram
 id-⧈ : {A : Box} → WiringDiagram A A
-id-⧈ = p₂ ⧈ id
+id-⧈ = π₂ ⧈ id
 
 -- Composition of wiring diagrams
 _⌻_ : {A B C : Box} → WiringDiagram B C → WiringDiagram A B → WiringDiagram A C
-_⌻_ {Aᵢ □ Aₒ} {Bᵢ □ Bₒ} {Cᵢ □ Cₒ} (f′ ⧈ g′) (f ⧈ g) = f″ ⧈ g′ ∘ g
+_⌻_ {Aᵢ □ Aₒ} {Bᵢ □ Bₒ} {Cᵢ □ Cₒ} (f ⧈ g) (h ⧈ i) = hfi ⧈ g ∘ i
   where
-    f″ : Aₒ ⊕₀ Cᵢ ⇒ Aᵢ
-    f″ = f ∘ id ⊕₁ (f′ ∘ g ⊕₁ id) ∘ α⇒ ∘ △ ⊕₁ id
+    hfi : Aₒ ⊕ Cᵢ ⇒ Aᵢ
+    hfi = h ∘ ⟨ π₁ , f ∘ i ×₁ id ⟩
 
 infixr 9 _⌻_
 
 -- Special wiring diagrams
 
 loop : {A : Obj} → WiringDiagram (A □ A) (A □ A)
-loop = ▽ ⧈ id
+loop = ∇ ⧈ id
 
 pulsh : {A B C D : Obj} → A ⇒ B → C ⇒ D → WiringDiagram (B □ C) (A □ D)
-pulsh f g = f ∘ p₂ ⧈ g
+pulsh f g = f ∘ π₂ ⧈ g
 
 push : {A B : Obj} → A ⇒ B → WiringDiagram (A □ A) (B □ B)
 push f = pulsh (f †) f
@@ -140,7 +138,7 @@ pull : {A B : Obj} → A ⇒ B → WiringDiagram (B □ B) (A □ A)
 pull f = pulsh f (f †)
 
 merge : {A B : Obj} → A ⇒ B → WiringDiagram (A □ A) (B □ B)
-merge f = f † ∘ ▽ ∘ f ⊕₁ id ⧈ f
+merge f = f † ∘ ∇ ∘ f ×₁ id ⧈ f
 
 split : {A B : Obj} → A ⇒ B → WiringDiagram (B □ B) (A □ A)
-split f = ▽ ∘ id ⊕₁ f ⧈ f †
+split f = ∇ ∘ id ×₁ f ⧈ f †

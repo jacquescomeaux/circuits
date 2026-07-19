@@ -1,17 +1,16 @@
 {-# OPTIONS --without-K --safe #-}
 
 open import Categories.Category using (Category)
-open import Category.Dagger.Semiadditive using (IdempotentSemiadditiveDagger)
+open import Category.Dagger.Semiadditive using (SemiadditiveDagger)
 open import Level using (Level)
 
 module Data.WiringDiagram.Balanced
     {o ℓ e : Level}
     {𝒞 : Category o ℓ e}
-    (S : IdempotentSemiadditiveDagger 𝒞)
+    (S : SemiadditiveDagger 𝒞)
   where
 
-import Categories.Category.Monoidal.Reasoning as ⊗-Reasoning
-import Categories.Morphism.Reasoning as ⇒-Reasoning
+import Categories.Morphism.Reasoning 𝒞 as ⇒-Reasoning
 
 open import Categories.Functor using (Functor)
 open import Data.WiringDiagram.Core S using (WiringDiagram; _□_; _⌸_; push; pull)
@@ -51,37 +50,21 @@ Push = record
     ; F-resp-≈ = λ f≈g → (⟨ f≈g ⟩† ⟩∘⟨refl) ⌸ f≈g
     }
   where
-    open IdempotentSemiadditiveDagger S
-      using (+-monoidal; _†; p₂; _⊕₁_; △; !; p₁; p₂-⊕; ⇒!; ⇒△; ρ⇒≈p₁; p₁∘△; †-homomorphism; †-identity; ⟨_⟩†)
-    open Monoidal +-monoidal using (assoc-commute-from; unitorˡ-commute-from; triangle)
-    open Shorthands +-monoidal using (α⇒; λ⇒; ρ⇒)
-    open ⇒-Reasoning 𝒞
-    open ⊗-Reasoning +-monoidal
+    open SemiadditiveDagger S
+    open ⇒-Reasoning
+    open HomReasoning
+    open Equiv
     homoᵢ
         : {A B C : Obj}
           (f : A ⇒ B)
           (g : B ⇒ C)
-        → (g ∘ f) † ∘ p₂
-        ≈ (f † ∘ p₂) ∘ id ⊕₁ ((g † ∘ p₂) ∘ f ⊕₁ id) ∘ α⇒ ∘ △ ⊕₁ id
+        → (g ∘ f) † ∘ π₂
+        ≈ (f † ∘ π₂) ∘ ⟨ π₁ , ((g † ∘ π₂) ∘ f ×₁ id) ⟩
     homoᵢ f g = begin
-        (g ∘ f) † ∘ p₂                                                        ≈⟨ pushˡ †-homomorphism ⟩
-        f † ∘ g † ∘ p₂                                                        ≈⟨ refl⟩∘⟨ refl⟩∘⟨ p₂-⊕ ⟩
-        f † ∘ g † ∘ λ⇒ ∘ ! ⊕₁ id                                              ≈⟨ refl⟩∘⟨ extendʳ unitorˡ-commute-from ⟨
-        f † ∘ λ⇒ ∘ id ⊕₁ (g †) ∘ ! ⊕₁ id                                      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ insertˡ p₁∘△ ⟩⊗⟨refl ⟩
-        f † ∘ λ⇒ ∘ id ⊕₁ (g †) ∘ (p₁ ∘ △ ∘ !) ⊕₁ id                           ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ (ρ⇒≈p₁ ⟩∘⟨refl) ⟩⊗⟨refl ⟨
-        f † ∘ λ⇒ ∘ id ⊕₁ (g †) ∘ (ρ⇒ ∘ △ ∘ !) ⊕₁ id                           ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ split₁ˡ ⟩
-        f † ∘ λ⇒ ∘ id ⊕₁ (g †) ∘ ρ⇒ ⊕₁ id ∘ (△ ∘ !) ⊕₁ id                     ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ ⇒△ ⟩⊗⟨refl ⟩
-        f † ∘ λ⇒ ∘ id ⊕₁ (g †) ∘ ρ⇒ ⊕₁ id ∘ (! ⊕₁ ! ∘ △) ⊕₁ id                ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ split₁ˡ ⟩
-        f † ∘ λ⇒ ∘ id ⊕₁ (g †) ∘ ρ⇒ ⊕₁ id ∘ (! ⊕₁ !) ⊕₁ id ∘ △ ⊕₁ id          ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ pushˡ (Equiv.sym triangle) ⟩
-        f † ∘ λ⇒ ∘ id ⊕₁ (g †) ∘ id ⊕₁ λ⇒ ∘ α⇒ ∘ (! ⊕₁ !) ⊕₁ id ∘ △ ⊕₁ id     ≈⟨ refl⟩∘⟨ refl⟩∘⟨ pullˡ merge₂ˡ ⟩
-        f † ∘ λ⇒ ∘ id ⊕₁ (g † ∘ λ⇒) ∘ α⇒ ∘ (! ⊕₁ !) ⊕₁ id ∘ △ ⊕₁ id           ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ extendʳ assoc-commute-from ⟩
-        f † ∘ λ⇒ ∘ id ⊕₁ (g † ∘ λ⇒) ∘ ! ⊕₁ ! ⊕₁ id ∘ α⇒ ∘ △ ⊕₁ id             ≈⟨ refl⟩∘⟨ refl⟩∘⟨ pullˡ merge₂ˡ ⟩
-        f † ∘ λ⇒ ∘ ! ⊕₁ ((g † ∘ λ⇒) ∘ ! ⊕₁ id) ∘ α⇒ ∘ △ ⊕₁ id                 ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩⊗⟨ (pullʳ (refl⟩∘⟨ (Equiv.sym ⇒! ⟩⊗⟨refl))) ⟩∘⟨refl ⟩
-        f † ∘ λ⇒ ∘ ! ⊕₁ (g † ∘ λ⇒ ∘ (! ∘ f) ⊕₁ id) ∘ α⇒ ∘ △ ⊕₁ id             ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩⊗⟨ (refl⟩∘⟨ (pushʳ split₁ˡ)) ⟩∘⟨refl ⟩
-        f † ∘ λ⇒ ∘ ! ⊕₁ (g † ∘ (λ⇒ ∘ ! ⊕₁ id) ∘ f ⊕₁ id) ∘ α⇒ ∘ △ ⊕₁ id       ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩⊗⟨ (pullˡ (refl⟩∘⟨ Equiv.sym p₂-⊕)) ⟩∘⟨refl ⟩
-        f † ∘ λ⇒ ∘ ! ⊕₁ ((g † ∘ p₂) ∘ f ⊕₁ id) ∘ α⇒ ∘ △ ⊕₁ id                 ≈⟨ pushʳ (extendʳ (pushʳ serialize₁₂)) ⟩
-        (f † ∘ (λ⇒ ∘ ! ⊕₁ id)) ∘ id ⊕₁ ((g † ∘ p₂) ∘ f ⊕₁ id) ∘ α⇒ ∘ △ ⊕₁ id  ≈⟨ (refl⟩∘⟨ p₂-⊕) ⟩∘⟨refl ⟨
-        (f † ∘ p₂) ∘ id ⊕₁ ((g † ∘ p₂) ∘ f ⊕₁ id) ∘ α⇒ ∘ △ ⊕₁ id              ∎
+        (g ∘ f) † ∘ π₂                              ≈⟨ pushˡ †-homomorphism ⟩
+        f † ∘ g † ∘ π₂                              ≈⟨ refl⟩∘⟨ pushʳ (sym π₂∘first) ⟩
+        f † ∘ (g † ∘ π₂) ∘ f ×₁ id                  ≈⟨ pushʳ (sym project₂) ⟩
+        (f † ∘ π₂) ∘ ⟨ π₁ , (g † ∘ π₂) ∘ f ×₁ id ⟩  ∎
 
 -- Contravariant functor from underlying category to BWD
 Pull : Functor op BWD
@@ -93,33 +76,17 @@ Pull = record
     ; F-resp-≈ = λ f≈g → (f≈g ⟩∘⟨refl) ⌸ ⟨ f≈g ⟩†
     }
   where
-    open IdempotentSemiadditiveDagger S
-      using (+-monoidal; _†; p₂; _⊕₁_; △; !; p₁; p₂-⊕; ⇒!; ⇒△; ρ⇒≈p₁; p₁∘△; †-homomorphism; †-identity; ⟨_⟩†)
-    open Monoidal +-monoidal using (assoc-commute-from; unitorˡ-commute-from; triangle)
-    open Shorthands +-monoidal using (α⇒; λ⇒; ρ⇒)
-    open ⇒-Reasoning 𝒞
-    open ⊗-Reasoning +-monoidal
+    open SemiadditiveDagger S
+    open HomReasoning
+    open ⇒-Reasoning
+    open Equiv
     homoᵢ
         : {A B C : Obj}
           (f : B ⇒ A)
           (g : C ⇒ B)
-        → (f ∘ g) ∘ p₂
-        ≈ (f ∘ p₂) ∘ id ⊕₁ ((g ∘ p₂) ∘ (f †) ⊕₁ id) ∘ α⇒ ∘ △ ⊕₁ id
+        → (f ∘ g) ∘ π₂
+        ≈ (f ∘ π₂) ∘ ⟨ π₁ , (g ∘ π₂) ∘ (f †) ×₁ id ⟩
     homoᵢ f g = begin
-        (f ∘ g) ∘ p₂                                                          ≈⟨ pullʳ (refl⟩∘⟨ p₂-⊕) ⟩
-        f ∘ g ∘ λ⇒ ∘ ! ⊕₁ id                                                  ≈⟨ refl⟩∘⟨ extendʳ unitorˡ-commute-from ⟨
-        f ∘ λ⇒ ∘ id ⊕₁ g ∘ ! ⊕₁ id                                            ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ insertˡ p₁∘△ ⟩⊗⟨refl ⟩
-        f ∘ λ⇒ ∘ id ⊕₁ g ∘ (p₁ ∘ △ ∘ !) ⊕₁ id                                 ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ (ρ⇒≈p₁ ⟩∘⟨refl) ⟩⊗⟨refl ⟨
-        f ∘ λ⇒ ∘ id ⊕₁ g ∘ (ρ⇒ ∘ △ ∘ !) ⊕₁ id                                 ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ split₁ˡ ⟩
-        f ∘ λ⇒ ∘ id ⊕₁ g ∘ ρ⇒ ⊕₁ id ∘ (△ ∘ !) ⊕₁ id                           ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ ⇒△ ⟩⊗⟨refl ⟩
-        f ∘ λ⇒ ∘ id ⊕₁ g ∘ ρ⇒ ⊕₁ id ∘ (! ⊕₁ ! ∘ △) ⊕₁ id                      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ split₁ˡ ⟩
-        f ∘ λ⇒ ∘ id ⊕₁ g ∘ ρ⇒ ⊕₁ id ∘ (! ⊕₁ !) ⊕₁ id ∘ △ ⊕₁ id                ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ pushˡ (Equiv.sym triangle) ⟩
-        f ∘ λ⇒ ∘ id ⊕₁ g ∘ id ⊕₁ λ⇒ ∘ α⇒ ∘ (! ⊕₁ !) ⊕₁ id ∘ △ ⊕₁ id           ≈⟨ refl⟩∘⟨ refl⟩∘⟨ pullˡ merge₂ˡ ⟩
-        f ∘ λ⇒ ∘ id ⊕₁ (g ∘ λ⇒) ∘ α⇒ ∘ (! ⊕₁ !) ⊕₁ id ∘ △ ⊕₁ id               ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ extendʳ assoc-commute-from ⟩
-        f ∘ λ⇒ ∘ id ⊕₁ (g ∘ λ⇒) ∘ ! ⊕₁ ! ⊕₁ id ∘ α⇒ ∘ △ ⊕₁ id                 ≈⟨ refl⟩∘⟨ refl⟩∘⟨ pullˡ merge₂ˡ ⟩
-        f ∘ λ⇒ ∘ ! ⊕₁ ((g ∘ λ⇒) ∘ ! ⊕₁ id) ∘ α⇒ ∘ △ ⊕₁ id                     ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩⊗⟨ (pullʳ (refl⟩∘⟨ (Equiv.sym ⇒! ⟩⊗⟨refl))) ⟩∘⟨refl ⟩
-        f ∘ λ⇒ ∘ ! ⊕₁ (g ∘ λ⇒ ∘ (! ∘ f †) ⊕₁ id) ∘ α⇒ ∘ △ ⊕₁ id               ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩⊗⟨ (refl⟩∘⟨ (pushʳ split₁ˡ)) ⟩∘⟨refl ⟩
-        f ∘ λ⇒ ∘ ! ⊕₁ (g ∘ (λ⇒ ∘ ! ⊕₁ id) ∘ (f †) ⊕₁ id) ∘ α⇒ ∘ △ ⊕₁ id       ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩⊗⟨ (pullˡ (refl⟩∘⟨ Equiv.sym p₂-⊕)) ⟩∘⟨refl ⟩
-        f ∘ λ⇒ ∘ ! ⊕₁ ((g ∘ p₂) ∘ (f †) ⊕₁ id) ∘ α⇒ ∘ △ ⊕₁ id                 ≈⟨ pushʳ (extendʳ (pushʳ serialize₁₂)) ⟩
-        (f ∘ (λ⇒ ∘ ! ⊕₁ id)) ∘ id ⊕₁ ((g ∘ p₂) ∘ (f †) ⊕₁ id) ∘ α⇒ ∘ △ ⊕₁ id  ≈⟨ (refl⟩∘⟨ p₂-⊕) ⟩∘⟨refl ⟨
-        (f ∘ p₂) ∘ id ⊕₁ ((g ∘ p₂) ∘ (f †) ⊕₁ id) ∘ α⇒ ∘ △ ⊕₁ id              ∎
+        (f ∘ g) ∘ π₂                                ≈⟨ pullʳ (pushʳ (sym π₂∘first)) ⟩
+        f ∘ (g ∘ π₂) ∘ (f †) ×₁ id                  ≈⟨ pushʳ (sym project₂) ⟩
+        (f ∘ π₂) ∘ ⟨ π₁ , (g ∘ π₂) ∘ (f †) ×₁ id ⟩  ∎

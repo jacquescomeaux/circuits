@@ -224,6 +224,13 @@ record BinaryBiproducts : Set (levelOfTerm 𝒞) where
       [ id , ∇ ] ∘ +-assocˡ   ≈⟨ pushˡ (Equiv.sym ∇∘+₁) ⟩
       ∇ ∘ id +₁ ∇ ∘ +-assocˡ  ∎
 
+  ∇-assoc-×₁ : {A : Obj} → ∇ {A} ∘ ∇ ×₁ id ≈ ∇ ∘ id ×₁ ∇ ∘ assocˡ
+  ∇-assoc-×₁ = begin
+      ∇ ∘ ∇ ×₁ id             ≈⟨ refl⟩∘⟨ ×₁-+₁ ∇ id ⟩
+      ∇ ∘ ∇ +₁ id             ≈⟨ ∇-assoc ⟩
+      ∇ ∘ id +₁ ∇ ∘ +-assocˡ  ≈⟨ refl⟩∘⟨ ×₁-+₁ id ∇ ⟩∘⟨ assocˡ≈+-assocˡ ⟨
+      ∇ ∘ id ×₁ ∇ ∘ assocˡ    ∎
+
   Δ-assoc : {A : Obj} → id ×₁ Δ ∘ Δ {A} ≈ assocˡ ∘ Δ ×₁ id ∘ Δ
   Δ-assoc = begin
       id ×₁ Δ ∘ Δ           ≈⟨ ×₁∘Δ ⟩
@@ -262,3 +269,15 @@ record BinaryBiproducts : Set (levelOfTerm 𝒞) where
       Δ ∘ f       ≈⟨ Δ∘ ⟩
       ⟨ f , f ⟩   ≈⟨ ×₁∘Δ ⟨
       f ×₁ f ∘ Δ  ∎
+
+  ⇒∇-×₁ : {A B : Obj} {f : A ⇒ B} → f ∘ ∇ ≈ ∇ ∘ f ×₁ f
+  ⇒∇-×₁ {f = f} = begin
+      f ∘ ∇       ≈⟨ ⇒∇ ⟩
+      ∇ ∘ f +₁ f  ≈⟨ refl⟩∘⟨ ×₁-+₁ f f ⟨
+      ∇ ∘ f ×₁ f  ∎
+
+  ×₁∘first : {A B C D E : Obj} {f : B ⇒ C} {g : D ⇒ E} {h : A ⇒ B} → (f ×₁ g) ∘ first h ≈ (f ∘ h) ×₁ g
+  ×₁∘first = ×₁∘×₁ ○ ×₁-cong₂ Equiv.refl identityʳ
+
+  ×₁∘second : {A B C D E : Obj} {f : A ⇒ B} {g : D ⇒ E} {h : C ⇒ D} → (f ×₁ g) ∘ second h ≈ f ×₁ (g ∘ h)
+  ×₁∘second = ×₁∘×₁ ○ ×₁-cong₂ identityʳ Equiv.refl

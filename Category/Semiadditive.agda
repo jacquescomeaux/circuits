@@ -57,18 +57,14 @@ record Semiadditive : Set (levelOfTerm 𝒞) where
 
     +-assoc : (x y z : A ⇒ B) → (x + y) + z ≈ x + (y + z)
     +-assoc x y z = begin
-        ∇ ∘ (∇ ∘ x ×₁ y ∘ Δ) ×₁ z ∘ Δ                           ≈⟨ refl⟩∘⟨ pushˡ (Equiv.sym first∘×₁) ⟩
-        ∇ ∘ ∇ ×₁ id ∘ (x ×₁ y ∘ Δ) ×₁ z ∘ Δ                     ≈⟨ refl⟩∘⟨ refl⟩∘⟨ ×₁-cong₂ Equiv.refl identityʳ ⟩∘⟨refl ⟨
-        ∇ ∘ ∇ ×₁ id ∘ (x ×₁ y ∘ Δ) ×₁ (z ∘ id) ∘ Δ              ≈⟨ refl⟩∘⟨ refl⟩∘⟨ pushˡ (Equiv.sym ×₁∘×₁) ⟩
-        ∇ ∘ ∇ ×₁ id ∘ (x ×₁ y) ×₁ z ∘ Δ ×₁ id ∘ Δ               ≈⟨ refl⟩∘⟨ ×₁-+₁ ∇ id ⟩∘⟨refl ⟩
-        ∇ ∘ ∇ +₁ id ∘ (x ×₁ y) ×₁ z ∘ Δ ×₁ id ∘ Δ               ≈⟨ extendʳ ∇-assoc ⟩
-        ∇ ∘ (id +₁ ∇ ∘ +-assocˡ) ∘ (x ×₁ y) ×₁ z ∘ Δ ×₁ id ∘ Δ  ≈⟨ refl⟩∘⟨ (refl⟩∘⟨ assocˡ≈+-assocˡ) ⟩∘⟨refl ⟨
-        ∇ ∘ (id +₁ ∇ ∘ assocˡ) ∘ (x ×₁ y) ×₁ z ∘ Δ ×₁ id ∘ Δ    ≈⟨ refl⟩∘⟨ pullʳ (extendʳ assocˡ∘×₁) ⟩
-        ∇ ∘ id +₁ ∇ ∘ x ×₁ (y ×₁ z) ∘ assocˡ ∘ Δ ×₁ id ∘ Δ      ≈⟨ refl⟩∘⟨ ×₁-+₁ id ∇ ⟩∘⟨ refl⟩∘⟨ Δ-assoc ⟨
-        ∇ ∘ id ×₁ ∇ ∘ x ×₁ (y ×₁ z) ∘ id ×₁ Δ ∘ Δ               ≈⟨ refl⟩∘⟨ pullˡ second∘×₁ ⟩
-        ∇ ∘ x ×₁ (∇ ∘ y ×₁ z) ∘ id ×₁ Δ ∘ Δ                     ≈⟨ refl⟩∘⟨ pullˡ ×₁∘×₁ ⟩
-        ∇ ∘ (x ∘ id) ×₁ ((∇ ∘ y ×₁ z) ∘ Δ) ∘ Δ                  ≈⟨ refl⟩∘⟨ ×₁-cong₂ identityʳ assoc ⟩∘⟨refl ⟩
-        ∇ ∘ x ×₁ (∇ ∘ y ×₁ z ∘ Δ) ∘ Δ                           ∎
+        ∇ ∘ (∇ ∘ x ×₁ y ∘ Δ) ×₁ z ∘ Δ                         ≈⟨ refl⟩∘⟨ pushˡ (Equiv.sym first∘×₁) ⟩
+        ∇ ∘ ∇ ×₁ id ∘ (x ×₁ y ∘ Δ) ×₁ z ∘ Δ                   ≈⟨ refl⟩∘⟨ refl⟩∘⟨ pushˡ (Equiv.sym ×₁∘first) ⟩
+        ∇ ∘ ∇ ×₁ id ∘ (x ×₁ y) ×₁ z ∘ Δ ×₁ id ∘ Δ             ≈⟨ extendʳ ∇-assoc-×₁  ⟩
+        ∇ ∘ (id ×₁ ∇ ∘ assocˡ) ∘ (x ×₁ y) ×₁ z ∘ Δ ×₁ id ∘ Δ  ≈⟨ refl⟩∘⟨ pullʳ (extendʳ assocˡ∘×₁) ⟩
+        ∇ ∘ id ×₁ ∇ ∘ x ×₁ y ×₁ z ∘ assocˡ ∘ Δ ×₁ id ∘ Δ      ≈⟨ refl⟩∘⟨ refl⟩∘⟨ refl⟩∘⟨ Δ-assoc ⟨
+        ∇ ∘ id ×₁ ∇ ∘ x ×₁ y ×₁ z ∘ id ×₁ Δ ∘ Δ               ≈⟨ refl⟩∘⟨ refl⟩∘⟨ pullˡ ×₁∘second ⟩
+        ∇ ∘ id ×₁ ∇ ∘ x ×₁ (y ×₁ z ∘ Δ) ∘ Δ                   ≈⟨ refl⟩∘⟨ pullˡ second∘×₁ ⟩
+        ∇ ∘ x ×₁ (∇ ∘ y ×₁ z ∘ Δ) ∘ Δ                         ∎
 
     +-identityˡ : (x : A ⇒ B) → zero⇒ + x ≈ x
     +-identityˡ x = begin
@@ -141,8 +137,7 @@ record Semiadditive : Set (levelOfTerm 𝒞) where
         {k : C ⇒ D}
       → k ∘ (f + g) ∘ h ≈ k ∘ f ∘ h + k ∘ g ∘ h
   +-resp-∘ {f = f} {g} {h} {k} = begin
-      k ∘ (∇ ∘ f ×₁ g ∘ Δ) ∘ h            ≈⟨ extendʳ (extendʳ ⇒∇) ⟩
-      ∇ ∘ (k +₁ k ∘ f ×₁ g ∘ Δ) ∘ h       ≈⟨ refl⟩∘⟨ (×₁-+₁ k k ⟩∘⟨refl) ⟩∘⟨refl ⟨
+      k ∘ (∇ ∘ f ×₁ g ∘ Δ) ∘ h            ≈⟨ extendʳ (extendʳ ⇒∇-×₁) ⟩
       ∇ ∘ (k ×₁ k ∘ f ×₁ g ∘ Δ) ∘ h       ≈⟨ refl⟩∘⟨ pullʳ (pullʳ ⇒Δ) ⟩
       ∇ ∘ k ×₁ k ∘ f ×₁ g ∘ h ×₁ h ∘ Δ    ≈⟨ refl⟩∘⟨ refl⟩∘⟨ pullˡ ×₁∘×₁ ⟩
       ∇ ∘ k ×₁ k ∘ (f ∘ h) ×₁ (g ∘ h) ∘ Δ ≈⟨ refl⟩∘⟨ pullˡ ×₁∘×₁ ⟩
